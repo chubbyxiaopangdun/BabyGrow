@@ -1,0 +1,17 @@
+{
+  "name": "BabyGrow - AI育儿助手",
+  "short_name": "BabyGrow",
+  "description": "每个家庭的专属AI育儿顾问",
+  "start_url": "/web/index.html",
+  "display": "standalone",
+  "background_color": "#FFF9F5",
+  "theme_color": "#FF9B5E",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👶</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

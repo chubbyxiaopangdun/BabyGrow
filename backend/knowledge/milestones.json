@@ -1,0 +1,691 @@
+{
+  "version": "1.0",
+  "description": "BabyGrow 儿童发育里程碑参考（0-6岁）",
+  "source": "基于WHO儿童生长标准、美国儿科学会（AAP）发育里程碑、中国营养学会指南",
+  "milestones": {
+    "0-3": {
+      "name": "0-3个月 婴儿期",
+      "description": "快速生长期，以奶为主，建立亲子关系",
+      "items": [
+        {
+          "id": "motor_0_1",
+          "category": "大运动",
+          "title": "抬头",
+          "month": 1,
+          "description": "俯卧时可短暂抬头",
+          "tips": "清醒时多让宝宝趴着练习抬头，每次1-2分钟"
+        },
+        {
+          "id": "motor_0_2",
+          "category": "大运动",
+          "title": "抬头稳",
+          "month": 2,
+          "description": "俯卧时可抬头45度，片刻后回落",
+          "tips": "用黑白卡在视线前吸引注意力"
+        },
+        {
+          "id": "motor_0_3",
+          "category": "大运动",
+          "title": "抬头90度",
+          "month": 3,
+          "description": "俯卧时可抬头90度，头部稳定",
+          "tips": "可双手托住腋下练习站立跳跃"
+        },
+        {
+          "id": "social_0_1",
+          "category": "社交/情感",
+          "title": "社会性微笑",
+          "month": 1,
+          "description": "对人的声音和面孔有反应，出现社会性微笑",
+          "tips": "多与宝宝说话、微笑互动"
+        },
+        {
+          "id": "social_0_2",
+          "category": "社交/情感",
+          "title": "追视",
+          "month": 2,
+          "description": "目光可跟随移动的物体转动180度",
+          "tips": "用红球或黑白卡在距离20-30cm处缓慢移动"
+        },
+        {
+          "id": "language_0_1",
+          "category": "语言",
+          "title": "咕咕声",
+          "month": 2,
+          "description": "发出咕咕、咯咯等元音声音",
+          "tips": "模仿宝宝的声音回应，鼓励发音"
+        },
+        {
+          "id": "cognitive_0_1",
+          "category": "认知",
+          "title": "注视人脸",
+          "month": 1,
+          "description": "能注视人脸，喜欢看妈妈的脸",
+          "tips": "近距离与宝宝对视交流"
+        },
+        {
+          "id": "hand_0_1",
+          "category": "精细运动",
+          "title": "抓握反射",
+          "month": 1,
+          "description": "手握拳，有抓握反射",
+          "tips": "轻触宝宝掌心，练习抓握轻软玩具"
+        },
+        {
+          "id": "hand_0_2",
+          "category": "精细运动",
+          "title": "手打开",
+          "month": 3,
+          "description": "手大部分时间张开，开始玩手",
+          "tips": "让宝宝自由探索双手，可悬挂摇铃"
+        }
+      ]
+    },
+    "3-6": {
+      "name": "3-6个月 婴儿期",
+      "description": "大运动快速发展，开始添加辅食",
+      "items": [
+        {
+          "id": "motor_3_1",
+          "category": "大运动",
+          "title": "翻身",
+          "month": 4,
+          "description": "从仰卧翻到俯卧，部分宝宝可翻回来",
+          "tips": "用玩具在侧面引导，练习左右翻身"
+        },
+        {
+          "id": "motor_3_2",
+          "category": "大运动",
+          "title": "扶坐",
+          "month": 4,
+          "description": "扶坐时头部稳定，腰背逐渐挺直",
+          "tips": "让宝宝靠着垫子坐，每次5-10分钟"
+        },
+        {
+          "id": "motor_3_3",
+          "category": "大运动",
+          "title": "独坐片刻",
+          "month": 6,
+          "description": "双手撑地独坐片刻，逐渐放开手",
+          "tips": "用玩具在前方吸引注意力，练习平衡"
+        },
+        {
+          "id": "motor_3_4",
+          "category": "大运动",
+          "title": "扶站",
+          "month": 6,
+          "description": "扶着大人手臂或栏杆可站立片刻",
+          "tips": "不要长时间站立，每次1-2分钟即可"
+        },
+        {
+          "id": "social_3_1",
+          "category": "社交/情感",
+          "title": "认人",
+          "month": 4,
+          "description": "开始认妈妈，能区分熟人和陌生人",
+          "tips": "陌生人接近时给宝宝适应时间"
+        },
+        {
+          "id": "social_3_2",
+          "category": "社交/情感",
+          "title": "照镜子",
+          "month": 5,
+          "description": "对镜中自己的影像感兴趣",
+          "tips": "和宝宝一起照镜子，指认五官"
+        },
+        {
+          "id": "language_3_1",
+          "category": "语言",
+          "title": "咿呀学语",
+          "month": 4,
+          "description": "发出咿咿呀呀的声音，开始模仿音调",
+          "tips": "多和宝宝说话，模仿宝宝的"婴语""
+        },
+        {
+          "id": "language_3_2",
+          "category": "语言",
+          "title": "尖叫",
+          "month": 5,
+          "description": "高兴时尖叫，喜欢听自己的声音",
+          "tips": "回应宝宝的尖叫，变换音调互动"
+        },
+        {
+          "id": "cognitive_3_1",
+          "category": "认知",
+          "title": "手眼协调",
+          "month": 4,
+          "description": "主动伸手抓握感兴趣的玩具",
+          "tips": "在宝宝面前摇晃玩具，鼓励抓取"
+        },
+        {
+          "id": "cognitive_3_2",
+          "category": "认知",
+          "title": "因果关系",
+          "month": 5,
+          "description": "意识到摇晃拨浪鼓会发出声音",
+          "tips": "玩拉绳玩具、按键发声玩具"
+        },
+        {
+          "id": "hand_3_1",
+          "category": "精细运动",
+          "title": "主动抓握",
+          "month": 4,
+          "description": "主动伸手抓握玩具，能抓住移动的物体",
+          "tips": "用不同材质的玩具练习抓握"
+        },
+        {
+          "id": "hand_3_2",
+          "category": "精细运动",
+          "title": "双手持物",
+          "month": 5,
+          "description": "双手各持一物，会把物体从一手换到另一手",
+          "tips": "给宝宝两个积木，练习换手"
+        },
+        {
+          "id": "hand_3_3",
+          "category": "精细运动",
+          "title": "拍打玩具",
+          "month": 6,
+          "description": "喜欢拍打桌面上的玩具",
+          "tips": "准备软性玩具让宝宝拍打"
+        }
+      ]
+    },
+    "6-12": {
+      "name": "6-12个月 婴儿期",
+      "description": "爬行期，辅食为主食建立，认生明显",
+      "items": [
+        {
+          "id": "motor_6_1",
+          "category": "大运动",
+          "title": "爬行",
+          "month": 8,
+          "description": "手膝着地爬行，可后退或转弯",
+          "tips": "用玩具在前方引导，不要急着用学步车"
+        },
+        {
+          "id": "motor_6_2",
+          "category": "大运动",
+          "title": "扶走",
+          "month": 9,
+          "description": "扶着家具或大人手走路",
+          "tips": "确保环境安全，让宝宝自己探索"
+        },
+        {
+          "id": "motor_6_3",
+          "category": "大运动",
+          "title": "独站",
+          "month": 10,
+          "description": "独站片刻，不扶任何东西",
+          "tips": "和宝宝玩拉起蹲下游戏"
+        },
+        {
+          "id": "motor_6_4",
+          "category": "大运动",
+          "title": "独走",
+          "month": 12,
+          "description": "独走几步到十几步，部分宝宝需到15个月",
+          "tips": "允许跌倒，不要过度保护"
+        },
+        {
+          "id": "social_6_1",
+          "category": "社交/情感",
+          "title": "认生期",
+          "month": 7,
+          "description": "对陌生人产生警惕，哭闹",
+          "tips": "不要强迫亲近陌生人，逐渐适应"
+        },
+        {
+          "id": "social_6_2",
+          "category": "社交/情感",
+          "title": "分离焦虑",
+          "month": 10,
+          "description": "主要照护者离开时哭闹",
+          "tips": "正式告别，不要偷偷离开"
+        },
+        {
+          "id": "social_6_3",
+          "category": "社交/情感",
+          "title": "挥手再见",
+          "month": 9,
+          "description": "会模仿挥手再见",
+          "tips": "日常生活中多练习"
+        },
+        {
+          "id": "language_6_1",
+          "category": "语言",
+          "title": "无意识叫爸妈",
+          "month": 7,
+          "description": "发baba、mama音，但无明确指向",
+          "tips": "指着自己叫妈妈，指着爸爸叫爸爸"
+        },
+        {
+          "id": "language_6_2",
+          "category": "语言",
+          "title": "有意识叫爸妈",
+          "month": 10,
+          "description": "能正确叫妈妈、爸爸，并有所指",
+          "tips": "多叫宝宝的名字，增强自我认知"
+        },
+        {
+          "id": "language_6_3",
+          "category": "语言",
+          "title": "理解"不"",
+          "month": 9,
+          "description": "理解"不"的含义，会停顿",
+          "tips": "温和坚定地说"不"，不要过度使用"
+        },
+        {
+          "id": "cognitive_6_1",
+          "category": "认知",
+          "title": "物体恒存",
+          "month": 8,
+          "description": "理解物体消失后仍然存在",
+          "tips": "玩躲猫猫、藏玩具游戏"
+        },
+        {
+          "id": "cognitive_6_2",
+          "category": "认知",
+          "title": "模仿动作",
+          "month": 9,
+          "description": "模仿成人打电话、梳头等动作",
+          "tips": "和宝宝一起过家家"
+        },
+        {
+          "id": "hand_6_1",
+          "category": "精细运动",
+          "title": "捏取",
+          "month": 8,
+          "description": "用拇指和食指捏起小物品",
+          "tips": "确保物品安全，练习捡拾小馒头"
+        },
+        {
+          "id": "hand_6_2",
+          "category": "精细运动",
+          "title": "撕纸",
+          "month": 9,
+          "description": "喜欢撕纸，锻炼手指力量",
+          "tips": "提供纸巾、旧报纸让宝宝撕"
+        },
+        {
+          "id": "hand_6_3",
+          "category": "精细运动",
+          "title": "涂鸦",
+          "month": 12,
+          "description": "握住蜡笔在纸上涂画",
+          "tips": "提供大蜡笔，让宝宝自由涂鸦"
+        }
+      ]
+    },
+    "12-18": {
+      "name": "12-18个月 幼儿期",
+      "description": "独立行走，说话萌芽，模仿能力强",
+      "items": [
+        {
+          "id": "motor_12_1",
+          "category": "大运动",
+          "title": "走稳",
+          "month": 15,
+          "description": "走路越来越稳，很少摔倒",
+          "tips": "练习走直线、后退走"
+        },
+        {
+          "id": "motor_12_2",
+          "category": "大运动",
+          "title": "跑",
+          "month": 16,
+          "description": "能跑，但控制力差，容易摔倒",
+          "tips": "在安全范围内让宝宝自由跑动"
+        },
+        {
+          "id": "motor_12_3",
+          "category": "大运动",
+          "title": "踢球",
+          "month": 15,
+          "description": "能踢球，力量控制不佳",
+          "tips": "准备软球，和宝宝一起踢球"
+        },
+        {
+          "id": "motor_12_4",
+          "category": "大运动",
+          "title": "上楼梯",
+          "month": 18,
+          "description": "扶着栏杆上楼梯",
+          "tips": "选择台阶不高的楼梯练习"
+        },
+        {
+          "id": "social_12_1",
+          "category": "社交/情感",
+          "title": "同伴意识",
+          "month": 15,
+          "description": "开始注意其他小朋友",
+          "tips": "多带宝宝到游乐场接触同龄孩子"
+        },
+        {
+          "id": "social_12_2",
+          "category": "社交/情感",
+          "title": "自己吃饭",
+          "month": 14,
+          "description": "想自己拿勺子吃饭",
+          "tips": "允许弄脏，耐心练习"
+        },
+        {
+          "id": "language_12_1",
+          "category": "语言",
+          "title": "单词爆发",
+          "month": 15,
+          "description": "进入单词爆发期，词汇量快速增长",
+          "tips": "指物认物，多和宝宝说话"
+        },
+        {
+          "id": "language_12_2",
+          "category": "语言",
+          "title": "10个以上词汇",
+          "month": 18,
+          "description": "会说10个以上有意义的词",
+          "tips": "用简单句子描述日常活动"
+        },
+        {
+          "id": "cognitive_12_1",
+          "category": "认知",
+          "title": "命名指认",
+          "month": 14,
+          "description": "能指认家人和常见物品",
+          "tips": "一起看绘本，指认图片"
+        },
+        {
+          "id": "cognitive_12_2",
+          "category": "认知",
+          "title": "搭积木",
+          "month": 18,
+          "description": "能搭2-3块积木不倒",
+          "tips": "从2块开始，逐渐增加"
+        },
+        {
+          "id": "hand_12_1",
+          "category": "精细运动",
+          "title": "翻书",
+          "month": 14,
+          "description": "会翻书页，一次翻1-2页",
+          "tips": "提供布书、纸板书"
+        },
+        {
+          "id": "hand_12_2",
+          "category": "精细运动",
+          "title": "握笔",
+          "month": 15,
+          "description": "正确握蜡笔涂鸦",
+          "tips": "不要纠正握姿，自由涂画为主"
+        },
+        {
+          "id": "hand_12_3",
+          "category": "精细运动",
+          "title": "脱袜子",
+          "month": 18,
+          "description": "能自己脱掉袜子",
+          "tips": "换衣服时让宝宝参与"
+        }
+      ]
+    },
+    "18-24": {
+      "name": "18-24个月 幼儿期",
+      "description": "语言快速发展，活动能力增强，有自主意识",
+      "items": [
+        {
+          "id": "motor_18_1",
+          "category": "大运动",
+          "title": "跑稳",
+          "month": 20,
+          "description": "跑步较稳，能绕障碍物",
+          "tips": "设置简单障碍物练习"
+        },
+        {
+          "id": "motor_18_2",
+          "category": "大运动",
+          "title": "跳",
+          "month": 22,
+          "description": "能双脚离地跳一下",
+          "tips": "从矮台阶跳下开始练习"
+        },
+        {
+          "id": "motor_18_3",
+          "category": "大运动",
+          "title": "下楼梯",
+          "month": 21,
+          "description": "扶着栏杆下楼梯",
+          "tips": "上楼梯比下楼梯更难，先练下"
+        },
+        {
+          "id": "social_18_1",
+          "category": "社交/情感",
+          "title": "平行游戏",
+          "month": 20,
+          "description": "和其他小朋友一起玩，但各玩各的",
+          "tips": "不要强迫分享，让宝宝自己发展"
+        },
+        {
+          "id": "social_18_2",
+          "category": "社交/情感",
+          "title": "自己洗手",
+          "month": 20,
+          "description": "能在帮助下洗手",
+          "tips": "准备小凳子让宝宝够得到洗手台"
+        },
+        {
+          "id": "language_18_1",
+          "category": "语言",
+          "title": "短语",
+          "month": 20,
+          "description": "会说2-3个词的短语",
+          "tips": "如"妈妈抱""爸爸走""
+        },
+        {
+          "id": "language_18_2",
+          "category": "语言",
+          "title": "50个词汇",
+          "month": 24,
+          "description": "词汇量达到50个左右",
+          "tips": "每天学习新词汇"
+        },
+        {
+          "id": "language_18_3",
+          "category": "语言",
+          "title": "使用"我"",
+          "month": 21,
+          "description": "开始使用"我"来指代自己",
+          "tips": "帮助宝宝用"我要..."表达需求"
+        },
+        {
+          "id": "cognitive_18_1",
+          "category": "认知",
+          "title": "假装游戏",
+          "month": 20,
+          "description": "会假装喂娃娃吃东西、打电话",
+          "tips": "提供过家家玩具"
+        },
+        {
+          "id": "cognitive_18_2",
+          "category": "认知",
+          "title": "颜色认知",
+          "month": 24,
+          "description": "能认识红、黄、绿等基本颜色",
+          "tips": "指认生活中的颜色"
+        },
+        {
+          "id": "cognitive_18_3",
+          "category": "认知",
+          "title": "形状认知",
+          "month": 24,
+          "description": "能认识圆形、方形、三角形",
+          "tips": "用形状嵌板玩具练习"
+        },
+        {
+          "id": "hand_18_1",
+          "category": "精细运动",
+          "title": "搭积木4块",
+          "month": 21,
+          "description": "能搭4块积木",
+          "tips": "积木游戏锻炼手眼协调"
+        },
+        {
+          "id": "hand_18_2",
+          "category": "精细运动",
+          "title": "拧瓶盖",
+          "month": 22,
+          "description": "能拧开瓶盖",
+          "tips": "玩带盖子的瓶子玩具"
+        },
+        {
+          "id": "hand_18_3",
+          "category": "精细运动",
+          "title": "自己脱衣",
+          "month": 24,
+          "description": "能自己脱掉简单衣物",
+          "tips": "从脱袜子、帽子开始练习"
+        }
+      ]
+    },
+    "2-3": {
+      "name": "2-3岁 幼儿期",
+      "description": "语言爆发期，社交能力发展，有强烈自主意识",
+      "items": [
+        {
+          "id": "motor_2_1",
+          "category": "大运动",
+          "title": "跳远",
+          "month": 30,
+          "description": "能跳远约30cm",
+          "tips": "在地上画线练习跳远"
+        },
+        {
+          "id": "motor_2_2",
+          "category": "大运动",
+          "title": "单脚站",
+          "month": 30,
+          "description": "单脚站立2秒以上",
+          "tips": "金鸡独立游戏练习平衡"
+        },
+        {
+          "id": "motor_2_3",
+          "category": "大运动",
+          "title": "骑三轮车",
+          "month": 36,
+          "description": "能骑三轮车",
+          "tips": "选择合适尺寸的三轮车"
+        },
+        {
+          "id": "social_2_1",
+          "category": "社交/情感",
+          "title": "轮流游戏",
+          "month": 27,
+          "description": "理解轮流的概念",
+          "tips": "玩接龙、轮流取物游戏"
+        },
+        {
+          "id": "social_2_2",
+          "category": "社交/情感",
+          "title": "表达情绪",
+          "month": 30,
+          "description": "能用语言表达高兴、生气等情绪",
+          "tips": "帮助宝宝命名情绪"
+        },
+        {
+          "id": "social_2_3",
+          "category": "社交/情感",
+          "title": "参与游戏",
+          "month": 36,
+          "description": "能参与简单规则的游戏",
+          "tips": "从简单规则游戏开始"
+        },
+        {
+          "id": "language_2_1",
+          "category": "语言",
+          "title": "简单句子",
+          "month": 27,
+          "description": "会说3-5个词的句子",
+          "tips": "如"妈妈我要喝水""
+        },
+        {
+          "id": "language_2_2",
+          "category": "语言",
+          "title": "200词汇",
+          "month": 30,
+          "description": "词汇量约200个",
+          "tips": "多读绘本增加词汇"
+        },
+        {
+          "id": "language_2_3",
+          "category": "语言",
+          "title": "简单提问",
+          "month": 30,
+          "description": "会问"这是什么""为什么"",
+          "tips": "耐心回答，保护好奇心"
+        },
+        {
+          "id": "language_2_4",
+          "category": "语言",
+          "title": "自我介绍",
+          "month": 36,
+          "description": "能说出自己姓名、年龄",
+          "tips": "教宝宝记住基本信息"
+        },
+        {
+          "id": "cognitive_2_1",
+          "category": "认知",
+          "title": "数数1-10",
+          "month": 30,
+          "description": "能数数1-10，但不一定理解数量含义",
+          "tips": "日常数数练习"
+        },
+        {
+          "id": "cognitive_2_2",
+          "category": "认知",
+          "title": "分类配对",
+          "month": 30,
+          "description": "能按颜色、形状分类配对",
+          "tips": "玩形状配对、颜色分类玩具"
+        },
+        {
+          "id": "cognitive_2_3",
+          "category": "认知",
+          "title": "理解上下前后",
+          "month": 30,
+          "description": "理解空间方位词",
+          "tips": "在游戏中练习方位词"
+        },
+        {
+          "id": "hand_2_1",
+          "category": "精细运动",
+          "title": "搭积木6块",
+          "month": 27,
+          "description": "能搭6块以上积木",
+          "tips": "逐渐增加积木数量"
+        },
+        {
+          "id": "hand_2_2",
+          "category": "精细运动",
+          "title": "握笔写字",
+          "month": 30,
+          "description": "能握笔画圆形、十字",
+          "tips": "不要急于写字，运笔练习为主"
+        },
+        {
+          "id": "hand_2_3",
+          "category": "精细运动",
+          "title": "用筷子",
+          "month": 36,
+          "description": "能初步使用筷子",
+          "tips": "用儿童筷子练习夹软食物"
+        },
+        {
+          "id": "hand_2_4",
+          "category": "精细运动",
+          "title": "自己穿衣",
+          "month": 36,
+          "description": "能自己穿简单衣物",
+          "tips": "从宽松衣物开始练习"
+        }
+      ]
+    }
+  }
+}

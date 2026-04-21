@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#FF9B5E">
+    <title>BabyGrow - AI育儿助手</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #FF9B5E;
+            --primary-light: #FFB88C;
+            --primary-dark: #E87A3D;
+            --secondary: #7ECFB3;
+            --secondary-light: #A8E6CF;
+            --bg: #FFF9F5;
+            --bg-card: #FFFFFF;
+            --text-primary: #2D2D2D;
+            --text-secondary: #6B6B6B;
+            --text-muted: #A0A0A0;
+            --success: #7ECFB3;
+            --warning: #FFD166;
+            --danger: #FF6B6B;
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        body {
+            font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            font-size: 16px;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding-top: var(--safe-top);
+            padding-bottom: calc(70px + var(--safe-bottom));
+        }
+
+        /* ========== Header ========== */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--primary);
+            color: white;
+            padding: calc(var(--safe-top) + 12px) 16px 12px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-title .emoji {
+            font-size: 24px;
+        }
+
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* ========== Tab Bar ========== */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            display: flex;
+            padding: 8px 0 calc(8px + var(--safe-bottom));
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 0;
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            font-size: 11px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .tab-item.active {
+            color: var(--primary);
+        }
+
+        .tab-item .icon {
+            font-size: 22px;
+        }
+
+        /* ========== Main Content ========== */
+        .main {
+            padding: calc(var(--safe-top) + 60px) 16px 20px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* ========== Cards ========== */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .card-title {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ========== Child Selector ========== */
+        .child-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+
+        .child-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .child-info {
+            flex: 1;
+        }
+
+        .child-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .child-age {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* ========== Plan Timeline ========== */
+        .plan-timeline {
+            position: relative;
+        }
+
+        .plan-timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+
+        .plan-item {
+            display: flex;
+            gap: 16px;
+            padding: 12px 0;
+            position: relative;
+        }
+
+        .plan-time {
+            width: 50px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-family: "SF Mono", "Menlo", monospace;
+            flex-shrink: 0;
+        }
+
+        .plan-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 3px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .plan-content {
+            flex: 1;
+        }
+
+        .plan-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .plan-details {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* ========== Reminder Cards ========== */
+        .reminder-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+        }
+
+        .reminder-icon {
+            font-size: 20px;
+        }
+
+        .reminder-content {
+            flex: 1;
+        }
+
+        .reminder-title {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .reminder-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* ========== Quick Add ========== */
+        .quick-add-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+
+        .quick-add-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 8px;
+            background: var(--bg);
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-add-btn:active {
+            background: var(--primary-light);
+            transform: scale(0.95);
+        }
+
+        .quick-add-btn .icon {
+            font-size: 24px;
+        }
+
+        .quick-add-btn .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* ========== Record List ========== */
+        .record-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .record-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+        }
+
+        .record-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .record-info {
+            flex: 1;
+        }
+
+        .record-title {
+            font-weight: 500;
+        }
+
+        .record-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .record-action {
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        /* ========== Modal ========== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 200;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            width: 100%;
+            max-width: 480px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: calc(20px + var(--safe-bottom));
+        }
+
+        .modal-handle {
+            width: 40px;
+            height: 4px;
+            background: var(--text-muted);
+            border-radius: 2px;
+            margin: 0 auto 16px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #E0E0E0;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            background: var(--bg);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:active {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text-primary);
+        }
+
+        /* ========== AI Chat ========== */
+        .ai-chat-btn {
+            position: fixed;
+            right: 20px;
+            bottom: calc(80px + var(--safe-bottom));
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: none;
+            box-shadow: 0 4px 12px rgba(255, 155, 94, 0.4);
+            cursor: pointer;
+            z-index: 99;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .chat-modal .messages {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+
+        .chat-message {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-message.user {
+            align-items: flex-end;
+        }
+
+        .chat-message.assistant {
+            align-items: flex-start;
+        }
+
+        .chat-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .chat-message.user .chat-bubble {
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message.assistant .chat-bubble {
+            background: var(--bg);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #E0E0E0;
+            border-radius: var(--radius-full);
+            font-size: 16px;
+        }
+
+        .chat-send {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* ========== Empty State ========== */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state .title {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .empty-state .desc {
+            font-size: 14px;
+        }
+
+        /* ========== Stats ========== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-item {
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            padding: 16px 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* ========== Loader ========== */
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========== Child Setup ========== */
+        .child-setup {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .child-setup .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .child-setup h2 {
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+
+        .child-setup p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .child-setup .btn {
+            max-width: 280px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-title">
+            <span class="emoji">👶</span>
+            <span id="headerChildName">BabyGrow</span>
+        </div>
+        <button class="header-btn" onclick="showSettings()">⚙️ 设置</button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Home Page -->
+        <div id="page-home" class="page active">
+            <div class="child-selector" onclick="showChildSelector()">
+                <div class="child-avatar" id="childAvatar">👶</div>
+                <div class="child-info">
+                    <div class="child-name" id="childName">添加孩子</div>
+                    <div class="child-age" id="childAge">点击创建档案</div>
+                </div>
+                <span>›</span>
+            </div>
+
+            <div id="homeContent">
+                <div class="child-setup">
+                    <div class="icon">👶</div>
+                    <h2>欢迎使用 BabyGrow</h2>
+                    <p>添加您的第一个孩子，开始智能育儿之旅</p>
+                    <button class="btn btn-primary" onclick="showAddChildModal()">+ 添加孩子</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Records Page -->
+        <div id="page-records" class="page">
+            <div class="card">
+                <div class="card-title">📝 今日喂养</div>
+                <div id="todayFeeds">
+                    <div class="empty-state">
+                        <div class="icon">🍼</div>
+                        <div class="desc">暂无记录</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">💤 今日睡眠</div>
+                <div id="todaySleeps">
+                    <div class="empty-state">
+                        <div class="icon">😴</div>
+                        <div class="desc">暂无记录</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meals Page -->
+        <div id="page-meals" class="page">
+            <div class="card">
+                <div class="card-title">🍽️ 今日饮食</div>
+                <div class="quick-add-grid">
+                    <button class="quick-add-btn" onclick="showAddModal('formula')">
+                        <span class="icon">🍼</span>
+                        <span class="label">奶</span>
+                    </button>
+                    <button class="quick-add-btn" onclick="showAddModal('solid')">
+                        <span class="icon">🍜</span>
+                        <span class="label">辅食</span>
+                    </button>
+                    <button class="quick-add-btn" onclick="showAddModal('fruit')">
+                        <span class="icon">🍎</span>
+                        <span class="label">水果</span>
+                    </button>
+                    <button class="quick-add-btn" onclick="showAddModal('snack')">
+                        <span class="icon">🍪</span>
+                        <span class="label">零食</span>
+                    </button>
+                    <button class="quick-add-btn" onclick="showMealSuggestions()">
+                        <span class="icon">📋</span>
+                        <span class="label">食谱</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sleep Page -->
+        <div id="page-sleep" class="page">
+            <div class="card">
+                <div class="card-title">📊 睡眠统计</div>
+                <div class="stats-grid" id="sleepStats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statSleepHours">--</div>
+                        <div class="stat-label">今日睡眠</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statNapCount">--</div>
+                        <div class="stat-label">小睡次数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statNightWakings">--</div>
+                        <div class="stat-label">夜醒</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" onclick="showAddModal('sleep')" style="margin-top: 12px;">+ 记录睡眠</button>
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div id="page-profile" class="page">
+            <div class="card">
+                <div class="card-title">👶 孩子档案</div>
+                <div id="childProfile">
+                    <div class="empty-state">
+                        <div class="icon">📋</div>
+                        <div class="desc">暂无档案</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🌟 发育里程碑</div>
+                <div id="milestones">
+                    <div class="empty-state">
+                        <div class="icon">🎯</div>
+                        <div class="desc">暂无里程碑数据</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Tab Bar -->
+    <nav class="tab-bar">
+        <button class="tab-item active" onclick="switchTab('home')">
+            <span class="icon">🏠</span>
+            <span>首页</span>
+        </button>
+        <button class="tab-item" onclick="switchTab('records')">
+            <span class="icon">📝</span>
+            <span>记录</span>
+        </button>
+        <button class="tab-item" onclick="switchTab('meals')">
+            <span class="icon">🍽️</span>
+            <span>饮食</span>
+        </button>
+        <button class="tab-item" onclick="switchTab('sleep')">
+            <span class="icon">💤</span>
+            <span>睡眠</span>
+        </button>
+        <button class="tab-item" onclick="switchTab('profile')">
+            <span class="icon">👶</span>
+            <span>我的</span>
+        </button>
+    </nav>
+
+    <!-- AI Chat Button -->
+    <button class="ai-chat-btn" onclick="showChat()">🤖</button>
+
+    <!-- Add Child Modal -->
+    <div class="modal-overlay" id="addChildModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-title">添加孩子</div>
+            <form id="addChildForm" onsubmit="addChild(event)">
+                <div class="form-group">
+                    <label class="form-label">姓名</label>
+                    <input type="text" class="form-input" id="childNameInput" placeholder="宝宝姓名" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">出生日期</label>
+                    <input type="date" class="form-input" id="childBirthInput" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">性别</label>
+                    <select class="form-input" id="childGenderInput">
+                        <option value="male">男孩</option>
+                        <option value="female">女孩</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">出生身高(cm)</label>
+                        <input type="number" class="form-input" id="childHeightInput" placeholder="50">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">出生体重(kg)</label>
+                        <input type="number" class="form-input" id="childWeightInput" step="0.1" placeholder="3.3">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">过敏原（选填，多个用逗号分隔）</label>
+                    <input type="text" class="form-input" id="childAllergyInput" placeholder="如：鸡蛋、牛奶">
+                </div>
+                <button type="submit" class="btn btn-primary">保存</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Record Modal -->
+    <div class="modal-overlay" id="addRecordModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-title" id="recordModalTitle">添加记录</div>
+            <form id="addRecordForm" onsubmit="addRecord(event)">
+                <input type="hidden" id="recordType">
+                
+                <div class="form-group" id="foodNameGroup">
+                    <label class="form-label">食物名称</label>
+                    <input type="text" class="form-input" id="foodNameInput" placeholder="如：南瓜粥">
+                </div>
+                
+                <div class="form-group" id="amountGroup">
+                    <label class="form-label">量</label>
+                    <input type="number" class="form-input" id="amountInput" placeholder="150">
+                </div>
+                
+                <div class="form-group" id="unitGroup">
+                    <label class="form-label">单位</label>
+                    <select class="form-input" id="unitInput">
+                        <option value="ml">ml</option>
+                        <option value="g">g</option>
+                        <option value="个">个</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="sleepStartGroup" style="display:none;">
+                    <label class="form-label">入睡时间</label>
+                    <input type="datetime-local" class="form-input" id="sleepStartInput">
+                </div>
+                
+                <div class="form-group" id="sleepEndGroup" style="display:none;">
+                    <label class="form-label">醒来时间</label>
+                    <input type="datetime-local" class="form-input" id="sleepEndInput">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">保存</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chat Modal -->
+    <div class="modal-overlay chat-modal" id="chatModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-title">🤖 AI育儿助手</div>
+            <div class="messages" id="chatMessages">
+                <div class="chat-message assistant">
+                    <div class="chat-bubble">你好！我是BabyGrow AI育儿助手。有什么我可以帮你的吗？</div>
+                </div>
+            </div>
+            <div class="chat-input-row">
+                <input type="text" class="chat-input" id="chatInput" placeholder="输入问题..." onkeypress="handleChatKeypress(event)">
+                <button class="chat-send" onclick="sendChat()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== State ==========
+        const state = {
+            apiBase: '/api/v1',
+            currentChild: null,
+            children: []
+        };
+
+        // ========== Init ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            loadChildren();
+        });
+
+        // ========== API Helpers ==========
+        async function api(endpoint, options = {}) {
+            try {
+                const res = await fetch(state.apiBase + endpoint, {
+                    headers: { 'Content-Type': 'application/json' },
+                    ...options
+                });
+                if (!res.ok) throw new Error(await res.text());
+                return await res.json();
+            } catch (err) {
+                console.error('API Error:', err);
+                return { code: -1, message: err.message };
+            }
+        }
+
+        // ========== Child Management ==========
+        async function loadChildren() {
+            const res = await api('/children');
+            state.children = res;
+            if (res.length > 0) {
+                state.currentChild = res[0];
+                renderHomePage();
+            }
+            updateHeader();
+        }
+
+        function updateHeader() {
+            if (state.currentChild) {
+                document.getElementById('headerChildName').textContent = state.currentChild.name + '的成长助手';
+                document.getElementById('childAvatar').textContent = state.currentChild.name[0];
+                document.getElementById('childAvatar').style.background = state.currentChild.avatar_color || '#FF9B5E';
+            }
+        }
+
+        async function addChild(e) {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('childNameInput').value,
+                birth_date: document.getElementById('childBirthInput').value,
+                gender: document.getElementById('childGenderInput').value,
+                birth_height: parseFloat(document.getElementById('childHeightInput').value) || null,
+                birth_weight: parseFloat(document.getElementById('childWeightInput').value) || null,
+                allergies: document.getElementById('childAllergyInput').value.split(',').map(s => s.trim()).filter(Boolean)
+            };
+            
+            const res = await api('/children', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            
+            if (res.id) {
+                closeModal('addChildModal');
+                state.currentChild = res;
+                state.children.push(res);
+                renderHomePage();
+                updateHeader();
+                e.target.reset();
+            } else {
+                alert('添加失败：' + res.message);
+            }
+        }
+
+        // ========== Rendering ==========
+        function renderHomePage() {
+            if (!state.currentChild) {
+                document.getElementById('homeContent').innerHTML = `
+                    <div class="child-setup">
+                        <div class="icon">👶</div>
+                        <h2>欢迎使用 BabyGrow</h2>
+                        <p>添加您的第一个孩子，开始智能育儿之旅</p>
+                        <button class="btn btn-primary" onclick="showAddChildModal()">+ 添加孩子</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const child = state.currentChild;
+            document.getElementById('childName').textContent = child.name;
+            document.getElementById('childAge').textContent = child.age_display;
+            document.getElementById('childAvatar').textContent = child.name[0];
+
+            // Load today's plan
+            loadTodayPlan();
+        }
+
+        async function loadTodayPlan() {
+            if (!state.currentChild) return;
+
+            const res = await api(`/children/${state.currentChild.id}/plan/today`);
+            if (res.items) {
+                renderPlan(res);
+                renderReminders(res.reminders || []);
+                renderStats(res);
+            }
+        }
+
+        function renderPlan(plan) {
+            const items = plan.items || [];
+            let html = '<div class="card"><div class="card-title">📅 今日安排</div><div class="plan-timeline">';
+            
+            const typeIcons = {
+                'wake': '🌅',
+                'meal': '🍽️',
+                'sleep': '💤',
+                'outdoor': '🚶',
+                'bath': '🛁',
+                'snack': '🍎'
+            };
+
+            for (const item of items) {
+                html += `
+                    <div class="plan-item">
+                        <div class="plan-time">${item.time}</div>
+                        <div class="plan-dot">${typeIcons[item.type] || '📌'}</div>
+                        <div class="plan-content">
+                            <div class="plan-title">${item.title}</div>
+                            ${item.details ? `<div class="plan-details">${item.details}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div></div>';
+            
+            // Insert after child-selector
+            const selector = document.querySelector('.child-selector');
+            const existingCard = selector.nextElementSibling;
+            if (existingCard && existingCard.classList.contains('card')) {
+                existingCard.remove();
+            }
+            selector.insertAdjacentHTML('afterend', html);
+        }
+
+        function renderReminders(reminders) {
+            if (!reminders.length) return;
+            
+            let html = '<div class="card"><div class="card-title">📌 今日提醒</div>';
+            for (const r of reminders) {
+                html += `
+                    <div class="reminder-card">
+                        <span class="reminder-icon">${r.type === 'food' ? '🥕' : r.type === 'vaccine' ? '💉' : '⚠️'}</span>
+                        <div class="reminder-content">
+                            <div class="reminder-title">${r.content}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            
+            document.querySelector('.child-selector').insertAdjacentHTML('afterend', html);
+        }
+
+        function renderStats(plan) {
+            // 渲染喂养和睡眠统计
+            loadTodayFeeds();
+            loadTodaySleeps();
+        }
+
+        async function loadTodayFeeds() {
+            if (!state.currentChild) return;
+            const today = new Date().toISOString().split('T')[0];
+            const res = await api(`/children/${state.currentChild.id}/feeds?date_str=${today}`);
+            
+            if (Array.isArray(res) && res.length > 0) {
+                let html = '';
+                for (const f of res.slice(0, 3)) {
+                    const icon = f.type === 'formula' ? '🍼' : f.type === 'solid' ? '🍜' : '🍎';
+                    html += `
+                        <div class="record-item">
+                            <div class="record-icon">${icon}</div>
+                            <div class="record-info">
+                                <div class="record-title">${f.food_name || '喂养'}</div>
+                                <div class="record-meta">${f.amount || ''} ${f.unit || ''} · ${new Date(f.time).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'})}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                document.getElementById('todayFeeds').innerHTML = html;
+            }
+        }
+
+        async function loadTodaySleeps() {
+            if (!state.currentChild) return;
+            const today = new Date().toISOString().split('T')[0];
+            const res = await api(`/children/${state.currentChild.id}/sleeps?date_str=${today}`);
+            
+            if (Array.isArray(res) && res.length > 0) {
+                let totalMinutes = 0;
+                let napCount = 0;
+                let nightWakings = 0;
+                
+                for (const s of res) {
+                    if (s.duration_minutes) totalMinutes += s.duration_minutes;
+                    if (s.type !== 'night') napCount++;
+                    nightWakings += s.night_wakings || 0;
+                }
+                
+                document.getElementById('statSleepHours').textContent = Math.round(totalMinutes / 60 * 10) / 10 + 'h';
+                document.getElementById('statNapCount').textContent = napCount;
+                document.getElementById('statNightWakings').textContent = nightWakings;
+            }
+        }
+
+        // ========== Records ==========
+        async function addRecord(e) {
+            e.preventDefault();
+            if (!state.currentChild) {
+                alert('请先添加孩子');
+                return;
+            }
+
+            const type = document.getElementById('recordType').value;
+            const childId = state.currentChild.id;
+            
+            let data = {};
+            
+            if (type === 'formula' || type === 'solid' || type === 'fruit' || type === 'snack') {
+                data = {
+                    type: type,
+                    food_name: document.getElementById('foodNameInput').value,
+                    amount: parseFloat(document.getElementById('amountInput').value) || null,
+                    unit: document.getElementById('unitInput').value,
+                    time: new Date().toISOString(),
+                    eating_mode: 'spoon'
+                };
+                
+                const res = await api(`/children/${childId}/feeds`, {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+            } else if (type === 'sleep') {
+                data = {
+                    type: 'nap',
+                    start_time: document.getElementById('sleepStartInput').value,
+                    end_time: document.getElementById('sleepEndInput').value || null,
+                    night_wakings: 0,
+                    quality: 5
+                };
+                
+                const res = await api(`/children/${childId}/sleeps`, {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+            }
+            
+            closeModal('addRecordModal');
+            loadTodayFeeds();
+            loadTodaySleeps();
+        }
+
+        // ========== Chat ==========
+        async function sendChat() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+            
+            if (!state.currentChild) {
+                alert('请先添加孩子');
+                return;
+            }
+
+            // Add user message
+            const messagesEl = document.getElementById('chatMessages');
+            messagesEl.innerHTML += `
+                <div class="chat-message user">
+                    <div class="chat-bubble">${msg}</div>
+                </div>
+            `;
+            input.value = '';
+            
+            // Call API
+            const res = await api('/skill/chat', {
+                method: 'POST',
+                body: JSON.stringify({
+                    child_id: state.currentChild.id,
+                    message: msg
+                })
+            });
+            
+            // Add assistant response
+            const reply = res.data?.reply || '抱歉，暂时无法回答这个问题。';
+            messagesEl.innerHTML += `
+                <div class="chat-message assistant">
+                    <div class="chat-bubble">${reply.replace(/\n/g, '<br>')}</div>
+                </div>
+            `;
+            
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function handleChatKeypress(e) {
+            if (e.key === 'Enter') {
+                sendChat();
+            }
+        }
+
+        // ========== Tab Navigation ==========
+        function switchTab(tab) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            
+            document.getElementById('page-' + tab).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            // Load tab-specific data
+            if (tab === 'records') {
+                loadTodayFeeds();
+                loadTodaySleeps();
+            } else if (tab === 'sleep') {
+                loadTodaySleeps();
+            }
+        }
+
+        // ========== Modals ==========
+        function showAddChildModal() {
+            document.getElementById('addChildModal').classList.add('active');
+        }
+
+        function showAddModal(type) {
+            if (!state.currentChild) {
+                alert('请先添加孩子');
+                return;
+            }
+            
+            document.getElementById('recordType').value = type;
+            
+            const modal = document.getElementById('addRecordModal');
+            
+            // Show/hide fields based on type
+            const isFood = ['formula', 'solid', 'fruit', 'snack'].includes(type);
+            const isSleep = type === 'sleep';
+            
+            document.getElementById('foodNameGroup').style.display = isFood ? 'block' : 'none';
+            document.getElementById('amountGroup').style.display = isFood ? 'block' : 'none';
+            document.getElementById('unitGroup').style.display = isFood ? 'block' : 'none';
+            document.getElementById('sleepStartGroup').style.display = isSleep ? 'block' : 'none';
+            document.getElementById('sleepEndGroup').style.display = isSleep ? 'block' : 'none';
+            
+            document.getElementById('recordModalTitle').textContent = 
+                type === 'formula' ? '🍼 记录喝奶' :
+                type === 'solid' ? '🍜 记录辅食' :
+                type === 'fruit' ? '🍎 记录水果' :
+                type === 'sleep' ? '💤 记录睡眠' : '添加记录';
+            
+            modal.classList.add('active');
+        }
+
+        function showChat() {
+            if (!state.currentChild) {
+                alert('请先添加孩子');
+                return;
+            }
+            document.getElementById('chatModal').classList.add('active');
+        }
+
+        function showChildSelector() {
+            if (state.children.length > 0) {
+                // Simple: just show add child modal for now
+                showAddChildModal();
+            } else {
+                showAddChildModal();
+            }
+        }
+
+        function showSettings() {
+            showAddChildModal();
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function showMealSuggestions() {
+            if (!state.currentChild) {
+                alert('请先添加孩子');
+                return;
+            }
+            document.getElementById('chatInput').value = '给我推荐适合' + state.currentChild.age_display + '宝宝的今日食谱';
+            showChat();
+        }
+
+        // Close modal on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
