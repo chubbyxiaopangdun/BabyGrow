@@ -3,17 +3,10 @@ from datetime import datetime, date
 
 from models.database import get_session, Child, FeedRecord, SleepRecord
 from models.schemas import DailyPlanResponse
+from models.utils import calc_age_months
 from services.planner import daily_planner
 
 router = APIRouter(prefix="/api/v1/children", tags=["plans"])
-
-
-def calc_age_months(birth_date: date) -> int:
-    today = date.today()
-    months = (today.year - birth_date.year) * 12 + (today.month - birth_date.month)
-    if today.day < birth_date.day:
-        months -= 1
-    return max(0, months)
 
 
 def records_to_dicts(records):

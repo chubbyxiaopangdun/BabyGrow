@@ -5,17 +5,9 @@ import uuid
 
 from models.database import get_session, SleepRecord, Child
 from models.schemas import SleepRecordCreate, SleepRecordUpdate, SleepRecordResponse
+from models.utils import calc_age_months
 
 router = APIRouter(prefix="/api/v1/children", tags=["sleeps"])
-
-
-def calc_age_months(birth_date) -> int:
-    """计算月龄"""
-    today = date.today()
-    months = (today.year - birth_date.year) * 12 + (today.month - birth_date.month)
-    if today.day < birth_date.day:
-        months -= 1
-    return max(0, months)
 
 
 def calc_duration(record: SleepRecord) -> int:

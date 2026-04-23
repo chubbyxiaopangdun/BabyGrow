@@ -58,7 +58,6 @@ class AIService:
             "Content-Type": "application/json"
         }
 
-        # 构建消息
         full_messages = []
         if system_prompt:
             full_messages.append({"role": "system", "content": system_prompt})

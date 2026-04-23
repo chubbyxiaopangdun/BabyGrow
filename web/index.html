@@ -981,8 +981,19 @@
     <div class="main-wrap">
         <div id="health-summary" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;"></div>
         <div id="growth-chart" style="background:var(--bg-c);border-radius:var(--r-lg);padding:16px;margin-bottom:16px;box-shadow:var(--sh-sm);">
-            <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--t);">生长曲线</div>
-            <svg id="who-growth-svg" width="100%" height="260" viewBox="0 0 360 260"></svg>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="font-size:14px;font-weight:600;color:var(--t);">生长曲线</div>
+                <div id="growth-chart-tabs" style="display:flex;gap:4px;">
+                    <button onclick="switchGrowthTab('weight',this)" class="growth-tab-btn active" style="padding:3px 10px;font-size:11px;border-radius:20px;border:1px solid var(--p);background:var(--p);color:#fff;">体重</button>
+                    <button onclick="switchGrowthTab('height',this)" class="growth-tab-btn" style="padding:3px 10px;font-size:11px;border-radius:20px;border:1px solid var(--p);background:#fff;color:var(--p);">身高</button>
+                    <button onclick="switchGrowthTab('bmi',this)" class="growth-tab-btn" style="padding:3px 10px;font-size:11px;border-radius:20px;border:1px solid var(--p);background:#fff;color:var(--p);">BMI</button>
+                </div>
+            </div>
+            <div style="position:relative;">
+                <canvas id="who-growth-canvas" width="360" height="220" style="display:block;"></canvas>
+                <svg id="who-growth-svg" width="100%" height="220" viewBox="0 0 360 220" style="display:none;"></svg>
+            </div>
+            <div id="growth-legend" style="display:flex;gap:12px;margin-top:8px;justify-content:center;"></div>
         </div>
         <div id="health-filter" style="display:flex;gap:6px;margin-bottom:12px;"></div>
         <div id="health-list"></div>
@@ -1007,22 +1018,50 @@
         </div>
     </header>
     <div class="main-wrap">
-        <div id="growth-child-info" style="text-align:center;font-size:13px;color:var(--t2);margin-bottom:12px"></div>
+        <div id="growth-child-info" style="text-align:center;font-size:13px;color:var(--t-2);margin-bottom:12px"></div>
+        <!-- Gender toggle for WHO standards -->
+        <div style="display:flex;justify-content:center;gap:8px;margin-bottom:16px;">
+            <button id="growth-btn-boys" onclick="switchGrowthGender('male',this)" style="padding:6px 16px;font-size:12px;border-radius:20px;border:1.5px solid var(--p);background:var(--p);color:#fff;font-weight:500;">男孩</button>
+            <button id="growth-btn-girls" onclick="switchGrowthGender('female',this)" style="padding:6px 16px;font-size:12px;border-radius:20px;border:1.5px solid var(--p);background:#fff;color:var(--p);font-weight:500;">女孩</button>
+        </div>
+        <!-- Chart type toggle -->
+        <div style="display:flex;justify-content:center;gap:6px;margin-bottom:14px;">
+            <button id="growth-tab-weight" onclick="switchGrowthChartType('weight',this)" style="padding:5px 14px;font-size:12px;border-radius:20px;border:1px solid var(--b2);background:var(--p);color:#fff;font-weight:500;">体重</button>
+            <button id="growth-tab-height" onclick="switchGrowthChartType('height',this)" style="padding:5px 14px;font-size:12px;border-radius:20px;border:1px solid var(--b2);background:#fff;color:var(--t-2);font-weight:500;">身高</button>
+            <button id="growth-tab-bmi" onclick="switchGrowthChartType('bmi',this)" style="padding:5px 14px;font-size:12px;border-radius:20px;border:1px solid var(--b2);background:#fff;color:var(--t-2);font-weight:500;">BMI</button>
+        </div>
         <!-- Weight section -->
         <div style="background:var(--bg-c);border-radius:var(--r-lg);padding:16px;margin-bottom:12px;box-shadow:var(--sh-sm)">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                <div style="font-size:14px;font-weight:600;color:var(--t)">体重</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <div style="font-size:14px;font-weight:600;color:var(--t)">体重曲线</div>
                 <div id="growth-wt-status" style="font-size:12px;font-weight:600;color:var(--p)">--</div>
             </div>
-            <div id="growth-weight-chart"></div>
+            <div style="position:relative;height:260px;">
+                <div id="growth-weight-chart"></div>
+            </div>
+            <div id="growth-weight-legend" style="display:flex;gap:10px;margin-top:10px;justify-content:center;flex-wrap:wrap;"></div>
         </div>
         <!-- Height section -->
         <div style="background:var(--bg-c);border-radius:var(--r-lg);padding:16px;margin-bottom:12px;box-shadow:var(--sh-sm)">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                <div style="font-size:14px;font-weight:600;color:var(--t)">身高</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <div style="font-size:14px;font-weight:600;color:var(--t)">身高曲线</div>
                 <div id="growth-ht-status" style="font-size:12px;font-weight:600;color:var(--s)">--</div>
             </div>
-            <div id="growth-height-chart"></div>
+            <div style="position:relative;height:260px;">
+                <div id="growth-height-chart"></div>
+            </div>
+            <div id="growth-height-legend" style="display:flex;gap:10px;margin-top:10px;justify-content:center;flex-wrap:wrap;"></div>
+        </div>
+        <!-- BMI section -->
+        <div id="growth-bmi-section" style="background:var(--bg-c);border-radius:var(--r-lg);padding:16px;margin-bottom:12px;box-shadow:var(--sh-sm);display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <div style="font-size:14px;font-weight:600;color:var(--t)">BMI曲线</div>
+                <div id="growth-bmi-status" style="font-size:12px;font-weight:600;color:var(--info)">--</div>
+            </div>
+            <div style="position:relative;height:260px;">
+                <canvas id="growth-bmi-canvas"></canvas>
+            </div>
+            <div id="growth-bmi-legend" style="display:flex;gap:10px;margin-top:10px;justify-content:center;flex-wrap:wrap;"></div>
         </div>
         <!-- Recent records -->
         <div id="growth-records-list"></div>
@@ -1329,6 +1368,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="knowledge.js"></script>
 <script>
 // ==================== STATE ====================
@@ -1347,14 +1387,49 @@ var state = {
     document.getElementById('input-birth').max = maxDate;
     document.getElementById('edit-birth').max = maxDate;
 
-    if (state.currentChild) {
-        showPage('home');
-        updateHomePage();
-        generateTodayPlan();
-    } else {
-        showPage('welcome');
-    }
+    // Sync children from backend server
+    syncChildrenFromServer().then(function() {
+        if (state.currentChild) {
+            showPage('home');
+            updateHomePage();
+            generateTodayPlan();
+        } else {
+            showPage('welcome');
+        }
+    });
 })();
+
+// Sync children from backend server to keep localStorage in sync
+function syncChildrenFromServer() {
+    return fetch('http://localhost:8765/api/v1/children')
+        .then(function(res) { return res.json(); })
+        .then(function(children) {
+            if (Array.isArray(children) && children.length > 0) {
+                // Transform backend format to frontend format
+                var frontendChildren = children.map(function(c) {
+                    return {
+                        id: c.id,
+                        name: c.name,
+                        birth: c.birth_date,
+                        gender: c.gender,
+                        feeding: c.feeding || '',
+                        trait: c.trait || '',
+                        concerns: c.concerns || [],
+                        months: c.age_months
+                    };
+                });
+                state.children = frontendChildren;
+                // Set first child as current if none set
+                if (!state.currentChild && frontendChildren.length > 0) {
+                    state.currentChild = frontendChildren[0];
+                }
+                saveState();
+            }
+        })
+        .catch(function(e) {
+            console.log('Failed to sync children from server:', e);
+        });
+}
 
 function loadState() {
     try {
@@ -1611,10 +1686,117 @@ function generateTodayPlan() {
     var months = getAge(child.birth);
     child.months = months;
 
+    // Show loading state
+    var scheduleContainer = document.getElementById('schedule-list');
+    if (scheduleContainer) {
+        scheduleContainer.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t-2)">生成中...</div>';
+    }
+
+    // Try backend API first
+    fetch('/api/v1/children/' + encodeURIComponent(child.id) + '/plan/today')
+        .then(function(res) { return res.json(); })
+        .then(function(plan) {
+            state.todayPlan = plan;
+            if (plan && plan.items) {
+                renderScheduleFromApi(plan);
+            } else {
+                renderKnowledgePlan(child, months);
+            }
+        })
+        .catch(function() {
+            // Fallback to local knowledge
+            renderKnowledgePlan(child, months);
+        });
+}
+function renderScheduleFromApi(plan) {
+    var scheduleItems = (plan.items || []).map(function(item) {
+        var typeMap = { 'meal': 'food', 'wake': 'other', 'sleep': 'other', 'outdoor': 'other', 'bath': 'other' };
+        var t = typeMap[item.type] || item.type || 'other';
+        var activity = item.title || '';
+        var details = item.details || '';
+        var recipe = null;
+        if (item.type === 'meal' || item.type === 'wake') {
+            recipe = { name: activity, tips: item.notes || '', nutrition: item.nutrition || '' };
+            if (item.preparation) {
+                recipe.steps = item.preparation.split('→').map(function(s) { return s.trim(); });
+                recipe.ingredients = [];
+            }
+        }
+        return { time: item.time || '', activity: activity, details: details, type: t, recipe: recipe };
+    });
+    plan.schedule = scheduleItems;
+    var remindersHtml = '';
+    if (plan.reminders && plan.reminders.length) {
+        remindersHtml = '<div style="margin-bottom:12px">';
+        plan.reminders.forEach(function(r) {
+            remindersHtml += '<div style="background:#FEF3C7;border-radius:8px;padding:8px 12px;font-size:12px;color:#92400E;margin-bottom:6px">💡 ' + escapeHtml(r.content) + '</div>';
+        });
+        remindersHtml += '</div>';
+    }
+    var aiTipsHtml = '';
+    if (plan.ai_tips) {
+        aiTipsHtml = '<div style="background:linear-gradient(135deg,var(--p),var(--s));border-radius:12px;padding:12px;margin-bottom:12px;color:#fff;font-size:12px;line-height:1.6">' + escapeHtml(plan.ai_tips) + '</div>';
+    }
+    var container = document.getElementById('schedule-list');
+    if (!container) return;
+    var topHtml = remindersHtml + aiTipsHtml;
+    if (scheduleItems.length === 0) {
+        container.innerHTML = topHtml + '<div class="schedule-empty"><div class="schedule-empty-icon"><svg class=""><use href="#ic-calendar"/></svg></div><div class="empty-title">暂无安排</div></div>';
+        return;
+    }
+    var html = topHtml;
+    var typeMap2 = { food: 'p-food', game: 'p-game', story: 'p-story' };
+    scheduleItems.forEach(function(item) {
+        var dotClass = typeMap2[item.type] || 'p-other';
+        var title = item.activity || '';
+        var time = item.time || '';
+        html += '<div class="schedule-item">' +
+            '<div class="schedule-item-header" onclick="toggleScheduleItem(this)">' +
+                '<div class="schedule-time">' + escapeHtml(time) + '</div>' +
+                '<div class="schedule-dot ' + dotClass + '"></div>' +
+                '<div class="schedule-title">' + escapeHtml(title) + '</div>' +
+                '<div class="schedule-details-preview" style="flex:1;font-size:12px;color:var(--t-2);margin-left:8px">' + escapeHtml(item.details || '') + '</div>' +
+                '<div class="schedule-chevron"><svg class="" style="width:16px;height:16px;color:var(--t-3)"><use href="#ic-chevron-down"/></svg></div>' +
+            '</div>' +
+            '<div class="schedule-content"><div class="schedule-inner">' +
+                (item.recipe ? renderApiRecipeDetail(item) : renderApiGenericDetail(item)) +
+            '</div></div></div>';
+    });
+    container.innerHTML = html;
+}
+
+function renderApiRecipeDetail(item) {
+    var r = item.recipe || {};
+    var html = '<div class="schedule-section"><div class="schedule-section-title"><svg class=""><use href="#ic-apple"/></svg>食材清单</div>';
+    if (r.ingredients && r.ingredients.length) {
+        var ingHtml = '';
+        r.ingredients.forEach(function(ing) { ingHtml += '<div class="ing-item"><span class="ing-name">' + escapeHtml(ing.name || '') + '</span><span class="ing-amount">' + escapeHtml(ing.amount || '') + '</span></div>'; });
+        html += '<div class="ingredients-list">' + ingHtml + '</div>';
+    } else if (item.details) {
+        html += '<div class="schedule-note">' + escapeHtml(item.details) + '</div>';
+    }
+    html += '</div>';
+    if (r.steps && r.steps.length) {
+        html += '<div class="schedule-section"><div class="schedule-section-title"><svg class=""><use href="#ic-list"/></svg>操作步骤</div><div class="schedule-steps">';
+        r.steps.forEach(function(step, si) { html += '<div class="schedule-step"><span class="step-num">' + (si + 1) + '</span><span class="step-text">' + escapeHtml(step) + '</span></div>'; });
+        html += '</div></div>';
+    }
+    if (r.tips) html += '<div class="schedule-section"><div class="schedule-section-title"><svg class=""><use href="#ic-tips"/></svg>小贴士</div><div class="schedule-note">' + escapeHtml(r.tips) + '</div></div>';
+    if (r.nutrition) html += '<div class="schedule-section"><div class="schedule-section-title"><svg class=""><use href="#ic-growth"/></svg>营养价值</div><div class="schedule-note">' + escapeHtml(r.nutrition) + '</div></div>';
+    return html;
+}
+
+function renderApiGenericDetail(item) {
+    var html = '';
+    if (item.details) html += '<div class="schedule-section"><div class="schedule-section-title"><svg class=""><use href="#ic-info"/></svg>详情</div><div class="schedule-note">' + escapeHtml(item.details) + '</div></div>';
+    if (item.recipe && item.recipe.tips) html += '<div class="schedule-section"><div class="schedule-section-title"><svg class=""><use href="#ic-tips"/></svg>提示</div><div class="schedule-note">' + escapeHtml(item.recipe.tips) + '</div></div>';
+    return html;
+}
+
+function renderKnowledgePlan(child, months) {
     var plan = null;
     if (window.KNOWLEDGE && window.KNOWLEDGE.getDailyPlan) {
         plan = window.KNOWLEDGE.getDailyPlan(child, new Date());
-        // Transform getDailyPlan output to what renderSchedule expects
         if (plan && plan.schedule) {
             plan.meals = plan.schedule
                 .filter(function(item) { return item.expandable && item.expandable.type === 'recipe'; })
@@ -1673,12 +1855,11 @@ function generateTodayPlan() {
                 });
         }
     }
-
     if (!plan) {
         plan = generateDefaultPlan(child, months);
     }
-
     state.todayPlan = plan;
+    renderSchedule(plan);
 }
 
 function generateDefaultPlan(child, months) {
@@ -1992,8 +2173,14 @@ function sendChat() {
 
     var messagesEl = document.getElementById('chatMessages');
 
-    // Add user message
-    messagesEl.innerHTML += '<div class="chat-msg user"><div class="chat-bubble">' + escapeHtml(msg) + '</div></div>';
+    // Add user message (use textContent via helper)
+    var userBubble = document.createElement('div');
+    userBubble.className = 'chat-msg user';
+    var bubble = document.createElement('div');
+    bubble.className = 'chat-bubble';
+    bubble.textContent = msg;
+    userBubble.appendChild(bubble);
+    messagesEl.appendChild(userBubble);
     input.value = '';
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
@@ -2005,12 +2192,24 @@ function sendChat() {
     callChatAPI(msg).then(function(reply) {
         var typing = document.getElementById('typing-indicator');
         if (typing) typing.remove();
-        messagesEl.innerHTML += '<div class="chat-msg assistant"><div class="chat-bubble">' + reply + '</div></div>';
+        var assistantDiv = document.createElement('div');
+        assistantDiv.className = 'chat-msg assistant';
+        var assistantBubble = document.createElement('div');
+        assistantBubble.className = 'chat-bubble';
+        assistantBubble.innerHTML = reply;
+        assistantDiv.appendChild(assistantBubble);
+        messagesEl.appendChild(assistantDiv);
         messagesEl.scrollTop = messagesEl.scrollHeight;
     }).catch(function(err) {
         var typing = document.getElementById('typing-indicator');
         if (typing) typing.remove();
-        messagesEl.innerHTML += '<div class="chat-msg assistant"><div class="chat-bubble">抱歉，发生了错误，请稍后再试。</div></div>';
+        var errDiv = document.createElement('div');
+        errDiv.className = 'chat-msg assistant';
+        var errBubble = document.createElement('div');
+        errBubble.className = 'chat-bubble';
+        errBubble.textContent = '抱歉，发生了错误，请稍后再试。';
+        errDiv.appendChild(errBubble);
+        messagesEl.appendChild(errDiv);
         messagesEl.scrollTop = messagesEl.scrollHeight;
     });
 }
@@ -2054,66 +2253,36 @@ async function callChatAPI(message) {
 }
 
 async function callAIWithKnowledge(message, child, months) {
-    // Determine API config: user key > StepFun > MiniMax default
-    var apiKey = state.apiKey || '3g80UpBcgwzysEIhcKdD4piO9uu4QGVuDx6KsNVpdd0dcByFCEWKEcRB7KbsTRfDi';
-    var apiBase = 'https://api.stepfun.com/v1';
-    var model = 'step-3.5-flash';
+    // Proxy through backend to avoid exposing API keys in frontend code
+    // User can set their own key in the settings modal (state.apiKey)
+    var payload = {
+        messages: [{ role: 'user', content: message }],
+        child_info: {
+            name: child.name,
+            months: months,
+            feeding: child.feeding,
+            concerns: child.concerns,
+            trait: child.trait
+        }
+    };
 
-    // Check if key looks like OpenAI format
-    if (apiKey && apiKey.startsWith('sk-')) {
-        apiBase = 'https://api.openai.com/v1';
-        model = 'gpt-4o-mini';
+    // If user set a custom API key, pass it to backend proxy
+    if (state.apiKey) {
+        payload.api_key = state.apiKey;
     }
 
-    // Build knowledge context
-    var kb = window.KNOWLEDGE || {};
-    var ageRange = months <= 12 ? '6-12' : months <= 24 ? '12-24' : '24-36';
-    var recipes = kb.getRecipes ? kb.getRecipes(months) : [];
-    var games = kb.getGames ? kb.getGames(months) : [];
-    var stories = kb.getStories ? kb.getStories(months) : [];
-    var summary = kb.getTodaySummary ? kb.getTodaySummary(child) : '';
-
-    var recipeNames = recipes.slice(0,3).map(function(r){ return r.meals[0] && r.meals[0].name || ''; }).filter(Boolean).join('、');
-    var gameNames = games.slice(0,3).map(function(g){ return g.name; }).join('、');
-    var storyNames = stories.slice(0,3).map(function(s){ return s.name; }).join('、');
-
-    var systemPrompt = '你是BabyGrow，温暖的AI育儿顾问。请根据以下知识库信息，结合宝宝具体情况，用友好、温暖的语气用中文回答。\n\n【今日重点】' + summary + '\n\n【适龄食谱】' + recipeNames + '\n【适龄游戏】' + gameNames + '\n【推荐故事】' + storyNames + '\n\n回答尽量用列表或卡片式，方便阅读。如涉及具体操作（辅食、游戏），给出步骤。';
-
-    var userContent = '【宝宝信息】小名：' + child.name + '，月龄：' + months + '个月，喂养：' + getFeedingLabel(child.feeding);
-    if (child.concerns && child.concerns.length) userContent += '，关注：' + child.concerns.join('、');
-    if (child.trait) userContent += '，特点：' + child.trait;
-    userContent += '\n\n【问题】' + message;
-
     try {
-        var res = await fetch(apiBase + '/chat/completions', {
+        var res = await fetch('/api/chat', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + apiKey
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userContent }
-                ],
-                temperature: 0.7,
-                max_tokens: 1024
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
 
         if (res.ok) {
             var data = await res.json();
-            var reply = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning || data.choices?.[0]?.reasoning || '好的，我明白了！';
-            if (reply && reply.length > 200 && data.choices[0].message.reasoning) {
-                // reasoning model: combine reasoning + content
-                var content = data.choices[0].message.content || '';
-                reply = (content || reply).trim() || '好的，我明白了！';
-            }
-            return formatAIResponse(reply);
+            return formatAIResponse(data.reply || '好的，我明白了！');
         } else {
-            var errText = await res.text();
-            console.log('API error:', res.status, errText.slice(0,100));
+            console.log('Chat API error:', res.status);
             return '抱歉，暂时无法回答这个问题（' + res.status + '）。';
         }
     } catch(e) {
@@ -2391,11 +2560,13 @@ function renderFeedingList() {
     }
     var html = records.map(function(r) {
         var icon = r.type==='母乳'?'#ic-baby':r.type==='配方奶'?'#ic-bottle':'#ic-apple';
+        var notesSpan = r.notes ? '<span style="color:var(--t3)"> · <span id="fn-notes-'+r.id+'"></span></span>' : '';
+        var amountText = (r.amount||'') + ' ' + (r.unit||'');
         return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--b2)">'
             + '<svg style="width:20px;height:20px;color:var(--p);flex-shrink:0"><use href="'+icon+'"/></svg>'
             + '<div style="flex:1">'
-            + '<div style="font-size:13px;font-weight:600">'+r.type+'</div>'
-            + '<div style="font-size:11px;color:var(--t2)">'+(r.amount||'')+' '+(r.unit||'')+(r.notes?' · '+r.notes:'')+'</div>'
+            + '<div style="font-size:13px;font-weight:600" id="fn-type-'+r.id+'"></div>'
+            + '<div style="font-size:11px;color:var(--t2)"><span id="fn-amount-'+r.id+'"></span>'+notesSpan+'</div>'
             + '</div>'
             + '<div style="font-size:11px;color:var(--t2);text-align:right">'
             + '<div>'+(r.date||'').slice(5)+'</div>'
@@ -2405,6 +2576,15 @@ function renderFeedingList() {
             + '</div>';
     }).join('');
     document.getElementById('feeding-list').innerHTML = html;
+    // Set text content safely (prevents XSS)
+    records.forEach(function(r) {
+        var typeEl = document.getElementById('fn-type-'+r.id);
+        var amountEl = document.getElementById('fn-amount-'+r.id);
+        var notesEl = document.getElementById('fn-notes-'+r.id);
+        if (typeEl) typeEl.textContent = r.type || '';
+        if (amountEl) amountEl.textContent = (r.amount||'') + ' ' + (r.unit||'');
+        if (notesEl) notesEl.textContent = r.notes || '';
+    });
 }
 
 function openFeedingModal() {
@@ -2674,13 +2854,28 @@ function saveHealthRecord() {
 // ==================== SHARED ====================
 function deleteRecord(type, id) {
     if (!confirm('确定删除？')) return;
-    var key = {'feeding':'babygrow_feeding','sleep':'babygrow_sleep','health':'babygrow_health'}[type];
-    var records = JSON.parse(localStorage.getItem(key) || '[]');
-    records = records.filter(function(r){return r.id !== id;});
-    localStorage.setItem(key, JSON.stringify(records));
-    if (type === 'feeding') renderFeedingList();
-    else if (type === 'sleep') renderSleepList();
-    else if (type === 'health') renderHealthList();
+    var apiPath = null;
+    if (type === 'feeding') apiPath = '/api/v1/children/' + encodeURIComponent(state.currentChild.id) + '/feeds/' + id;
+    else if (type === 'sleep') apiPath = '/api/v1/children/' + encodeURIComponent(state.currentChild.id) + '/sleeps/' + id;
+    else if (type === 'health') apiPath = '/api/v1/children/' + encodeURIComponent(state.currentChild.id) + '/health/' + id;
+    else if (type === 'growth') {
+        // Growth records still use localStorage
+        var records = JSON.parse(localStorage.getItem('babygrow_growth') || '[]');
+        records = records.filter(function(r){return r.id !== id;});
+        localStorage.setItem('babygrow_growth', JSON.stringify(records));
+        initGrowthPage();
+        return;
+    }
+    if (!apiPath) return;
+    fetch(apiPath, { method: 'DELETE' })
+        .then(function() {
+            if (type === 'feeding') renderFeedingList ? renderFeedingList() : initRecordsPage();
+            else if (type === 'sleep') renderSleepList ? renderSleepList() : initRecordsPage();
+            else if (type === 'health') renderHealthList ? renderHealthList() : initHealthPage();
+        })
+        .catch(function() {
+            alert('删除失败');
+        });
 }
 
 // Override showPage to auto-init record pages
@@ -2923,35 +3118,64 @@ function changeRecordDate(delta) {
 function renderRecordsLists(dateStr) {
     if (!state.currentChild) return;
     var cid = state.currentChild.id;
-    var feedRecords = JSON.parse(localStorage.getItem('babygrow_feeding') || '[]').filter(function(r){return r.child_id===cid && r.date===dateStr;});
-    var sleepRecords = JSON.parse(localStorage.getItem('babygrow_sleep') || '[]').filter(function(r){return r.child_id===cid && r.date===dateStr;});
 
-    if (feedRecords.length === 0) {
-        document.getElementById('records-feeding-list').innerHTML = '<div style="text-align:center;color:var(--t-3);padding:20px;font-size:13px">今日暂无喂养记录</div>';
-    } else {
-        var fHtml = feedRecords.map(function(r) {
-            var icon = r.type==='母乳'?'#ic-baby':r.type==='配方奶'?'#ic-bottle':'#ic-apple';
-            return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(44,20,17,.04)">'
-                +'<svg style="width:18px;height:18px;color:var(--p);flex-shrink:0"><use href="'+icon+'"/></svg>'
-                +'<div style="flex:1"><div style="font-size:13px;font-weight:500">'+r.type+'</div>'
-                +'<div style="font-size:11px;color:var(--t-3)">'+(r.amount||'')+' '+(r.unit||'')+(r.notes?' · '+r.notes:'')+'</div></div>'
-                +'<div style="font-size:11px;color:var(--t-3)">'+r.time+'</div></div>';
-        }).join('');
-        document.getElementById('records-feeding-list').innerHTML = fHtml;
-    }
+    // Show loading
+    var feedList = document.getElementById('records-feeding-list');
+    var sleepList = document.getElementById('records-sleep-list');
+    if (feedList) feedList.innerHTML = '<div style="text-align:center;color:var(--t-3);padding:20px;font-size:13px">加载中...</div>';
+    if (sleepList) sleepList.innerHTML = '<div style="text-align:center;color:var(--t-3);padding:20px;font-size:13px">加载中...</div>';
 
-    if (sleepRecords.length === 0) {
-        document.getElementById('records-sleep-list').innerHTML = '<div style="text-align:center;color:var(--t-3);padding:20px;font-size:13px">今日暂无睡眠记录</div>';
-    } else {
-        var sHtml = sleepRecords.map(function(r) {
-            return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(44,20,17,.04)">'
-                +'<svg style="width:18px;height:18px;color:var(--s);flex-shrink:0"><use href="#ic-moon"/></svg>'
-                +'<div style="flex:1"><div style="font-size:13px;font-weight:500">'+r.type+' <span style="font-size:11px;color:var(--t-3)">'+r.duration+'h</span></div>'
-                +'<div style="font-size:11px;color:var(--t-3)">'+r.start_time+' → '+r.end_time+' · 夜醒'+(r.night_wakings||0)+'次</div></div>'
-                +'<div style="font-size:11px;color:var(--t-3)"><span style="color:'+(r.quality==='好'?'var(--ok)':r.quality==='差'?'var(--err)':'var(--warn)')+'">'+r.quality+'</span></div></div>';
-        }).join('');
-        document.getElementById('records-sleep-list').innerHTML = sHtml;
-    }
+    // Fetch feeds from backend
+    fetch('/api/v1/children/' + encodeURIComponent(cid) + '/feeds')
+        .then(function(res) { return res.json(); })
+        .then(function(records) {
+            var dayRecords = (records || []).filter(function(r) {
+                return r.time && r.time.slice(0,10) === dateStr;
+            });
+            if (dayRecords.length === 0) {
+                document.getElementById('records-feeding-list').innerHTML = '<div style="text-align:center;color:var(--t-3);padding:20px;font-size:13px">今日暂无喂养记录</div>';
+            } else {
+                var fHtml = dayRecords.map(function(r) {
+                    var icon = r.type==='breast_milk'?'#ic-baby':r.type==='formula'?'#ic-bottle':'#ic-apple';
+                    var typeName = r.type==='breast_milk'?'母乳':r.type==='formula'?'配方奶':r.type==='solid'?'辅食':'水果/零食';
+                    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(44,20,17,.04)">'
+                        +'<svg style="width:18px;height:18px;color:var(--p);flex-shrink:0"><use href="'+icon+'"/></svg>'
+                        +'<div style="flex:1"><div style="font-size:13px;font-weight:500">'+typeName+'</div>'
+                        +'<div style="font-size:11px;color:var(--t-3)">'+(r.amount||'')+' '+(r.unit||'')+(r.notes?' · '+r.notes:'')+'</div></div>'
+                        +'<div style="font-size:11px;color:var(--t-3)">'+r.time.slice(11,16)+'</div></div>';
+                }).join('');
+                document.getElementById('records-feeding-list').innerHTML = fHtml;
+            }
+        })
+        .catch(function() {
+            document.getElementById('records-feeding-list').innerHTML = '<div style="text-align:center;color:var(--t-3);padding:20px;font-size:13px">加载失败</div>';
+        });
+
+    // Fetch sleeps from backend
+    fetch('/api/v1/children/' + encodeURIComponent(cid) + '/sleeps')
+        .then(function(res) { return res.json(); })
+        .then(function(records) {
+            var dayRecords = (records || []).filter(function(r) {
+                return r.start_time && r.start_time.slice(0,10) === dateStr;
+            });
+            if (dayRecords.length === 0) {
+                document.getElementById('records-sleep-list').innerHTML = '<div style="text-align:center;color:var(--t-3);padding:20px;font-size:13px">今日暂无睡眠记录</div>';
+            } else {
+                var sHtml = dayRecords.map(function(r) {
+                    var typeName = r.type==='nap'?'午睡':r.type==='afternoon'?'白天小睡':'夜睡';
+                    var hours = Math.round((r.duration_minutes || 0) / 60 * 10) / 10;
+                    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(44,20,17,.04)">'
+                        +'<svg style="width:18px;height:18px;color:var(--s);flex-shrink:0"><use href="#ic-moon"/></svg>'
+                        +'<div style="flex:1"><div style="font-size:13px;font-weight:500">'+typeName+' <span style="font-size:11px;color:var(--t-3)">'+hours+'h</span></div>'
+                        +'<div style="font-size:11px;color:var(--t-3)">'+r.start_time.slice(11,16)+' → '+r.end_time.slice(11,16)+' · 夜醒'+(r.night_wakings||0)+'次</div></div>'
+                        +'<div style="font-size:11px;color:var(--t-3)"><span style="color:'+(r.quality>=4?'var(--ok)':r.quality>=2?'var(--warn)':'var(--err)')+'">'+(r.quality||'?')+'分</span></div></div>';
+                }).join('');
+                document.getElementById('records-sleep-list').innerHTML = sHtml;
+            }
+        })
+        .catch(function() {
+            document.getElementById('records-sleep-list').innerHTML = '<div style="text-align:center;color:var(--t-3);padding:20px;font-size:13px">加载失败</div>';
+        });
 }
 
 function openRecordModal(type) {
@@ -3011,54 +3235,58 @@ function openRecordModal(type) {
 
 function saveRecordFeeding(modalId) {
     if (!state.currentChild) return;
-    var records = JSON.parse(localStorage.getItem('babygrow_feeding') || '[]');
-    records.push({
-        id: Date.now(),
-        child_id: state.currentChild.id,
-        date: document.getElementById('rec-feed-date').value,
-        time: document.getElementById('rec-feed-time').value,
+    var dateVal = document.getElementById('rec-feed-date').value;
+    var timeVal = document.getElementById('rec-feed-time').value;
+    var payload = {
         type: document.getElementById('rec-feed-type').value,
-        amount: document.getElementById('rec-feed-amount').value,
+        food_name: document.getElementById('rec-feed-amount').value ? (document.getElementById('rec-feed-notes').value || document.getElementById('rec-feed-type').options[document.getElementById('rec-feed-type').selectedIndex].text) : '',
+        amount: parseFloat(document.getElementById('rec-feed-amount').value) || 0,
         unit: document.getElementById('rec-feed-unit').value,
-        notes: document.getElementById('rec-feed-notes').value
+        time: dateVal + 'T' + timeVal + ':00',
+        eating_mode: 'spoon',
+        new_food: false,
+        notes: document.getElementById('rec-feed-notes').value || null
+    };
+    fetch('/api/v1/children/' + encodeURIComponent(state.currentChild.id) + '/feeds', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(function() {
+        closeModal(modalId);
+        document.getElementById(modalId).remove();
+        if (window._recordDate) renderRecordsLists(window._recordDate);
+        else initRecordsPage();
     });
-    localStorage.setItem('babygrow_feeding', JSON.stringify(records));
-    closeModal(modalId);
-    document.getElementById(modalId).remove();
-    if (window._recordDate) {
-        renderRecordsLists(window._recordDate);
-    } else {
-        initRecordsPage();
-    }
 }
 
 function saveRecordSleep(modalId) {
     if (!state.currentChild) return;
+    var dateVal = document.getElementById('rec-sleep-date').value;
     var start = document.getElementById('rec-sleep-start').value;
     var end = document.getElementById('rec-sleep-end').value;
     var sh = parseInt(start.split(':')[0]) + parseInt(start.split(':')[1])/60;
     var eh = parseInt(end.split(':')[0]) + parseInt(end.split(':')[1])/60;
-    var duration = eh > sh ? (eh - sh).toFixed(1) : (24 - sh + eh).toFixed(1);
-    var records = JSON.parse(localStorage.getItem('babygrow_sleep') || '[]');
-    records.push({
-        id: Date.now(),
-        child_id: state.currentChild.id,
-        date: document.getElementById('rec-sleep-date').value,
+    var durationMinutes = eh > sh ? Math.round((eh - sh) * 60) : Math.round((24 - sh + eh) * 60);
+    var qualityMap = { '好': 5, '中': 3, '差': 1 };
+    var qualityVal = qualityMap[document.getElementById('rec-sleep-quality').value] || 3;
+    var payload = {
         type: document.getElementById('rec-sleep-type').value,
-        start_time: start,
-        end_time: end,
-        duration: duration,
-        quality: document.getElementById('rec-sleep-quality').value,
-        night_wakings: parseInt(document.getElementById('rec-sleep-night').value) || 0
+        start_time: dateVal + 'T' + start + ':00',
+        end_time: dateVal + 'T' + end + ':00',
+        quality: qualityVal,
+        night_wakings: parseInt(document.getElementById('rec-sleep-night').value) || 0,
+        notes: null
+    };
+    fetch('/api/v1/children/' + encodeURIComponent(state.currentChild.id) + '/sleeps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(function() {
+        closeModal(modalId);
+        document.getElementById(modalId).remove();
+        if (window._recordDate) renderRecordsLists(window._recordDate);
+        else initRecordsPage();
     });
-    localStorage.setItem('babygrow_sleep', JSON.stringify(records));
-    closeModal(modalId);
-    document.getElementById(modalId).remove();
-    if (window._recordDate) {
-        renderRecordsLists(window._recordDate);
-    } else {
-        initRecordsPage();
-    }
 }
 
 function initHealthPage() {
@@ -3106,14 +3334,35 @@ function drawGrowthChart() {
     var chartH = h - padding.top - padding.bottom;
     var months = [0, 3, 6, 9, 12, 15, 18, 21, 24];
 
-    // WHO体重标准 kg (boys 0-24m) - 3rd/15th/50th/85th/97th
-    var whoWeight = {
-        '3rd':  [2.5, 4.3, 5.8, 6.7, 7.4, 8.0, 8.6, 9.2, 9.7],
-        '15th': [2.9, 4.9, 6.5, 7.6, 8.3, 9.0, 9.7,10.3,10.9],
-        '50th': [3.3, 5.8, 7.4, 8.5, 9.2,10.0,10.8,11.5,12.2],
-        '85th': [3.8, 6.6, 8.4, 9.6,10.5,11.5,12.4,13.2,14.0],
-        '97th': [4.3, 7.4, 9.4,10.7,11.8,12.9,14.0,14.9,15.8]
-    };
+    // WHO growth standards (gender-correct, 0-60 months)
+    var isBoy = (state.currentChild.gender !== 'female');
+    var KB = window.KNOWLEDGE;
+    var whoWeight = isBoy ? KB.getWhoWeightBoys() : KB.getWhoWeightGirls();
+    var whoHeight = isBoy ? KB.getWhoHeightBoys() : KB.getWhoHeightGirls();
+    // WHO BMI-for-age (3rd/15th/50th/85th/97th), interpolated monthly
+    var bmiBoys = [
+        [0,11.2,11.9,12.9,13.9,15.0],[1,12.3,13.0,14.1,15.3,16.5],[2,13.2,14.0,15.2,16.4,17.7],
+        [3,13.9,14.7,15.9,17.2,18.6],[4,14.3,15.1,16.3,17.7,19.2],[5,14.6,15.4,16.7,18.1,19.7],
+        [6,14.7,15.5,16.8,18.3,19.9],[7,14.7,15.5,16.8,18.4,20.1],[8,14.7,15.5,16.8,18.4,20.3],
+        [9,14.6,15.4,16.8,18.4,20.4],[10,14.5,15.4,16.8,18.5,20.6],[11,14.4,15.3,16.7,18.5,20.8],
+        [12,14.3,15.3,16.7,18.4,20.9],[13,14.2,15.2,16.6,18.4,21.0],[14,14.1,15.1,16.6,18.5,21.2],
+        [15,14.0,15.0,16.6,18.5,21.4],[16,13.9,15.0,16.6,18.6,21.6],[17,13.8,14.9,16.6,18.7,21.8],
+        [18,13.7,14.9,16.6,18.7,22.0],[19,13.7,14.9,16.6,18.8,22.2],[20,13.6,14.8,16.6,18.9,22.4],
+        [21,13.6,14.8,16.6,18.9,22.6],[22,13.5,14.8,16.7,19.0,22.8],[23,13.5,14.8,16.7,19.1,23.0],
+        [24,13.5,14.8,16.7,19.2,23.2]
+    ];
+    var bmiGirls = [
+        [0,10.8,11.4,12.4,13.5,14.7],[1,11.8,12.5,13.6,14.8,16.1],[2,12.7,13.4,14.6,15.9,17.3],
+        [3,13.3,14.0,15.3,16.7,18.2],[4,13.6,14.4,15.7,17.2,18.8],[5,13.8,14.6,16.0,17.5,19.2],
+        [6,13.9,14.7,16.1,17.7,19.5],[7,13.9,14.7,16.2,17.8,19.7],[8,13.8,14.7,16.2,17.9,20.0],
+        [9,13.7,14.6,16.2,18.0,20.2],[10,13.6,14.5,16.2,18.1,20.4],[11,13.5,14.4,16.1,18.2,20.7],
+        [12,13.4,14.4,16.1,18.2,20.9],[13,13.3,14.3,16.1,18.3,21.0],[14,13.2,14.3,16.1,18.3,21.2],
+        [15,13.1,14.2,16.1,18.4,21.4],[16,13.1,14.2,16.1,18.5,21.6],[17,13.0,14.2,16.1,18.6,21.8],
+        [18,12.9,14.1,16.1,18.6,22.0],[19,12.9,14.1,16.1,18.7,22.2],[20,12.8,14.1,16.1,18.8,22.4],
+        [21,12.8,14.1,16.1,18.8,22.6],[22,12.7,14.0,16.1,18.9,22.8],[23,12.7,14.0,16.1,19.0,23.0],
+        [24,12.7,14.0,16.2,19.1,23.2]
+    ];
+    var whoBMI = isBoy ? bmiBoys : bmiGirls;
     var colors = {'3rd':'#f4a261','15th':'#a8dadc','50th':'#7ECFB3','85th':'#a8dadc','97th':'#f4a261'};
     var widths = {'3rd':'1','15th':'1','50th':'2','85th':'1','97th':'1'};
     var opacity = {'3rd':'0.5','15th':'0.5','50th':'0.8','85th':'0.5','97th':'0.5'};

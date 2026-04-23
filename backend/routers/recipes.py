@@ -242,7 +242,7 @@ async def get_shopping_list(child_id: str):
 
         return {
             "child_id": child_id,
-            "child_age_months":        calc_age_months(child.birth_date),
+            "child_age_months": _calc_age_months(child.birth_date),
             "shopping_list": {k: v for k, v in categorized.items() if v},
             "total_items": len(shopping),
             "tips": "食材采购后，按年龄添加，注意观察3天无过敏反应再继续"

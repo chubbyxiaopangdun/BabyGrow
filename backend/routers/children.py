@@ -4,30 +4,62 @@ from datetime import date
 import uuid
 import json
 
-from models.database import get_session, Child
+from models.database import get_session, Child, HealthRecord
 from models.schemas import ChildCreate, ChildUpdate, ChildResponse
+from models.utils import calc_age_months, calc_age_display
 
 router = APIRouter(prefix="/api/v1/children", tags=["children"])
 
 
-def calc_age_months(birth_date: date) -> int:
-    """计算月龄"""
-    today = date.today()
-    months = (today.year - birth_date.year) * 12 + (today.month - birth_date.month)
-    if today.day < birth_date.day:
-        months -= 1
-    return max(0, months)
+def _get_current_health(session, child_id: str) -> tuple:
+    """获取孩子最新的身高和体重记录"""
+    latest_height = (
+        session.query(HealthRecord)
+        .filter(HealthRecord.child_id == child_id, HealthRecord.type == "height")
+        .order_by(HealthRecord.date.desc())
+        .first()
+    )
+    latest_weight = (
+        session.query(HealthRecord)
+        .filter(HealthRecord.child_id == child_id, HealthRecord.type == "weight")
+        .order_by(HealthRecord.date.desc())
+        .first()
+    )
+    return (latest_height.value if latest_height else None,
+            latest_weight.value if latest_weight else None)
 
 
-def calc_age_display(age_months: int) -> str:
-    """计算月龄显示"""
-    if age_months < 12:
-        return f"{age_months}个月"
-    years = age_months // 12
-    months = age_months % 12
-    if months == 0:
-        return f"{years}岁"
-    return f"{years}岁{months}个月"
+def _build_child_response(child: Child, session=None) -> ChildResponse:
+    """构建 ChildResponse，从健康记录查询 current_height/weight"""
+    age_months = calc_age_months(child.birth_date)
+    allergies = []
+    if child.allergies:
+        try:
+            allergies = json.loads(child.allergies)
+        except:
+            allergies = []
+
+    current_height = None
+    current_weight = None
+    if session:
+        current_height, current_weight = _get_current_health(session, child.id)
+
+    return ChildResponse(
+        id=child.id,
+        name=child.name,
+        birth_date=child.birth_date,
+        gender=child.gender.value if child.gender else "male",
+        birth_height=child.birth_height,
+        birth_weight=child.birth_weight,
+        allergies=allergies,
+        notes=child.notes or "",
+        avatar_color=child.avatar_color or "#FF9B5E",
+        age_months=age_months,
+        age_display=calc_age_display(age_months),
+        current_height=current_height,
+        current_weight=current_weight,
+        created_at=child.created_at
+    )
 
 
 @router.get("", response_model=List[ChildResponse])
@@ -36,30 +68,7 @@ async def list_children():
     session = get_session()
     try:
         children = session.query(Child).all()
-        result = []
-        for c in children:
-            age_months = calc_age_months(c.birth_date)
-            allergies = []
-            if c.allergies:
-                try:
-                    allergies = json.loads(c.allergies)
-                except:
-                    allergies = []
-            result.append(ChildResponse(
-                id=c.id,
-                name=c.name,
-                birth_date=c.birth_date,
-                gender=c.gender.value if c.gender else "male",
-                birth_height=c.birth_height,
-                birth_weight=c.birth_weight,
-                allergies=allergies,
-                notes=c.notes or "",
-                avatar_color=c.avatar_color or "#FF9B5E",
-                age_months=age_months,
-                age_display=calc_age_display(age_months),
-                created_at=c.created_at
-            ))
-        return result
+        return [_build_child_response(c, session) for c in children]
     finally:
         session.close()
 
@@ -72,29 +81,7 @@ async def get_child(child_id: str):
         child = session.query(Child).filter(Child.id == child_id).first()
         if not child:
             raise HTTPException(status_code=404, detail="孩子不存在")
-        
-        age_months = calc_age_months(child.birth_date)
-        allergies = []
-        if child.allergies:
-            try:
-                allergies = json.loads(child.allergies)
-            except:
-                allergies = []
-        
-        return ChildResponse(
-            id=child.id,
-            name=child.name,
-            birth_date=child.birth_date,
-            gender=child.gender.value if child.gender else "male",
-            birth_height=child.birth_height,
-            birth_weight=child.birth_weight,
-            allergies=allergies,
-            notes=child.notes or "",
-            avatar_color=child.avatar_color or "#FF9B5E",
-            age_months=age_months,
-            age_display=calc_age_display(age_months),
-            created_at=child.created_at
-        )
+        return _build_child_response(child, session)
     finally:
         session.close()
 
@@ -122,22 +109,7 @@ async def create_child(child: ChildCreate):
         session.add(db_child)
         session.commit()
         session.refresh(db_child)
-        
-        age_months = calc_age_months(db_child.birth_date)
-        return ChildResponse(
-            id=db_child.id,
-            name=db_child.name,
-            birth_date=db_child.birth_date,
-            gender=db_child.gender.value,
-            birth_height=db_child.birth_height,
-            birth_weight=db_child.birth_weight,
-            allergies=child.allergies or [],
-            notes=db_child.notes or "",
-            avatar_color=db_child.avatar_color or "#FF9B5E",
-            age_months=age_months,
-            age_display=calc_age_display(age_months),
-            created_at=db_child.created_at
-        )
+        return _build_child_response(db_child, session)
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=400, detail=str(e))
@@ -153,7 +125,7 @@ async def update_child(child_id: str, child: ChildUpdate):
         db_child = session.query(Child).filter(Child.id == child_id).first()
         if not db_child:
             raise HTTPException(status_code=404, detail="孩子不存在")
-        
+
         if child.name is not None:
             db_child.name = child.name
         if child.birth_date is not None:
@@ -170,32 +142,14 @@ async def update_child(child_id: str, child: ChildUpdate):
             db_child.notes = child.notes
         if child.avatar_color is not None:
             db_child.avatar_color = child.avatar_color
-        
+
+        # 触发 updated_at 自动更新（显式设置会让 onupdate 生效）
+        from datetime import datetime
+        db_child.updated_at = datetime.utcnow()
+
         session.commit()
         session.refresh(db_child)
-        
-        age_months = calc_age_months(db_child.birth_date)
-        allergies = []
-        if db_child.allergies:
-            try:
-                allergies = json.loads(db_child.allergies)
-            except:
-                allergies = []
-        
-        return ChildResponse(
-            id=db_child.id,
-            name=db_child.name,
-            birth_date=db_child.birth_date,
-            gender=db_child.gender.value,
-            birth_height=db_child.birth_height,
-            birth_weight=db_child.birth_weight,
-            allergies=allergies,
-            notes=db_child.notes or "",
-            avatar_color=db_child.avatar_color or "#FF9B5E",
-            age_months=age_months,
-            age_display=calc_age_display(age_months),
-            created_at=db_child.created_at
-        )
+        return _build_child_response(db_child, session)
     except HTTPException:
         raise
     except Exception as e:
