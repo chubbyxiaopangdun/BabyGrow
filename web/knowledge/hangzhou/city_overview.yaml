@@ -1,0 +1,28 @@
+# 杭州亲子资源概览 v1.0
+version: 1.0
+last_updated: 2026-04-23
+
+summary: |
+  杭州是长三角核心城市，亲子资源丰富。西溪湿地、西湖景区为户外核心，
+  滨江/城西有大量室内亲子乐园，浙江大学附属儿童医院（湖滨/滨江）为权威儿科。
+
+key_advantages:
+  - 城市规划好，地铁覆盖主城区，适合带娃出行
+  - 政府建设大量社区公园和儿童游乐设施
+  - 互联网城市，生鲜配送30分钟覆盖主城区（盒马/叮咚/美团）
+  - 儿童医院资源好（浙大儿院、省儿保）
+
+key_challenges:
+  - 西湖景区周末极堵，建议地铁出行
+  - 梅雨季节（6月中-7月中）户外活动受限
+  - 夏季高温（7-8月）户外需防暑
+  - 春秋季花粉过敏高发
+
+default_transit: 地铁+打车
+default_weather_threshold:
+  aqi_good: 100
+  aqi_moderate: 150
+  rain_intensity_light: 0.5  # mm/h
+  rain_intensity_heavy: 5.0
+  temp_outdoor_min: 5
+  temp_outdoor_max: 35

@@ -1,0 +1,77 @@
+# 上城区亲子资源 v1.0
+# 特点：老杭州核心区，湖滨商圈，适合遛娃但人多
+
+district: 上城区
+characteristics: |
+  上城区是杭州老城区核心，湖滨商圈、河坊街、南宋御街都在此。
+  人流量极大，开车极堵。带娃建议地铁+步行。
+  河坊街有传统文化体验，适合大宝宝。
+
+outdoor_parks:
+  - name: 湖滨商圈（in77）
+    address: 上城区延安路/平海路
+    lat_lng: [120.1595, 30.2565]
+    type: 商业街区+湖滨公园
+    suitable_age: [全年龄]
+    facilities: [购物中心, 湖滨草坪, 音乐喷泉]
+    ticket: 免费
+    parking: 湖滨银泰停车场（极贵，15元/小时）
+    subway: "1号线 龙翔桥站"
+    best_time: "工作日（非节假日）"
+    notes: |
+      地理位置绝佳（西湖边），但人极多。
+      in77B区有较大儿童区。
+      傍晚看西湖日落+音乐喷泉是经典。
+      节假日绝对不去，人山人海。
+    hazards: 人多容易走失，2岁以下必须牵手或背带
+
+  - name: 河坊街
+    address: 上城区河坊街
+    lat_lng: [120.1678, 30.2488]
+    type: 历史文化街区
+    suitable_age: [3y+，2岁可看热闹]
+    ticket: 免费
+    best_time: "工作日下午（人少）"
+    notes: 老杭州传统文化街，有糖人、捏面人等手工艺展示
+    hazards: 人多、地面不平（石板路），推车不便
+
+  - name: 吴山广场/河坊街
+    address: 上城区延安路南端
+    lat_lng: [120.1685, 30.2465]
+    type: 广场+老街
+    suitable_age: [全年龄]
+    notes: 连接河坊街，可以一起逛
+
+indoor_playgrounds:
+  - name: 湖滨银泰in77儿童区
+    address: 上城区平海路
+    type: 商场内置游乐区
+    suitable_age: [全年龄]
+    facilities: [海洋球, 滑梯, 摇摇马]
+    price: 免费（部分项目收费）
+    notes: 开放式空间，适合短暂停留
+
+  - name: 杭州少年儿童图书馆
+    address: 上城区清泰街
+    lat_lng: [120.1705, 30.2535]
+    type: 少儿图书馆
+    suitable_age: [全年龄]
+    facilities: [绘本区, 多媒体区, 活动区]
+    subway: "1号线 城站（步行10分钟）"
+    notes: 专注儿童，分龄阅读区做得好
+
+hospitals:
+  - name: 杭州市第一人民医院
+    address: 上城区浣纱路261号
+    lat_lng: [120.1575, 30.2645]
+    pediatric_excellence: [儿科, 新生儿科]
+    emergency_24h: true
+    subway: "1号线 龙翔桥站（步行10分钟）"
+    notes: 三甲综合医院，儿科实力强，号相对好挂
+
+delivery_services:
+  - name: 盒马鲜生（解百店）
+    address: 上城区延安路179号
+    coverage: 湖滨/河坊街/吴山广场区域
+    delivery_time: 30分钟
+    notes: 解百仓储店型，品类最全

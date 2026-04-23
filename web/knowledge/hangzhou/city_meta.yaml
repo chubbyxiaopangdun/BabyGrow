@@ -1,0 +1,20 @@
+# 杭州城市元信息
+city: 杭州
+province: 浙江
+climate_zone: 亚热带季风气候
+timezone: Asia/Shanghai
+lat_lng: [120.1534, 30.2874]
+districts:
+  - 上城区
+  - 拱墅区
+  - 西湖区
+  - 滨江区
+  - 萧山区
+  - 余杭区
+  - 临平区
+  - 钱塘区
+  - 富阳区
+  - 临安区
+  - 桐庐县
+  - 淳安县
+  - 建德市

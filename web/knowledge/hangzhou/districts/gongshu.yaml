@@ -1,0 +1,70 @@
+# 拱墅区亲子资源 v1.0
+# 特点：杭州老工业区改造区，运河文化，适合文化探索
+
+district: 拱墅区
+characteristics: |
+  拱墅区以京杭大运河文化为核心，近年工业遗址改造成功。
+  小河油桶、拱宸桥、运河广场是遛娃好去处。
+  区域较大，地铁覆盖不如核心区。
+
+outdoor_parks:
+  - name: 小河公园
+    address: 拱墅区小河路
+    lat_lng: [120.1318, 30.3185]
+    type: 工业遗址公园
+    suitable_age: [全年龄，推荐1y+]
+    facilities: [油罐建筑, 草坪, 运河步道, 儿童游乐区]
+    ticket: 免费
+    subway: "5号线 大运河站（步行5分钟）"
+    best_time: "春秋季（户外舒适）"
+    notes: |
+      工业风改造公园，非常出片。
+      儿童游乐区设施新，面积不大但维护好。
+      靠近运河，风景好。
+    hazards: 部分区域仍在施工，注意安全
+
+  - name: 运河广场
+    address: 拱墅区运河文化广场
+    lat_lng: [120.1288, 30.3225]
+    type: 运河文化广场
+    suitable_age: [全年龄]
+    facilities: [广场, 运河博物馆, 商铺]
+    ticket: 免费
+    subway: "5号线 大运河站（步行8分钟）"
+    notes: 适合傍晚散步，有大运河博物馆可以参观
+
+  - name: 拱宸桥
+    address: 拱墅区拱宸桥
+    lat_lng: [120.1278, 30.3255]
+    type: 古桥+运河景观
+    suitable_age: [全年龄，推荐2y+]
+    ticket: 免费
+    notes: 京杭大运河标志性古桥，桥面不平，推车不便
+    hazards: 桥面石板路不平
+
+  - name: 和睦公园
+    address: 拱墅区和睦路
+    lat_lng: [120.1285, 30.3165]
+    type: 社区公园
+    suitable_age: [全年龄]
+    facilities: [沙坑, 滑梯, 秋千]
+    ticket: 免费
+    notes: 周边居民常去，儿童设施齐全，适合小宝宝
+
+indoor_playgrounds:
+  - name: 运河上街
+    address: 拱墅区台州路
+    type: 商业街+室内乐园
+    suitable_age: [全年龄]
+    facilities: [游乐设施, 餐饮]
+    subway: "5号线 大运河站"
+    notes: 商场内置儿童区
+
+hospitals:
+  - name: 杭州市第二人民医院
+    address: 拱墅区温州路126号
+    lat_lng: [120.1567, 30.3195]
+    pediatric_excellence: [儿科, 新生儿科]
+    emergency_24h: true
+    subway: "5号线 大运河站（步行5分钟）"
+    notes: 三甲综合医院，儿科实力较强

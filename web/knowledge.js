@@ -1215,3 +1215,589 @@ window.KNOWLEDGE = (function() {
     }
   };
 })();
+
+
+// ======== KNOWLEDGE ENGINE v1.0 ========
+
+// ============================================================
+// BabyGrow Knowledge Engine v1.0 - Hangzhou MVP
+// 一人带娃SOP知识库引擎
+// ============================================================
+
+(function() {
+  'use strict';
+
+  // ---- Knowledge Base Loader ----
+  // Each KB module exports load() -> Promise
+  // All data merges into window.KNOWLEDGE namespace
+
+  function loadTextFile(path) {
+    return fetch(path)
+      .then(function(r) { return r.text(); })
+      .catch(function() { return null; });
+  }
+
+  function loadYaml文本(path) {
+    // Simple YAML parser for our flat-ish structure
+    // Real implementation: use js-yaml library
+    return loadTextFile(path).then(function(text) {
+      if (!text) return {};
+      var result = {};
+      var currentSection = null;
+      var lines = text.split('\n');
+      var inBlock = false;
+      var blockKey = null;
+      var blockLines = [];
+
+      lines.forEach(function(line) {
+        // Handle block scalars (| / >)
+        if (inBlock) {
+          if (line.match(/^\S/)) {
+            // Next key, close block
+            result[blockKey] = blockLines.join('\n').trim();
+            inBlock = false;
+            blockLines = [];
+          } else {
+            blockLines.push(line);
+            return;
+          }
+        }
+
+        if (inBlock) {
+          blockLines.push(line);
+          return;
+        }
+
+        line = line.replace(/^\s*/, '');
+        if (!line || line.startsWith('#')) return;
+
+        // Block scalar
+        var blockMatch = line.match(/^(\w+):\s*[|>]\s*$/);
+        if (blockMatch) {
+          inBlock = true;
+          blockKey = blockMatch[1];
+          return;
+        }
+
+        // Key-value
+        var kvMatch = line.match(/^(\w+(?:_\w+)*):\s*(.+)$/);
+        if (kvMatch) {
+          result[kvMatch[1]] = kvMatch[2].trim().replace(/^["']|["']$/g, '');
+        }
+      });
+
+      if (inBlock && blockKey) {
+        result[blockKey] = blockLines.join('\n').trim();
+      }
+
+      return result;
+    });
+  }
+
+  function loadAllKnowledge() {
+    var base = '/knowledge/hangzhou/';
+    var promises = [
+      loadYaml文本(base + 'city_overview.yaml').then(function(d) {
+        window.__KB.cityOverview = d;
+      }),
+      loadYaml文本(base + 'seasonal_ingredients.yaml').then(function(d) {
+        window.__KB.seasonalIngredients = d;
+      }),
+      loadYaml文本(base + 'weather_patterns.yaml').then(function(d) {
+        window.__KB.weatherPatterns = d;
+      }),
+      loadYaml文本(base + 'transit/metro.yaml').then(function(d) {
+        window.__KB.transit = d;
+      }),
+      loadYaml文本(base + 'sop_templates/one_person_care.yaml').then(function(d) {
+        window.__KB.sopTemplates = d;
+      }),
+    ];
+
+    // Load district files
+    ['binjiang', 'xihu', 'shangcheng', 'gongshu'].forEach(function(dist) {
+      promises.push(loadYaml文本(base + 'districts/' + dist + '.yaml').then(function(d) {
+        window.__KB.districts = window.__KB.districts || {};
+        window.__KB.districts[dist] = d;
+      }));
+    });
+
+    return Promise.all(promises);
+  }
+
+  // ============================================================
+  // Public API: window.KNOWLEDGE.*
+  // ============================================================
+
+  window.__KB = {
+    ready: false,
+    cityOverview: null,
+    seasonalIngredients: null,
+    weatherPatterns: null,
+    transit: null,
+    sopTemplates: null,
+    districts: {},
+
+    init: function() {
+      if (this.ready) return Promise.resolve();
+      var self = this;
+      return loadAllKnowledge().then(function() {
+        self.ready = true;
+        console.log('[KB] Knowledge base loaded for Hangzhou');
+      });
+    },
+
+    // ---- 获取当前季节 ----
+    getSeason: function(date) {
+      date = date || new Date();
+      var m = date.getMonth() + 1;
+      if (m >= 3 && m <= 5) return 'spring';
+      if (m >= 6 && m <= 8) return 'summer';
+      if (m >= 9 && m <= 11) return 'autumn';
+      return 'winter';
+    },
+
+    // ---- 获取应季食材 ----
+    getSeasonalIngredients: function(date, category) {
+      var season = this.getSeason(date);
+      var si = this.seasonalIngredients;
+      if (!si || !si[season]) return [];
+      var items = si[season].local_produce || [];
+      if (category) {
+        items = items.filter(function(i) { return i.category === category; });
+      }
+      return items;
+    },
+
+    // ---- 获取全年通用食材 ----
+    getYearRoundIngredients: function(category) {
+      var si = this.seasonalIngredients;
+      if (!si || !si.year_round) return [];
+      var items = [];
+      Object.keys(si.year_round).forEach(function(cat) {
+        (si.year_round[cat] || []).forEach(function(name) {
+          items.push({ name: name, category: cat, year_round: true });
+        });
+      });
+      if (category) {
+        items = items.filter(function(i) { return i.category === category; });
+      }
+      return items;
+    },
+
+    // ---- 户外活动推荐（根据天气） ----
+    recommendOutdoor: function(weather) {
+      // weather: { temp, aqi, rain_mm_h, condition }
+      var rules = this.weatherPatterns && this.weatherPatterns.outdoor_activity_rules || [];
+      var defaults = this.weatherPatterns && this.weatherPatterns.indoor_backup_required_months || [];
+
+      // Check month-based indoor requirement
+      var now = new Date();
+      var month = now.getMonth() + 1;
+      var needsIndoor = defaults.some(function(m) {
+        if (typeof m === 'number') return m === month;
+        if (typeof m === 'string' && m.includes(month)) return true;
+        return false;
+      });
+      if (needsIndoor) {
+        return { recommendation: 'indoor', reason: '当前月份(' + month + '月)天气不稳定，建议室内活动' };
+      }
+
+      var aqi = weather.aqi || 50;
+      var temp = weather.temp || 25;
+      var rain = weather.rain_mm_h || 0;
+
+      if (aqi > 200) {
+        return { recommendation: 'indoor', reason: '空气质量严重污染(AQI=' + aqi + ')' };
+      }
+      if (aqi > 150) {
+        return { recommendation: 'indoor', reason: '空气质量中度污染(AQI=' + aqi + ')，敏感人群建议室内' };
+      }
+      if (rain >= 10) {
+        return { recommendation: 'indoor', reason: '大雨天气，不建议户外' };
+      }
+      if (rain >= 2.5) {
+        return { recommendation: 'indoor', reason: '中雨天气，建议室内' };
+      }
+      if (temp < 5) {
+        return { recommendation: 'indoor', reason: '气温过低(' + temp + '°C)' };
+      }
+      if (temp > 35) {
+        return { recommendation: 'outdoor_morning', reason: '高温天气(' + temp + '°C)，仅早晨傍晚适合户外' };
+      }
+      if (temp > 32) {
+        return { recommendation: 'outdoor_early', reason: '气温较高(' + temp + '°C)，注意防暑' };
+      }
+      return { recommendation: 'outdoor', reason: '天气适宜，适合户外活动' };
+    },
+
+    // ---- 获取区县资源 ----
+    getDistrictResources: function(district, type) {
+      // district: 'binjiang', 'xihu', etc.
+      // type: 'outdoor_parks', 'indoor_playgrounds', 'hospitals', etc.
+      var d = this.districts[district];
+      if (!d) return [];
+      if (type) return d[type] || [];
+      return d;
+    },
+
+    // ---- 获取区县推荐户外地点（按月龄过滤）----
+    getRecommendedParks: function(district, ageMonths) {
+      var parks = this.getDistrictResources(district, 'outdoor_parks');
+      var minAge = ageMonths >= 12 ? '12m' : '6m';
+      return parks.filter(function(p) {
+        var sa = p.suitable_age || [];
+        // Accept if age range includes minAge or is "全年龄"
+        if (sa.indexOf('全年龄') >= 0) return true;
+        // Simple check - could be improved
+        return true;
+      }).map(function(p) {
+        return {
+          name: p.name,
+          type: p.type,
+          address: p.address,
+          suitable_age: p.suitable_age,
+          best_time: p.best_time,
+          subway: p.subway_access,
+          notes: p.notes,
+          travel_time_min: p.travel_time_min || 20
+        };
+      });
+    },
+
+    // ---- 获取SOP模板 ----
+    getSOPTemplate: function(templateType) {
+      var st = this.sopTemplates;
+      if (!st) return null;
+      if (templateType) return st[templateType] || null;
+      return st;
+    },
+
+    // ---- 获取每日框架（工作日/周末）----
+    getDailyFramework: function(isWeekend) {
+      var st = this.sopTemplates;
+      if (!st) return null;
+      return isWeekend ? st.daily_framework : st.weekend_framework;
+    },
+
+    // ---- 获取活动Prep链 ----
+    getActivityPrepChain: function(activityType) {
+      var st = this.sopTemplates;
+      if (!st || !st.activity_types) return [];
+      var at = st.activity_types[activityType];
+      if (!at) return [];
+      return at.prep_chain || [];
+    },
+
+    // ---- 获取活动材料清单 ----
+    getActivityMaterials: function(activityType) {
+      var st = this.sopTemplates;
+      if (!st || !st.activity_types) return [];
+      var at = st.activity_types[activityType];
+      if (!at) return [];
+      return at.materials_needed || [];
+    },
+
+    // ---- 特殊场景SOP ----
+    getSpecialScenarioSOP: function(scenarioKey) {
+      var st = this.sopTemplates;
+      if (!st || !st.special_scenarios) return null;
+      return st.special_scenarios[scenarioKey] || null;
+    },
+
+    // ---- 获取附近亲子地点 ----
+    getNearbyPlaces: function(district, placeType, ageMonths) {
+      var types = placeType ? [placeType] : [
+        'outdoor_parks', 'indoor_playgrounds', 'hospitals', 'libraries'
+      ];
+      var results = [];
+      var self = this;
+      types.forEach(function(t) {
+        var places = self.getDistrictResources(district, t) || [];
+        places.forEach(function(p) {
+          results.push({
+            name: p.name,
+            type: t,
+            address: p.address,
+            lat_lng: p.lat_lng,
+            suitable_age: p.suitable_age,
+            best_time: p.best_time,
+            subway: p.subway_nearby || p.subway,
+            notes: p.notes,
+            distance: p.distance || null
+          });
+        });
+      });
+      return results;
+    },
+
+    // ---- 地铁线路信息 ----
+    getMetroInfo: function() {
+      return this.transit;
+    },
+
+    // ---- 生成完整SOP建议（供AI使用）----
+    buildSOPContext: function(childProfile, location, date) {
+      var self = this;
+      var isWeekend = date && new Date(date).getDay() === 0 || new Date(date).getDay() === 6;
+      var framework = this.getDailyFramework(isWeekend);
+      var season = this.getSeason(date);
+
+      // Mock weather - in production this comes from weather API
+      var weather = {
+        temp: 24,
+        aqi: 60,
+        rain_mm_h: 0,
+        condition: '多云'
+      };
+
+      var outdoorRec = this.recommendOutdoor(weather);
+
+      var context = {
+        version: '1.0',
+        city: '杭州',
+        district: location.district || '滨江区',
+        date: date || new Date().toISOString().split('T')[0],
+        isWeekend: isWeekend,
+        season: season,
+        framework: framework,
+        weather: weather,
+        outdoorRecommendation: outdoorRec,
+        seasonalIngredients: this.getSeasonalIngredients(date),
+        yearRoundIngredients: this.getYearRoundIngredients(),
+        district: location.district,
+        nearbyPlaces: this.getNearbyPlaces(location.district, null, childProfile.age_months),
+        metro: this.getMetroInfo(),
+        activityTemplates: this.getSOPTemplate('activity_types'),
+        specialScenarios: this.getSOPTemplate('special_scenarios')
+      };
+      return context;
+    }
+  };
+
+  // Expose as KNOWLEDGE (alias)
+  window.KNOWLEDGE = window.__KB;
+
+  // Auto-init after DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      window.__KB.init();
+    });
+  } else {
+    window.__KB.init();
+  }
+
+})();
+
+
+
+
+// ======== KNOWLEDGE ENGINE v2.0 - Hangzhou SOP (JSON) ========
+(function() {
+  'use strict';
+
+  var BASE = '/web/knowledge/hangzhou/';
+
+  var FILE_MAP = {
+    'city_overview': BASE + 'city_overview.json',
+    'seasonal_ingredients': BASE + 'seasonal_ingredients.json',
+    'weather_patterns': BASE + 'weather_patterns.json',
+    'sop_templates': BASE + 'sop_templates/one_person_care.json',
+    'transit_metro': BASE + 'transit/metro.json',
+    'district_binjiang': BASE + 'districts/binjiang.json',
+    'district_xihu': BASE + 'districts/xihu.json',
+    'district_shangcheng': BASE + 'districts/shangcheng.json',
+    'district_gongshu': BASE + 'districts/gongshu.json',
+    'city_meta': BASE + 'city_meta.json'
+  };
+
+  function loadJSON(url) {
+    return fetch(url)
+      .then(function(r) { return r.json(); })
+      .catch(function() { return null; });
+  }
+
+  function loadAll() {
+    var keys = Object.keys(FILE_MAP);
+    var promises = keys.map(function(k) {
+      return loadJSON(FILE_MAP[k]).then(function(data) {
+        KB.data[k] = data;
+      });
+    });
+    return Promise.all(promises);
+  }
+
+  var KB = {
+    ready: false,
+    data: {},
+
+    init: function() {
+      var self = this;
+      return loadAll().then(function() {
+        self.ready = true;
+        console.log('[KB] Hangzhou SOP v2.0 loaded');
+      });
+    },
+
+    _d: function(key) { return this.data[key] || null; },
+
+    getSeason: function(date) {
+      var d = date;
+      if (typeof d === 'string') d = new Date(d);
+      if (!d || isNaN(d.getTime())) d = new Date();
+      var m = d.getMonth() + 1;
+      if (m >= 3 && m <= 5) return 'spring';
+      if (m >= 6 && m <= 8) return 'summer';
+      if (m >= 9 && m <= 11) return 'autumn';
+      return 'winter';
+    },
+
+    getSeasonalIngredients: function(date, category) {
+      var d = this._d('seasonal_ingredients');
+      if (!d) return [];
+      var season = this.getSeason(date);
+      var list = d[season] && d[season].local_produce || [];
+      if (category) list = list.filter(function(i) { return i.category === category; });
+      return list;
+    },
+
+    getYearRoundIngredients: function(category) {
+      var d = this._d('seasonal_ingredients');
+      if (!d) return [];
+      var result = [];
+      var yr = d.year_round || {};
+      Object.keys(yr).forEach(function(cat) {
+        (yr[cat] || []).forEach(function(name) {
+          result.push({ name: name, category: cat, year_round: true });
+        });
+      });
+      if (category) result = result.filter(function(i) { return i.category === category; });
+      return result;
+    },
+
+    recommendOutdoor: function(w) {
+      var d = this._d('weather_patterns');
+      var defaults = d && d.indoor_backup_required_months || [];
+      var now = new Date();
+      var month = now.getMonth() + 1;
+      if (defaults.indexOf(month) >= 0) {
+        return { recommendation: 'indoor', reason: month + '月天气不稳定，建议室内' };
+      }
+      var aqi = w.aqi || 50, temp = w.temp || 25, rain = w.rain_mm_h || 0;
+      if (aqi > 200) return { recommendation: 'indoor', reason: 'AQI严重污染(' + aqi + ')' };
+      if (aqi > 150) return { recommendation: 'indoor', reason: 'AQI中度污染(' + aqi + ')' };
+      if (rain >= 10) return { recommendation: 'indoor', reason: '大雨天气' };
+      if (rain >= 2.5) return { recommendation: 'indoor', reason: '中雨天气' };
+      if (temp < 5) return { recommendation: 'indoor', reason: '气温过低' };
+      if (temp > 35) return { recommendation: 'outdoor_morning', reason: '高温' };
+      if (temp > 32) return { recommendation: 'outdoor_early', reason: '气温较高，注意防暑' };
+      return { recommendation: 'outdoor', reason: '天气适宜' };
+    },
+
+    // ---- District resources ----
+    getDistrict: function(name) {
+      return this._d('district_' + name);
+    },
+    getDistrictParks: function(district) {
+      var d = this.getDistrict(district);
+      return d && d.outdoor_parks || [];
+    },
+    getDistrictHospitals: function(district) {
+      var d = this.getDistrict(district);
+      return d && d.hospitals || [];
+    },
+    getDistrictIndoor: function(district) {
+      var d = this.getDistrict(district);
+      return d && d.indoor_playgrounds || [];
+    },
+    getDistrictLibraries: function(district) {
+      var d = this.getDistrict(district);
+      return d && d.libraries || [];
+    },
+    getDistrictMarkets: function(district) {
+      var d = this.getDistrict(district);
+      return d && d.wet_market && [d.wet_market] || [];
+    },
+    getDistrictDelivery: function(district) {
+      var d = this.getDistrict(district);
+      return d && d.delivery_services || [];
+    },
+
+    // ---- SOP Templates ----
+    getDailyFramework: function(isWeekend) {
+      var d = this._d('sop_templates');
+      if (!d) return null;
+      return isWeekend ? d.weekend_framework : d.daily_framework;
+    },
+    getActivityPrepChain: function(type) {
+      var d = this._d('sop_templates');
+      var at = d && d.activity_types && d.activity_types[type];
+      return at && at.prep_chain || [];
+    },
+    getActivityMaterials: function(type) {
+      var d = this._d('sop_templates');
+      var at = d && d.activity_types && d.activity_types[type];
+      return at && at.materials_needed || [];
+    },
+    getSpecialScenario: function(key) {
+      var d = this._d('sop_templates');
+      return d && d.special_scenarios && d.special_scenarios[key] || null;
+    },
+
+    // ---- City-level ----
+    getCityOverview: function() { return this._d('city_overview'); },
+    getWeatherPatterns: function() { return this._d('weather_patterns'); },
+    getMetro: function() { return this._d('transit_metro'); },
+
+    // ---- Comprehensive SOP context for AI ----
+    buildSOPContext: function(child, location, date) {
+      var isWeekend = false;
+      var d = date;
+      if (typeof d === 'string') d = new Date(d);
+      if (d && !isNaN(d.getTime())) {
+        var day = d.getDay();
+        isWeekend = day === 0 || day === 6;
+      }
+      var district = location && location.district || 'binjiang';
+      var season = this.getSeason(date);
+      return {
+        version: '2.0',
+        city: '杭州',
+        district: district,
+        date: date || new Date().toISOString().split('T')[0],
+        isWeekend: isWeekend,
+        season: season,
+        child: {
+          age_months: child && child.months || child && child.age_months,
+          gender: child && child.gender
+        },
+        framework: this.getDailyFramework(isWeekend),
+        weather: { temp: 24, aqi: 60, rain_mm_h: 0, condition: '多云' },
+        outdoorRecommendation: this.recommendOutdoor({ temp: 24, aqi: 60, rain_mm_h: 0 }),
+        seasonalIngredients: this.getSeasonalIngredients(date),
+        yearRoundIngredients: this.getYearRoundIngredients(),
+        districtOverview: this.getDistrict(district),
+        nearbyParks: this.getDistrictParks(district),
+        nearbyHospitals: this.getDistrictHospitals(district),
+        nearbyIndoor: this.getDistrictIndoor(district),
+        nearbyLibraries: this.getDistrictLibraries(district),
+        nearbyMarkets: this.getDistrictMarkets(district),
+        deliveryServices: this.getDistrictDelivery(district),
+        metro: this.getMetro(),
+        activityTemplates: (this._d('sop_templates') || {}).activity_types,
+        specialScenarios: (this._d('sop_templates') || {}).special_scenarios,
+        cityOverview: this.getCityOverview(),
+        cityWeatherPatterns: this.getWeatherPatterns()
+      };
+    }
+  };
+
+  window.KNOWLEDGE = window.__KB = KB;
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { KB.init(); });
+  } else {
+    KB.init();
+  }
+
+})();

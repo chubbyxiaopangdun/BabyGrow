@@ -1,0 +1,315 @@
+{
+  "version": 1.0,
+  "author": "BabyGrow AI",
+  "based_on_age_range": "24m_36m",
+  "daily_framework": {
+    "wake_time": "07:00-07:30",
+    "breakfast_start": "07:30",
+    "morning_outdoor": "09:00-11:30",
+    "lunch_start": "12:00",
+    "nap_time": "13:00-15:00",
+    "afternoon_indoor": "15:30-17:30",
+    "dinner_start": "18:30",
+    "bath_time": "19:00-19:30",
+    "sleep_prep": "19:30-20:00",
+    "sleep_time": "20:00-20:30"
+  },
+  "weekend_framework": {
+    "wake_time": "08:00-08:30",
+    "morning_outdoor": "09:30-12:00",
+    "lunch": "12:00",
+    "nap": "13:30-15:30",
+    "afternoon": "16:00-18:00",
+    "dinner": "18:30",
+    "sleep": "20:00"
+  },
+  "activity_types": {
+    "meal": {
+      "prep_chain": [
+        {
+          "trigger": "饭前30分钟",
+          "action": "取出食材，开始解冻（如需要）",
+          "duration_minutes": 5
+        },
+        {
+          "trigger": "饭前20分钟",
+          "action": "开始备菜（洗/切）",
+          "duration_minutes": 15
+        },
+        {
+          "trigger": "饭前10分钟",
+          "action": "开始烹饪",
+          "duration_minutes": 10
+        },
+        {
+          "trigger": "饭前5分钟",
+          "action": "摆盘、准备餐具、餐椅"
+        },
+        {
+          "trigger": "宝宝已坐好",
+          "action": "开始喂饭"
+        }
+      ],
+      "materials_needed": [
+        "围兜",
+        "儿童餐具",
+        "餐椅",
+        "湿巾（擦手擦嘴）"
+      ],
+      "feeding_tips": [
+        "鼓励自主进食，手指食物为主",
+        "先给蔬菜，再给蛋白质，最后给主食",
+        "进食时间不超过30分钟",
+        "进食后给水漱口"
+      ]
+    },
+    "sleep": {
+      "prep_chain": [
+        {
+          "trigger": "睡前60分钟",
+          "action": "停止激烈活动，改为安静游戏"
+        },
+        {
+          "trigger": "睡前30分钟",
+          "action": "调暗灯光，开小夜灯"
+        },
+        {
+          "trigger": "睡前20分钟",
+          "action": "洗澡（如当天需要）",
+          "duration_minutes": 20
+        },
+        {
+          "trigger": "睡前15分钟",
+          "action": "换上睡袋/睡衣"
+        },
+        {
+          "trigger": "睡前10分钟",
+          "action": "喝奶（刷牙后不能再喝）",
+          "duration_minutes": 10
+        },
+        {
+          "trigger": "睡前5分钟",
+          "action": "播放白噪音/睡前音乐"
+        },
+        {
+          "trigger": "到点",
+          "action": "关灯，保持安静"
+        }
+      ],
+      "materials_needed": [
+        "睡袋（根据室温选择合适厚度）",
+        "安抚巾/安抚玩偶",
+        "白噪音机",
+        "小夜灯（可调亮度）"
+      ],
+      "night_waking_response": [
+        {
+          "step": 1,
+          "action": "先等待3分钟",
+          "reason": "判断是否真正醒来"
+        },
+        {
+          "step": 2,
+          "action": "轻轻拍背，不抱起",
+          "reason": "尝试安抚入睡"
+        },
+        {
+          "step": 3,
+          "action": "抱起来哄（如果拍背无效）",
+          "limit": "10分钟内放回床上"
+        },
+        {
+          "step": 4,
+          "action": "放回后持续拍背",
+          "tips": "不要开大灯，不要说话太多"
+        }
+      ]
+    },
+    "outdoor": {
+      "prep_chain": [
+        {
+          "trigger": "出门前60分钟",
+          "action": "查看天气预报，确认AQI",
+          "decision_point": true,
+          "branches": [
+            {
+              "condition": "AQI > 150 OR 下雨",
+              "next": "切换室内方案"
+            },
+            {
+              "condition": "正常",
+              "next": "继续户外准备"
+            }
+          ]
+        },
+        {
+          "trigger": "出门前30分钟",
+          "action": "换尿布/如厕",
+          "duration_minutes": 5
+        },
+        {
+          "trigger": "出门前20分钟",
+          "action": "喂奶/吃点心",
+          "reason": "避免路上饿闹"
+        },
+        {
+          "trigger": "出门前10分钟",
+          "action": "打包：湿巾、尿布、备用衣服、水杯、零食、小玩具",
+          "duration_minutes": 5
+        },
+        {
+          "trigger": "出门前5分钟",
+          "action": "给宝宝穿外套/防晒帽"
+        },
+        {
+          "trigger": "到点",
+          "action": "出发"
+        }
+      ],
+      "transport_tips": [
+        "优先地铁（避免拥堵+停车）",
+        "推婴儿车选轻便型（7kg以内）",
+        "2岁以上可带平衡车/滑板车"
+      ],
+      "location_selection_rules": [
+        {
+          "temp_5_15": "推荐有阳光的户外公园"
+        },
+        {
+          "temp_15_25": "任意户外公园"
+        },
+        {
+          "temp_25_32": "树荫多的公园，或上午早出门"
+        },
+        {
+          "temp_32_35": "仅早晨或傍晚，室内备用"
+        },
+        {
+          "temp_lt_5": "室内为主"
+        },
+        {
+          "aqi_gt_100": "减少户外时间，选近的地点"
+        },
+        {
+          "aqi_gt_150": "切换室内方案"
+        }
+      ]
+    },
+    "bath": {
+      "prep_chain": [
+        {
+          "trigger": "洗澡前30分钟",
+          "action": "烧水（如果是冬天）",
+          "duration_minutes": 20
+        },
+        {
+          "trigger": "洗澡前20分钟",
+          "action": "准备浴巾、沐浴露、润肤霜、换洗衣物",
+          "duration_minutes": 5
+        },
+        {
+          "trigger": "洗澡前10分钟",
+          "action": "检查浴室温度（建议26-28度）",
+          "duration_minutes": 1
+        },
+        {
+          "trigger": "洗澡前5分钟",
+          "action": "开始加水，测试水温（38-40度）",
+          "duration_minutes": 5
+        },
+        {
+          "trigger": "到点",
+          "action": "脱衣入水"
+        }
+      ],
+      "duration_rules": [
+        {
+          "summer": "15-20分钟"
+        },
+        {
+          "winter": "10-15分钟"
+        },
+        "避免饭后1小时内洗澡"
+      ],
+      "materials_needed": [
+        "婴儿浴盆/大盆",
+        "浴巾（2条，1条垫，1条擦）",
+        "水温计",
+        "沐浴露（婴儿专用）",
+        "润肤霜",
+        "护臀膏（如需要）",
+        "干净的尿布和衣服",
+        "梳子/发刷"
+      ]
+    }
+  },
+  "special_scenarios": {
+    "solo_parent_medical_visit": {
+      "description": "独自带娃去医院（常规体检/疫苗/生病）",
+      "prep_day_before": [
+        "确认预约号（儿保提前1个月，疫苗提前7天）",
+        "准备病历本、医保卡、疫苗本",
+        "准备宝宝物品：湿巾、尿布、水杯、小零食",
+        "准备防护措施：口罩（2岁以上）、免洗洗手液",
+        "提前规划路线（地铁/打车），估算时间"
+      ],
+      "day_of": {
+        "morning_prep": [
+          "宝宝穿便于检查的衣服（避免连体衣）",
+          "带好所有证件和物品",
+          "提前1小时出发（留出意外时间）",
+          "准备小玩具/零食应对等待"
+        ],
+        "during_visit": [
+          "抽血/检查时固定好宝宝",
+          "使用手机/零食分散注意力",
+          "记录医生说的关键信息"
+        ],
+        "after_visit": [
+          "疫苗后观察30分钟再离开",
+          "当天多喝水，避免剧烈运动",
+          "如有不适，提前返家"
+        ]
+      },
+      "transport_rules": [
+        "打车比地铁优先（减少交叉感染）",
+        "如必须地铁，避开早晚高峰"
+      ]
+    },
+    "one_day_trip_planning": {
+      "description": "周末亲子一日游",
+      "frequency": "建议每周1次",
+      "location_selection": [
+        "根据宝宝月龄选地点",
+        "路程不超过1小时",
+        "必须有室内备用方案"
+      ],
+      "day_before": [
+        "确认天气预报",
+        "预约门票（如需要）",
+        "检查推车是否完好",
+        "准备衣物（多带1套备用）",
+        "准备食物：便携辅食+零食+水"
+      ],
+      "morning": [
+        "早起30分钟准备自己的物品",
+        "按outdoor_prep_chain执行"
+      ],
+      "during": [
+        "每2小时检查尿布/如厕",
+        "注意防晒/防蚊",
+        "观察宝宝状态，决定是否延长/缩短"
+      ],
+      "afternoon_nap": [
+        "多数宝宝在外会睡在推车上",
+        "准备好背带以防推车不便",
+        "午睡地点优先车内/树下阴凉处"
+      ],
+      "evening_return": [
+        "预留30分钟缓冲时间",
+        "到家后先让宝宝休息",
+        "快速准备晚餐"
+      ]
+    }
+  }
+}

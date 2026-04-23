@@ -1,0 +1,75 @@
+# 杭州全年天气规律 v1.0
+version: 1.0
+
+annual_pattern:
+  spring:
+    months: "3月-4月"
+    description: 气温回升，晴雨交替
+    avg_temp: "12-20°C"
+    precipitation: 中等，梅雨前相对干燥
+    allergy_alert: 3月中开始花粉高发（柳絮4月）
+
+  summer:
+    months: "5月-9月"
+    description: 梅雨+高温
+    avg_temp: "25-35°C"
+    wet_bulb: 6月中-7月中（梅雨季，潮湿闷热）
+    heat_wave: 7月下-8月（极端高温38°C+）
+    typhoon_risk: 7月-9月（直接影响杭州约1-2次/年）
+
+  autumn:
+    months: "10月-11月"
+    description: 一年中最舒适季节
+    avg_temp: "15-25°C"
+    precipitation: 少
+    air_quality: 全年最佳
+
+  winter:
+    months: "12月-2月"
+    description: 湿冷，无暖气
+    avg_temp: "3-10°C"
+    body_temp_note: 体感温度比实际冷（湿度大）
+    heating: 无集中暖气，依赖空调/地暖
+
+critical_thresholds:
+  aqi_good: 50
+  aqi_blue: 100
+  aqi_yellow: 150
+  aqi_orange: 200
+  aqi_red: 300
+  rain_light: 0.5
+  rain_medium: 2.5
+  rain_heavy: 10.0
+
+outdoor_activity_rules:
+  - conditions: "aqi <= 100, temp 10-32, no rain"
+    recommendation: 户外活动推荐
+  - conditions: "aqi 101-150, temp 5-35"
+    recommendation: 户外活动可进行，避免剧烈运动
+  - conditions: "aqi > 150"
+    recommendation: 切换室内方案
+  - conditions: "rain >= medium"
+    recommendation: 强制切换室内方案
+  - conditions: "temp < 5 or temp > 35"
+    recommendation: 室内为主，减少户外时间
+  - conditions: "summer and heat_wave alert"
+    recommendation: 上午10点前或下午4点后户外
+
+indoor_backup_required_months: [6, 7, 8, 1]
+
+special_events:
+  - name: 梅雨季
+    period: "6月中-7月中（约20-25天）"
+    characteristics: 连续阴雨，湿度80%+，闷热
+    impact: 户外活动严重受限
+    tips: 室内乐园、商场游乐区、图书馆为首选
+  - name: 台风
+    period: "7月-9月"
+    characteristics: 强风+暴雨
+    impact: 极端天气需宅家
+    tips: 提前1天关注天气预报，准备家庭活动方案
+  - name: 雾霾
+    period: "11月-次年1月"
+    characteristics: 北方输入性霾
+    impact: AQI可能达到150+
+    tips: 关注AQI指数，敏感宝宝提前准备室内方案

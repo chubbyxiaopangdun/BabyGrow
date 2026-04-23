@@ -1,0 +1,140 @@
+# 西湖区亲子资源 v1.0
+# 特点：传统富人区+景区环绕，环境好但周末极堵
+
+district: 西湖区
+characteristics: |
+  西湖区是杭州传统核心区，西湖景区、西溪湿地环绕。
+  老牌学区集中，但景区周末极度拥堵，不建议开车。
+  地铁覆盖较好，适合地铁+步行出行。
+
+outdoor_parks:
+  - name: 西溪湿地公园
+    address: 西湖区天目山路518号
+    lat_lng: [120.0636, 30.2658]
+    type: 湿地公园（国家5A级）
+    suitable_age: [全年龄，推荐2y+]
+    facilities: [船票, 电瓶车, 徒步道, 观鸟点]
+    ticket: 成人80元，儿童1.2m以下免费
+    parking: 西溪天堂停车场（较贵）
+    subway: "3号线 留下站（步行10分钟）"
+    best_time: "工作日9:00-11:00（人少景美）"
+    notes: |
+      杭州最适合户外遛娃的地方之一。
+      春秋季极美，夏天注意防蚊虫。
+      推车可入但部分路段不平整，建议带背带。
+      冬季人少但部分区域关闭。
+    hazards: 水域多，2岁以下全程牵手
+    seasonal_tips:
+      春季（3-4月）: 梅花、樱花盛开最美
+      夏季（6-8月）: 荷花旺季，但高温需防暑
+      秋季（10-11月）: 芦苇、红柿最美
+      冬季: 人少，部分区域维护关闭
+
+  - name: 杭州植物园
+    address: 西湖区桃源岭1号
+    lat_lng: [120.1273, 30.2612]
+    type: 植物园
+    suitable_age: [全年龄]
+    facilities: [植物观赏区, 草坪, 竹林, 洗手间]
+    ticket: 10元（儿童1.2m以下免费）
+    parking: 植物园门口停车场
+    subway: "10号线/3号线 黄龙体育中心站（步行15分钟）"
+    best_time: "春季（3-5月）赏花，秋季（10-11月）观落叶"
+    notes: |
+      相对小众，人比西溪湿地少。
+      有大草坪可以野餐和让宝宝跑。
+      秋季竹林区非常美。
+
+  - name: 茅家埠
+    address: 西湖区杨公堤
+    lat_lng: [120.1315, 30.2520]
+    type: 湿地+古村落
+    suitable_age: [全年龄，推荐1y+]
+    facilities: [徒步道, 古桥, 茶园]
+    ticket: 免费
+    parking: 路边停车位少
+    subway: 无地铁直达，建议打车
+    best_time: "春季采茶季（3-5月）"
+    notes: 小众景点，游客比西溪湿地少很多，有历史文化感
+
+  - name: 孤山
+    address: 西湖区西湖孤山路
+    lat_lng: [120.1489, 30.2579]
+    type: 山丘+湖边
+    suitable_age: [全年龄，推荐2y+]
+    facilities: [登山道, 亭子, 湖边步道]
+    ticket: 免费（孤山公园无需门票）
+    parking: 不建议开车（极度拥堵）
+    subway: "1号线 龙翔桥站（步行15分钟）"
+    best_time: "傍晚看西湖日落极美"
+    notes: 地理位置绝佳但周末人山人海，建议工作日去
+
+  - name: 柳浪闻莺
+    address: 西湖区南山路
+    lat_lng: [120.1520, 30.2510]
+    type: 湖滨公园
+    suitable_age: [全年龄]
+    facilities: [草坪, 柳树, 湖边步道]
+    ticket: 免费
+    best_time: "春季（3月）赏柳"
+    notes: 老城区经典公园，适合散步
+
+indoor_playgrounds:
+  - name: 杭州青少年活动中心（少年宫）
+    address: 西湖区昭庆寺里街22号
+    lat_lng: [120.1488, 30.2588]
+    type: 政府青少年活动中心
+    suitable_age: [3y+]
+    facilities: [游乐设施, 兴趣班, 人工湖划船]
+    price: 设施单项5-15元
+    subway: "1号线 凤起路站（步行10分钟）"
+    notes: 老牌机构，性价比高，周末人多需排队
+
+  - name: 浙江科技馆
+    address: 西湖区教工路71号
+    lat_lng: [120.1385, 30.2823]
+    type: 科技馆
+    suitable_age: [3y+，2岁可参观但理解有限]
+    price: 免费（需预约）
+    facilities: [互动展项, 球幕影院, 4D影院]
+    subway: "2号线 沈塘桥站（步行10分钟）"
+    notes: 免费但预约难，适合大宝宝
+
+  - name: 自然博物馆
+    address: 西湖区教工路88号
+    lat_lng: [120.1365, 30.2803]
+    type: 自然博物馆
+    suitable_age: [全年龄，2y+最感兴趣]
+    price: 免费（需预约）
+    subway: "2号线 沈塘桥站（步行8分钟）"
+    notes: 恐龙化石极受宝宝喜欢，适合低幼
+
+hospitals:
+  - name: 浙江大学附属儿童医院（湖滨院区）
+    address: 上城区竹竿巷57号
+    lat_lng: [120.1615, 30.2725]
+    pediatric_excellence: [新生儿科, 小儿内科, 小儿外科, NICU]
+    emergency_24h: true
+    notes: 杭州最权威的儿童医院，号极难挂，建议滨江院区
+    subway: "1号线 凤起路站（步行10分钟）"
+
+libraries:
+  - name: 浙江图书馆（少儿分馆）
+    address: 西湖区曙光路73号
+    lat_lng: [120.1475, 30.2635]
+    kids_section: 1楼少儿阅览室
+    facilities: [绘本区, 亲子阅读空间, 活动室]
+    subway: "1号线 凤起路站（步行12分钟）"
+    notes: 藏书丰富，周末有免费亲子活动
+
+wet_market:
+  - name: 茅廊巷农贸市场
+    address: 西湖区曙光路176号
+    hours: "06:00-18:00"
+    notes: 西湖区最大的传统菜市场，菜品新鲜齐全
+    best_time: "07:00-08:30（最新鲜）"
+    
+  - name: 古荡农贸市场
+    address: 西湖区文三路
+    hours: "06:00-19:00"
+    notes: 老牌菜市场，周围互联网从业者爱去
