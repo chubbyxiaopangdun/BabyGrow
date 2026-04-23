@@ -1323,6 +1323,26 @@
                 </div>
             </div>
             <div class="form-group">
+                <label class="form-label">所在城市</label>
+                <select id="edit-location" class="form-select">
+                    <option value="hangzhou:binjiang">杭州·滨江区</option>
+                    <option value="hangzhou:xihu">杭州·西湖区</option>
+                    <option value="hangzhou:shangcheng">杭州·上城区</option>
+                    <option value="hangzhou:gongshu">杭州·拱墅区</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">出行方式</label>
+                <div style="display:flex;gap:12px;margin-top:4px">
+                    <label class="radio-item" onclick="document.getElementById('edit-transport-m').checked=true">
+                        <input type="radio" id="edit-transport-m" name="edit-transport" value="metro"> 地铁+步行
+                    </label>
+                    <label class="radio-item" onclick="document.getElementById('edit-transport-d').checked=true">
+                        <input type="radio" id="edit-transport-d" name="edit-transport" value="driving"> 开车
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
                 <label class="form-label">一句话描述宝宝特点（可选）</label>
                 <input type="text" id="edit-trait" class="form-input" placeholder="例如：爱哭、活泼好动、挑食" maxlength="50">
             </div>
@@ -1415,7 +1435,9 @@ function syncChildrenFromServer() {
                         feeding: c.feeding || '',
                         trait: c.trait || '',
                         concerns: c.concerns || [],
-                        months: c.age_months
+                        months: c.age_months,
+                        location: c.location || 'hangzhou:binjiang',
+                        transport_mode: c.transport_mode || 'metro'
                     };
                 });
                 state.children = frontendChildren;
@@ -2369,15 +2391,16 @@ function showChildSelector() {
             var months = getAge(child.birth);
             var firstChar = getFirstChar(child.name);
             var isActive = state.currentChild && state.currentChild.id === child.id;
-            html += '<div class="child-sel-item' + (isActive ? ' active' : '') + '" onclick="selectChild(\'' + child.id + '\')">';
-            html += '<div class="child-sel-avatar">' + firstChar + '</div>';
-            html += '<div class="child-sel-info">';
+            html += '<div class="child-sel-item' + (isActive ? ' active' : '') + '">';
+            html += '<div class="child-sel-avatar" onclick="selectChild(\'' + child.id + '\')">' + firstChar + '</div>';
+            html += '<div class="child-sel-info" onclick="selectChild(\'' + child.id + '\')">';
             html += '<div class="child-sel-name">' + child.name + '</div>';
             html += '<div class="child-sel-age">' + formatAge(months) + '</div>';
             html += '</div>';
             if (isActive) {
                 html += '<svg class="" style="width:20px;height:20px;color:var(--ok)"><use href="#ic-check"/></svg>';
             }
+            html += '<button class="child-edit-btn" onclick="editChild(\'' + child.id + '\')" style="background:none;border:none;color:var(--t-3);padding:4px 8px;font-size:12px;cursor:pointer">编辑</button>';
             html += '</div>';
         });
     }
@@ -2395,6 +2418,29 @@ function selectChild(id) {
     generateTodayPlan();
 }
 
+function editChild(id) {
+    closeModal('childSelectorModal');
+    var child = state.children.find(function(c){ return c.id === id; });
+    if (!child) return;
+    state.currentChild = child;  // 设置为当前编辑对象
+    document.getElementById('addChildTitle').textContent = '编辑孩子';
+    document.getElementById('edit-name').value = child.name || '';
+    document.getElementById('edit-birth').value = child.birth || '';
+    document.getElementById('edit-feeding').value = child.feeding || '';
+    document.getElementById('edit-trait').value = child.trait || '';
+    setSelectedConcerns('edit-concerns-group', child.concerns || []);
+    // 城市和交通
+    var loc = child.location || 'hangzhou:binjiang';
+    document.getElementById('edit-location').value = loc;
+    var tp = child.transport_mode || 'metro';
+    if (tp === 'driving') {
+        document.getElementById('edit-transport-d').checked = true;
+    } else {
+        document.getElementById('edit-transport-m').checked = true;
+    }
+    document.getElementById('addChildModal').classList.add('active');
+}
+
 function showAddChildForm() {
     closeModal('childSelectorModal');
     document.getElementById('addChildTitle').textContent = '添加孩子';
@@ -2403,6 +2449,9 @@ function showAddChildForm() {
     document.getElementById('edit-feeding').value = '';
     document.getElementById('edit-trait').value = '';
     setSelectedConcerns('edit-concerns-group', []);
+    // Reset location and transport
+    document.getElementById('edit-location').value = 'hangzhou:binjiang';
+    document.getElementById('edit-transport-m').checked = true;
     document.getElementById('addChildModal').classList.add('active');
 }
 
@@ -2413,15 +2462,18 @@ function saveChildFromModal() {
     var feeding = document.getElementById('edit-feeding').value;
     var trait = document.getElementById('edit-trait').value.trim();
     var concerns = getSelectedConcerns('edit-concerns-group');
+    var location = document.getElementById('edit-location').value;
+    var transport_mode = document.querySelector('input[name="edit-transport"]:checked').value;
 
     if (!name) { alert('请输入宝宝小名'); return; }
     if (!birth) { alert('请选择出生日期'); return; }
 
     var months = getAge(birth);
-    var isNew = !state.currentChild;
-    var child = isNew
+    // 判断新建还是编辑：id 以数字开头说明是本地临时id（新建），否则是后端已有id（编辑）
+    var isNew = !state.currentChild || (state.currentChild.id && String(state.currentChild.id).startsWith('ch_') === false);
+    var child = isNew && state.currentChild
         ? { id: Date.now().toString() }
-        : state.children.find(function(c){ return c.id === state.currentChild.id; });
+        : (state.currentChild ? state.children.find(function(c){ return c.id === state.currentChild.id; }) : { id: Date.now().toString() });
 
     if (!child) {
         child = { id: Date.now().toString() };
@@ -2435,9 +2487,47 @@ function saveChildFromModal() {
     child.trait = trait;
     child.concerns = concerns;
     child.months = months;
+    child.location = location;
+    child.transport_mode = transport_mode;
 
     state.currentChild = child;
     saveState();
+
+    // 同步到后端
+    if (isNew) {
+        // POST 新建
+        fetch('http://localhost:8765/api/v1/children', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                name: name,
+                birth_date: birth,
+                gender: gender,
+                notes: trait,
+                location: location,
+                transport_mode: transport_mode
+            })
+        }).then(function(res){ return res.json(); }).then(function(created) {
+            // 用后端返回的 id 更新本地
+            child.id = created.id;
+            state.currentChild = child;
+            saveState();
+        }).catch(function(e){ console.log('Failed to create child:', e); });
+    } else {
+        // PUT 更新
+        fetch('http://localhost:8765/api/v1/children/' + encodeURIComponent(child.id), {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                name: name,
+                birth_date: birth,
+                gender: gender,
+                notes: trait,
+                location: location,
+                transport_mode: transport_mode
+            })
+        }).catch(function(e){ console.log('Failed to update child:', e); });
+    }
 
     closeModal('addChildModal');
     showPage('home');
