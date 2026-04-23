@@ -54,6 +54,8 @@ def _build_child_response(child: Child, session=None) -> ChildResponse:
         allergies=allergies,
         notes=child.notes or "",
         avatar_color=child.avatar_color or "#FF9B5E",
+        location=child.location or "hangzhou:binjiang",
+        transport_mode=child.transport_mode or "metro",
         age_months=age_months,
         age_display=calc_age_display(age_months),
         current_height=current_height,
@@ -142,6 +144,10 @@ async def update_child(child_id: str, child: ChildUpdate):
             db_child.notes = child.notes
         if child.avatar_color is not None:
             db_child.avatar_color = child.avatar_color
+        if child.location is not None:
+            db_child.location = child.location
+        if child.transport_mode is not None:
+            db_child.transport_mode = child.transport_mode
 
         # 触发 updated_at 自动更新（显式设置会让 onupdate 生效）
         from datetime import datetime

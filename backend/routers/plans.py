@@ -31,7 +31,7 @@ def records_to_dicts(records):
 
 
 @router.get("/{child_id}/plan/today", response_model=DailyPlanResponse)
-async def get_today_plan(child_id: str, context: str = None):
+async def get_today_plan(child_id: str, kb: str = None):
     """获取今日育儿计划"""
     session = get_session()
     try:
@@ -40,13 +40,20 @@ async def get_today_plan(child_id: str, context: str = None):
             raise HTTPException(status_code=404, detail="孩子不存在")
         
         today = date.today()
-        return await _generate_plan(session, child, today, context)
+        kb_context = None
+        if kb:
+            import json as _json
+            try:
+                kb_context = _json.loads(kb)
+            except:
+                pass
+        return await _generate_plan(session, child, today, kb_context)
     finally:
         session.close()
 
 
 @router.get("/{child_id}/plan/{plan_date}", response_model=DailyPlanResponse)
-async def get_plan_by_date(child_id: str, plan_date: str, context: str = None):
+async def get_plan_by_date(child_id: str, plan_date: str, kb: str = None):
     """获取指定日期的育儿计划"""
     session = get_session()
     try:
@@ -59,12 +66,19 @@ async def get_plan_by_date(child_id: str, plan_date: str, context: str = None):
         except:
             raise HTTPException(status_code=400, detail="日期格式错误，请使用YYYY-MM-DD")
         
-        return await _generate_plan(session, child, target_date, context)
+        kb_context = None
+        if kb:
+            import json as _json
+            try:
+                kb_context = _json.loads(kb)
+            except:
+                pass
+        return await _generate_plan(session, child, target_date, kb_context)
     finally:
         session.close()
 
 
-async def _generate_plan(session, child, target_date: date, context=None):
+async def _generate_plan(session, child, target_date: date, kb_context=None):
     """内部：生成计划"""
     # 获取今日已有的记录
     feed_records = session.query(FeedRecord).filter(
@@ -81,14 +95,14 @@ async def _generate_plan(session, child, target_date: date, context=None):
     
     age_months = calc_age_months(child.birth_date)
     
-    # 使用planner生成计划
+    # 使用planner生成计划（传入知识库上下文）
     plan_data = daily_planner.generate_plan(
         child_name=child.name,
         age_months=age_months,
         current_date=target_date,
         today_feed_records=records_to_dicts(feed_records),
         today_sleep_records=records_to_dicts(sleep_records),
-        context=context
+        context=kb_context
     )
     
     return DailyPlanResponse(

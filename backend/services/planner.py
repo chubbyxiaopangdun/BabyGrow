@@ -177,7 +177,7 @@ class DailyPlanner:
         current_date: date,
         today_feed_records: List[Dict] = [],
         today_sleep_records: List[Dict] = [],
-        context: Optional[str] = None
+        context: Optional[Dict] = None
     ) -> Dict[str, Any]:
         """
         生成每日计划
@@ -188,7 +188,10 @@ class DailyPlanner:
             current_date: 计划日期
             today_feed_records: 今日已记录喂养
             today_sleep_records: 今日已记录睡眠
-            context: 特殊上下文（打疫苗/生病等）
+            context: 知识库上下文 dict（来自 KNOWLEDGE.buildSOPContext），
+                     包含 season, isWeekend, framework, seasonalIngredients,
+                     nearbyParks, nearbyIndoor, nearbyHospitals, metro, 
+                     activityTemplates, specialScenarios
 
         Returns:
             包含items、reminders、ai_tips的字典
@@ -203,6 +206,33 @@ class DailyPlanner:
         kb_milestones = get_milestone_items(age_months)
         kb_sleep_sop = get_sleep_sop(age_months)
         kb_sop = kb_sleep_sop.get("sop", {})
+
+        # 解包知识库上下文
+        kb = context or {}
+        season = kb.get("season", self._get_season(current_date))
+        is_weekend = kb.get("isWeekend", current_date.weekday() >= 5)
+        framework = kb.get("framework", {})
+        seasonal_ingredients = kb.get("seasonalIngredients", [])
+        nearby_parks = kb.get("nearbyParks", [])
+        nearby_indoor = kb.get("nearbyIndoor", [])
+        nearby_hospitals = kb.get("nearbyHospitals", [])
+        activity_templates = kb.get("activityTemplates", {})
+        special_scenarios = kb.get("specialScenarios", {})
+
+        # 框架时间（覆盖默认时间）
+        wake_time = framework.get("wake", schedule.get("wake", "07:00"))
+        night_sleep_time = framework.get("sleep", schedule.get("night_sleep", "20:00"))
+
+        # 应季食材前3
+        top_ingredients = [i.get("name", "") for i in seasonal_ingredients[:3]] if seasonal_ingredients else []
+
+        # 推荐公园（取前2）
+        recommended_parks = nearby_parks[:2] if nearby_parks else []
+
+        # 户外时长决策
+        outdoor_decision = kb.get("outdoorDecision", {})
+        outdoor_ok = outdoor_decision.get("go_outdoor", True) if outdoor_decision else True
+        outdoor_reason = outdoor_decision.get("reason", "") if outdoor_decision else ""
 
         # 确定辅食年龄组
         if age_months < 7:
@@ -223,21 +253,24 @@ class DailyPlanner:
 
         items = []
 
-        # 起床 + 奶
+        # 起床 + 奶（使用框架时间）
         items.append({
-            "time": schedule.get("wake", "07:00"),
+            "time": wake_time,
             "type": "wake",
             "title": "起床",
             "details": f"喝奶（{milk_schedule['amount']}{milk_schedule['unit']}）",
             "notes": None
         })
 
-        # 早餐 - 使用真实辅食数据
+        # 早餐 - 使用真实辅食数据 + 应季食材
         if meal_schedule:
             breakfast = meal_schedule[0]
             recipe = recipe_suggestions[0] if len(recipe_suggestions) > 0 else None
             recipe_name = recipe.get('name', '高铁辅食') if recipe else "根据月龄推荐食材"
             ingredients = [i['name'] for i in (recipe.get('ingredients', []) if recipe else [])[:3]]
+            # 混入应季食材
+            if top_ingredients:
+                ingredients = (ingredients + top_ingredients)[:4]
             items.append({
                 "time": breakfast["time"],
                 "type": "meal",
@@ -249,8 +282,9 @@ class DailyPlanner:
             })
 
         # 上午小睡
-        if "morning_nap" in schedule:
-            nap_start, nap_end = schedule["morning_nap"]
+        morning_nap = schedule.get("morning_nap") or schedule.get("morning_nap1")
+        if morning_nap:
+            nap_start, nap_end = morning_nap if isinstance(morning_nap, tuple) else schedule.get("morning_nap1", ("09:00", "10:30"))
             sleep_tips = kb_sop.get("tips", ["注意接觉"])
             items.append({
                 "time": nap_start,
@@ -260,15 +294,36 @@ class DailyPlanner:
                 "notes": sleep_tips[0] if sleep_tips else "注意接觉"
             })
 
-            # 小睡后户外
+            # 小睡后户外（使用推荐公园 + 天气决策）
             outdoor_time = self._add_minutes(nap_end, 30)
-            items.append({
-                "time": outdoor_time,
-                "type": "outdoor",
-                "title": "户外活动",
-                "details": f"遛弯{int(outdoor_minutes/2)}分钟",
-                "notes": None
-            })
+            if outdoor_ok and recommended_parks:
+                park_name = recommended_parks[0].get("name", "公园")
+                park_note = recommended_parks[0].get("notes", "")
+                items.append({
+                    "time": outdoor_time,
+                    "type": "outdoor",
+                    "title": "户外活动",
+                    "details": f"去{park_name}（{int(outdoor_minutes/2)}分钟）",
+                    "notes": park_note if park_note else outdoor_reason
+                })
+            elif outdoor_ok:
+                items.append({
+                    "time": outdoor_time,
+                    "type": "outdoor",
+                    "title": "户外活动",
+                    "details": f"遛弯{int(outdoor_minutes/2)}分钟",
+                    "notes": outdoor_reason if outdoor_reason else None
+                })
+            else:
+                # 天气不适合户外 → 推荐室内
+                indoor_name = nearby_indoor[0].get("name", "室内乐园") if nearby_indoor else "室内活动"
+                items.append({
+                    "time": outdoor_time,
+                    "type": "outdoor",
+                    "title": "室内活动（天气原因）",
+                    "details": f"去{indoor_name}",
+                    "notes": outdoor_reason if outdoor_reason else "室外AQI不佳，建议室内"
+                })
 
         # 午餐 - 使用真实辅食数据
         if len(meal_schedule) > 1:
@@ -308,22 +363,49 @@ class DailyPlanner:
                 "notes": None
             })
 
-        # 下午户外
-        outdoor_time = self._add_minutes(nap_end if "afternoon_nap" in schedule or "afternoon_nap1" in schedule else "16:00", 30)
-        items.append({
-            "time": outdoor_time,
-            "type": "outdoor",
-            "title": "户外活动",
-            "details": f"公园/小区{int(outdoor_minutes/2)}分钟",
-            "notes": None
-        })
+        # 下午户外（使用第2个推荐公园 + 天气决策）
+        nap_end = None
+        if "afternoon_nap" in schedule:
+            nap_end = schedule["afternoon_nap"][1]
+        elif "afternoon_nap1" in schedule:
+            nap_end = schedule["afternoon_nap1"][1]
+        outdoor_time = self._add_minutes(nap_end if nap_end else "15:00", 30)
+        if outdoor_ok and len(recommended_parks) > 1:
+            park = recommended_parks[1]
+            items.append({
+                "time": outdoor_time,
+                "type": "outdoor",
+                "title": "户外活动",
+                "details": f"去{park.get('name', '公园')}（{int(outdoor_minutes/2)}分钟）",
+                "notes": park.get('notes', '') or outdoor_reason
+            })
+        elif outdoor_ok:
+            items.append({
+                "time": outdoor_time,
+                "type": "outdoor",
+                "title": "户外活动",
+                "details": f"公园/小区{int(outdoor_minutes/2)}分钟",
+                "notes": outdoor_reason if outdoor_reason else None
+            })
+        else:
+            indoor_name = nearby_indoor[0].get("name", "室内乐园") if nearby_indoor else "室内活动"
+            items.append({
+                "time": outdoor_time,
+                "type": "outdoor",
+                "title": "室内活动（天气原因）",
+                "details": f"去{indoor_name}",
+                "notes": outdoor_reason if outdoor_reason else "室外AQI不佳，建议室内"
+            })
 
-        # 晚餐 - 使用真实辅食数据
+        # 晚餐 - 使用真实辅食数据 + 应季食材
         if len(meal_schedule) > 2:
             dinner = meal_schedule[2]
             recipe = recipe_suggestions[2] if len(recipe_suggestions) > 2 else None
             recipe_name = recipe.get('name', '辅食') if recipe else "根据月龄推荐食材"
             ingredients = [i['name'] for i in (recipe.get('ingredients', []) if recipe else [])[:3]]
+            # 混入应季食材
+            if top_ingredients and len(top_ingredients) >= 2:
+                ingredients = (ingredients + [top_ingredients[1]])[:4]
             items.append({
                 "time": dinner["time"],
                 "type": "meal",
@@ -337,16 +419,16 @@ class DailyPlanner:
         # 睡前奶
         if age_months < 24:
             items.append({
-                "time": schedule.get("night_sleep", "20:00"),
+                "time": night_sleep_time,
                 "type": "meal",
                 "title": "睡前奶",
                 "details": f"喝奶（{milk_schedule['amount']}{milk_schedule['unit']}）",
                 "notes": None
             })
 
-        # 入睡 - 使用真实睡眠SOP
+        # 入睡 - 使用框架时间 + 真实睡眠SOP
         items.append({
-            "time": schedule.get("night_sleep", "20:00"),
+            "time": night_sleep_time,
             "type": "bath",
             "title": "洗漱",
             "details": "洗澡/洗脸/刷牙",
@@ -356,7 +438,7 @@ class DailyPlanner:
         sleep_routine = kb_sop.get("description", "建立睡前仪式")
         sleep_notes = kb_sop.get("tips", ["关灯，保持安静"])[0] if kb_sop.get("tips") else "关灯，保持安静"
         items.append({
-            "time": self._add_minutes(schedule.get("night_sleep", "20:00"), 30),
+            "time": self._add_minutes(night_sleep_time, 30),
             "type": "sleep",
             "title": "入睡",
             "details": sleep_routine,
@@ -367,10 +449,10 @@ class DailyPlanner:
         items.sort(key=lambda x: x["time"])
 
         # 生成提醒
-        reminders = self._generate_reminders(age_months, context)
+        reminders = self._generate_reminders(age_months, kb)
 
         # AI Tips - 融入里程碑上下文
-        ai_tips = self._generate_tips(age_months, context, kb_milestones)
+        ai_tips = self._generate_tips(age_months, kb, kb_milestones)
 
         return {
             "items": items,
@@ -390,9 +472,21 @@ class DailyPlanner:
         total_mins = h * 60 + m + minutes
         return f"{total_mins // 60:02d}:{total_mins % 60:02d}"
 
-    def _generate_reminders(self, age_months: int, context: Optional[str]) -> List[Dict]:
+    def _get_season(self, d: date) -> str:
+        """根据日期判断季节"""
+        m = d.month
+        if m in (3, 4, 5):
+            return "spring"
+        elif m in (6, 7, 8):
+            return "summer"
+        elif m in (9, 10, 11):
+            return "autumn"
+        return "winter"
+
+    def _generate_reminders(self, age_months: int, kb: Optional[Dict] = None) -> List[Dict]:
         """生成今日提醒"""
         reminders = []
+        kb = kb or {}
 
         # 新食材观察提醒
         if age_months >= 6:
@@ -414,14 +508,41 @@ class DailyPlanner:
                 "content": "注意补铁：红肉、动物肝脏每周1-2次"
             })
 
-        # 特殊上下文
+        # 季节性提醒
+        season = kb.get("season", "")
+        if season == "spring":
+            reminders.append({
+                "type": "health",
+                "content": "春季花粉高发期，外出回来记得洗脸洗手"
+            })
+        elif season == "autumn":
+            reminders.append({
+                "type": "health",
+                "content": "秋季干燥，注意给宝宝补充水分"
+            })
+
+        # 附近医院提醒（如果有）
+        hospitals = kb.get("nearbyHospitals", [])
+        if hospitals:
+            h = hospitals[0]
+            reminders.append({
+                "type": "health",
+                "content": f"附近医院：{h.get('name', '')}（如需可就近就医）"
+            })
+
+        # 特殊上下文（支持 dict 和 str 两种格式）
+        context = kb.get("context") or kb.get("specialContexts")
         if context:
-            if "疫苗" in context or "vaccine" in context.lower():
+            if isinstance(context, str):
+                ctx_lower = context.lower()
+            else:
+                ctx_lower = str(context).lower()
+            if "疫苗" in ctx_lower or "vaccine" in ctx_lower:
                 reminders.append({
                     "type": "vaccine",
                     "content": "打疫苗当天注意观察体温，辅食清淡为主"
                 })
-            if "发烧" in context or " fever" in context.lower():
+            if "发烧" in ctx_lower or "fever" in ctx_lower:
                 reminders.append({
                     "type": "health",
                     "content": "发烧期间多补充水分，辅食以流质/软烂为主"
@@ -429,10 +550,12 @@ class DailyPlanner:
 
         return reminders
 
-    def _generate_tips(self, age_months: int, context: Optional[str], milestones: List[Dict] = None) -> str:
+    def _generate_tips(self, age_months: int, kb: Optional[Dict] = None, milestones: List[Dict] = None) -> str:
         """生成AI小贴士"""
         tips = []
+        kb = kb or {}
 
+        # 月龄基础贴士
         if age_months < 3:
             tips.append("这个阶段的宝宝以奶为主，辅食是尝试性质，不要强迫")
         elif age_months < 6:
@@ -442,13 +565,29 @@ class DailyPlanner:
         else:
             tips.append("1岁后可以跟家人一起吃饭了，注意少油少盐，养成良好进食习惯")
 
+        # 应季食材推荐
+        seasonal_ingredients = kb.get("seasonalIngredients", [])
+        if seasonal_ingredients:
+            names = [i.get("name", "") for i in seasonal_ingredients[:3] if i.get("name")]
+            if names:
+                tips.append(f"【应季食材】现在适合吃：{'、'.join(names)}")
+
+        # 户外建议（天气决策）
+        outdoor_decision = kb.get("outdoorDecision", {})
+        if outdoor_decision:
+            reason = outdoor_decision.get("reason", "")
+            if reason:
+                tips.append(f"【户外建议】{reason}")
+
         # 融入当前发育里程碑
         if milestones:
-            for m in milestones[:2]:
+            for m in milestones[:1]:
                 if m.get("month", 0) <= age_months:
-                    tips.append(f"【发育重点】{m.get('category','')}：{m.get('title','')} — {m.get('tips', m.get('description',''))}")
+                    tips.append(f"【发育重点】{m.get('category','')}：{m.get('title','')}")
                     break
 
+        # 特殊上下文
+        context = kb.get("context") or kb.get("specialContexts")
         if context:
             tips.append(f"今日特殊情况：{context}")
 
@@ -465,7 +604,7 @@ def generate_daily_plan(
     current_date: date,
     today_feed_records: List[Dict] = [],
     today_sleep_records: List[Dict] = [],
-    context: Optional[str] = None
+    context: Optional[Dict] = None
 ) -> Dict[str, Any]:
     """生成每日计划的便捷函数"""
     return daily_planner.generate_plan(

@@ -1692,8 +1692,16 @@ function generateTodayPlan() {
         scheduleContainer.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t-2)">生成中...</div>';
     }
 
-    // Try backend API first
-    fetch('/api/v1/children/' + encodeURIComponent(child.id) + '/plan/today')
+    // Try backend API first, with knowledge context
+    var kbContext = null;
+    if (window.KNOWLEDGE && window.KNOWLEDGE.buildSOPContext) {
+        kbContext = window.KNOWLEDGE.buildSOPContext(child, child.location || 'hangzhou:binjiang', new Date());
+    }
+    var apiUrl = '/api/v1/children/' + encodeURIComponent(child.id) + '/plan/today';
+    if (kbContext) {
+        apiUrl += '?kb=' + encodeURIComponent(JSON.stringify(kbContext));
+    }
+    fetch(apiUrl)
         .then(function(res) { return res.json(); })
         .then(function(plan) {
             state.todayPlan = plan;

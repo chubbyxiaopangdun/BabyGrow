@@ -20,6 +20,8 @@ class ChildBase(BaseModel):
     allergies: Optional[List[str]] = []
     notes: Optional[str] = ""
     avatar_color: Optional[str] = "#FF9B5E"
+    location: Optional[str] = "hangzhou:binjiang"  # 城市:区县
+    transport_mode: Optional[str] = "metro"  # metro / driving / walking
 
 
 class ChildCreate(ChildBase):
@@ -35,6 +37,8 @@ class ChildUpdate(BaseModel):
     allergies: Optional[List[str]] = None
     notes: Optional[str] = None
     avatar_color: Optional[str] = None
+    location: Optional[str] = None
+    transport_mode: Optional[str] = None
 
 
 class ChildResponse(ChildBase):

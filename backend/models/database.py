@@ -93,6 +93,8 @@ class Child(Base):
     allergies = Column(Text, nullable=True)  # JSON数组
     notes = Column(Text, nullable=True)
     avatar_color = Column(String, default="#FF9B5E")
+    location = Column(String, default="hangzhou:binjiang")  # 城市:区县
+    transport_mode = Column(String, default="metro")  # metro / driving / walking
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
