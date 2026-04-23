@@ -16,7 +16,7 @@ async def list_feeds(child_id: str, date_str: str = None):
     try:
         child = session.query(Child).filter(Child.id == child_id).first()
         if not child:
-            raise HTTPException(status_code=404, message="孩子不存在")
+            raise HTTPException(status_code=404, detail="孩子不存在")
         
         query = session.query(FeedRecord).filter(FeedRecord.child_id == child_id)
         
@@ -53,7 +53,7 @@ async def create_feed(child_id: str, feed: FeedRecordCreate):
     try:
         child = session.query(Child).filter(Child.id == child_id).first()
         if not child:
-            raise HTTPException(status_code=404, message="孩子不存在")
+            raise HTTPException(status_code=404, detail="孩子不存在")
         
         record_id = f"fr_{uuid.uuid4().hex[:8]}"
         db_record = FeedRecord(
@@ -92,7 +92,7 @@ async def create_feed(child_id: str, feed: FeedRecordCreate):
         raise
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=400, message=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
     finally:
         session.close()
 
@@ -104,7 +104,7 @@ async def update_feed(child_id: str, feed_id: str, feed: FeedRecordUpdate):
     try:
         record = session.query(FeedRecord).filter(FeedRecord.id == feed_id, FeedRecord.child_id == child_id).first()
         if not record:
-            raise HTTPException(status_code=404, message="记录不存在")
+            raise HTTPException(status_code=404, detail="记录不存在")
         
         if feed.type is not None:
             record.type = feed.type.value
@@ -146,7 +146,7 @@ async def update_feed(child_id: str, feed_id: str, feed: FeedRecordUpdate):
         raise
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=400, message=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
     finally:
         session.close()
 
@@ -158,7 +158,7 @@ async def delete_feed(child_id: str, feed_id: str):
     try:
         record = session.query(FeedRecord).filter(FeedRecord.id == feed_id, FeedRecord.child_id == child_id).first()
         if not record:
-            raise HTTPException(status_code=404, message="记录不存在")
+            raise HTTPException(status_code=404, detail="记录不存在")
         
         session.delete(record)
         session.commit()
@@ -167,6 +167,6 @@ async def delete_feed(child_id: str, feed_id: str):
         raise
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=400, message=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
     finally:
         session.close()

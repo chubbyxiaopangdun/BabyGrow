@@ -79,7 +79,7 @@ class FeedRecordBase(BaseModel):
 
 
 class FeedRecordCreate(FeedRecordBase):
-    child_id: str
+    pass
 
 
 class FeedRecordUpdate(BaseModel):
@@ -121,7 +121,7 @@ class SleepRecordBase(BaseModel):
 
 
 class SleepRecordCreate(SleepRecordBase):
-    child_id: str
+    pass
 
 
 class SleepRecordUpdate(BaseModel):
@@ -161,7 +161,7 @@ class HealthRecordBase(BaseModel):
 
 
 class HealthRecordCreate(HealthRecordBase):
-    child_id: str
+    pass
 
 
 class HealthRecordResponse(HealthRecordBase):
@@ -183,7 +183,7 @@ class MilestoneRecordBase(BaseModel):
 
 
 class MilestoneRecordCreate(MilestoneRecordBase):
-    child_id: str
+    pass
 
 
 class MilestoneRecordUpdate(BaseModel):

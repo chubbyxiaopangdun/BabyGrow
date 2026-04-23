@@ -56,7 +56,8 @@ if os.path.exists(frontend_path):
 
 
 # 注册路由
-from routers import children, feeds, sleeps, health, plans, skill
+from routers import children, feeds, sleeps, health, plans, skill, recipes, milestones
+from services.ai_service import ai_service
 
 app.include_router(children.router)
 app.include_router(feeds.router)
@@ -64,6 +65,45 @@ app.include_router(sleeps.router)
 app.include_router(health.router)
 app.include_router(plans.router)
 app.include_router(skill.router)
+app.include_router(recipes.router)
+app.include_router(milestones.router)
+
+@app.post("/api/chat")
+async def chat_proxy_legacy(data: dict):
+    """AI聊天代理 - 兼容旧版前端路径 /api/chat"""
+    return await _chat_handler(data)
+
+@app.post("/api/v1/chat")
+async def chat_proxy(data: dict):
+    """AI聊天代理 - 解决浏览器CORS问题"""
+    return await _chat_handler(data)
+
+
+async def _chat_handler(data: dict):
+    """共享聊天逻辑"""
+    messages = data.get("messages", [])
+    child_info = data.get("child_info", {})
+    api_key = data.get("api_key")  # 用户自定义key
+
+    # 构建系统提示词
+    system_prompt = f"""你是BabyGrow，温暖的AI育儿顾问。宝宝信息：小名{child_info.get('name','宝宝')}，月龄{child_info.get('months',0)}个月，喂养{child_info.get('feeding','未知')}。请用友好、温暖的语气用中文回答。回答尽量用列表或卡片式，方便阅读。"""
+
+    # 如果用户提供了key，临时覆盖
+    original_key = None
+    original_provider = None
+    if api_key:
+        original_key = ai_service.api_key
+        original_provider = ai_service.provider
+        ai_service.api_key = api_key
+        ai_service.provider = "stepfun"  # 默认用stepfun格式
+
+    try:
+        result = await ai_service.chat(messages, system_prompt)
+        return {"reply": result["content"]}
+    finally:
+        if original_key is not None:
+            ai_service.api_key = original_key
+            ai_service.provider = original_provider
 
 
 @app.get("/")

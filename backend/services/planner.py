@@ -5,6 +5,7 @@ BabyGrow 每日计划生成引擎
 import json
 from datetime import datetime, date, timedelta
 from typing import List, Dict, Any, Optional
+from services.knowledge_service import get_milestone_items, get_recipes, get_sleep_sop, get_context_for_age
 
 
 class DailyPlanner:
@@ -62,15 +63,15 @@ class DailyPlanner:
         "6-12": {"times": 4, "amount": 180, "unit": "ml"},
         "12-18": {"times": 3, "amount": 200, "unit": "ml"},
         "18-24": {"times": 2, "amount": 200, "unit": "ml"},
-        "2-3": {"times": 1, "amount": 200, "unit": "ml"}
+        "2-3": {"times": 2, "amount": 350, "unit": "ml"}
     }
 
     # 辅食安排
     MEAL_SCHEDULE = {
         "6-12": [
-            {"time": "08:00", "name": "早餐辅食", "type": "solid"},
-            {"time": "12:00", "name": "午餐辅食", "type": "solid"},
-            {"time": "18:00", "name": "晚餐辅食", "type": "solid"}
+            {"time": "08:00", "name": "早餐", "type": "solid"},
+            {"time": "12:00", "name": "午餐", "type": "solid"},
+            {"time": "18:00", "name": "晚餐", "type": "solid"}
         ],
         "12-24": [
             {"time": "08:00", "name": "早餐", "type": "solid"},
@@ -128,6 +129,38 @@ class DailyPlanner:
         else:
             return self.MEAL_SCHEDULE["2-3"]
 
+    def _get_recipes_for_age(self, age_months: int) -> List[Dict]:
+        """从知识库获取适龄食谱"""
+        if age_months < 7:
+            ag = "6-7"
+        elif age_months < 9:
+            ag = "7-9"
+        elif age_months < 12:
+            ag = "9-12"
+        elif age_months < 24:
+            ag = "1-2"
+        else:
+            ag = "2-3"
+        try:
+            data = get_recipes(ag)
+            return data.get("recipes", {}).get("meals", [])
+        except Exception:
+            return []
+
+    def _get_milestones_for_age(self, age_months: int) -> List[Dict]:
+        """从知识库获取适龄发育里程碑"""
+        try:
+            return get_milestone_items(age_months)
+        except Exception:
+            return []
+
+    def _get_sleep_sop_for_age(self, age_months: int) -> Dict:
+        """从知识库获取哄睡SOP"""
+        try:
+            return get_sleep_sop(age_months)
+        except Exception:
+            return {}
+
     def get_outdoor_time(self, age_months: int) -> int:
         """获取建议户外时长（分钟）"""
         if age_months < 6:
@@ -166,6 +199,28 @@ class DailyPlanner:
         meal_schedule = self.get_meal_schedule(age_months)
         outdoor_minutes = self.get_outdoor_time(age_months)
 
+        # 从知识库获取真实数据
+        kb_milestones = get_milestone_items(age_months)
+        kb_sleep_sop = get_sleep_sop(age_months)
+        kb_sop = kb_sleep_sop.get("sop", {})
+
+        # 确定辅食年龄组
+        if age_months < 7:
+            kb_age_group = "6-7"
+        elif age_months < 9:
+            kb_age_group = "7-9"
+        elif age_months < 12:
+            kb_age_group = "9-12"
+        elif age_months < 24:
+            kb_age_group = "1-2"
+        else:
+            kb_age_group = "2-3"
+        kb_recipes = get_recipes(kb_age_group)
+        kb_meals = kb_recipes.get("recipes", {}).get("meals", []) if kb_recipes.get("recipes") else []
+
+        # 提取辅食建议（按三餐顺序取对应食谱）
+        recipe_suggestions = kb_meals[:3]  # 取前3个食谱匹配三餐
+
         items = []
 
         # 起床 + 奶
@@ -177,26 +232,32 @@ class DailyPlanner:
             "notes": None
         })
 
-        # 早餐
+        # 早餐 - 使用真实辅食数据
         if meal_schedule:
             breakfast = meal_schedule[0]
+            recipe = recipe_suggestions[0] if len(recipe_suggestions) > 0 else None
+            recipe_name = recipe.get('name', '高铁辅食') if recipe else "根据月龄推荐食材"
+            ingredients = [i['name'] for i in (recipe.get('ingredients', []) if recipe else [])[:3]]
             items.append({
                 "time": breakfast["time"],
                 "type": "meal",
-                "title": f"{breakfast['name']}（辅食）",
-                "details": "根据月龄推荐食材",
-                "notes": None
+                "title": breakfast["name"],
+                "details": recipe_name,
+                "nutrition": recipe.get('tips', f"月龄{age_months}个月，以泥糊状为主") if recipe else None,
+                "preparation": "→".join(recipe.get('steps', [])[:2]) if recipe else None,
+                "notes": "、".join(ingredients) if ingredients else None
             })
 
         # 上午小睡
         if "morning_nap" in schedule:
             nap_start, nap_end = schedule["morning_nap"]
+            sleep_tips = kb_sop.get("tips", ["注意接觉"])
             items.append({
                 "time": nap_start,
                 "type": "sleep",
                 "title": "上午小睡",
                 "details": f"约{self._calc_duration(nap_start, nap_end)}分钟",
-                "notes": "注意接觉"
+                "notes": sleep_tips[0] if sleep_tips else "注意接觉"
             })
 
             # 小睡后户外
@@ -209,26 +270,32 @@ class DailyPlanner:
                 "notes": None
             })
 
-        # 午餐
+        # 午餐 - 使用真实辅食数据
         if len(meal_schedule) > 1:
             lunch = meal_schedule[1]
+            recipe = recipe_suggestions[1] if len(recipe_suggestions) > 1 else None
+            recipe_name = recipe.get('name', '辅食') if recipe else "根据月龄推荐食材"
+            ingredients = [i['name'] for i in (recipe.get('ingredients', []) if recipe else [])[:3]]
             items.append({
                 "time": lunch["time"],
                 "type": "meal",
-                "title": f"{lunch['name']}（辅食）",
-                "details": "根据月龄推荐食材",
-                "notes": None
+                "title": lunch["name"],
+                "details": recipe_name,
+                "nutrition": recipe.get('tips', f"月龄{age_months}个月，注意铁摄入") if recipe else None,
+                "preparation": "→".join(recipe.get('steps', [])[:2]) if recipe else None,
+                "notes": "、".join(ingredients) if ingredients else None
             })
 
         # 下午小睡
         if "afternoon_nap" in schedule:
             nap_start, nap_end = schedule["afternoon_nap"]
+            sleep_tips = kb_sop.get("tips", ["保证充足睡眠"])
             items.append({
                 "time": nap_start,
                 "type": "sleep",
                 "title": "下午小睡",
                 "details": f"约{self._calc_duration(nap_start, nap_end)}分钟",
-                "notes": "保证充足睡眠"
+                "notes": sleep_tips[0] if sleep_tips else "保证充足睡眠"
             })
         elif "afternoon_nap1" in schedule:
             # 多个下午小睡（婴儿期）
@@ -251,15 +318,20 @@ class DailyPlanner:
             "notes": None
         })
 
-        # 晚餐
+        # 晚餐 - 使用真实辅食数据
         if len(meal_schedule) > 2:
             dinner = meal_schedule[2]
+            recipe = recipe_suggestions[2] if len(recipe_suggestions) > 2 else None
+            recipe_name = recipe.get('name', '辅食') if recipe else "根据月龄推荐食材"
+            ingredients = [i['name'] for i in (recipe.get('ingredients', []) if recipe else [])[:3]]
             items.append({
                 "time": dinner["time"],
                 "type": "meal",
-                "title": f"{dinner['name']}（辅食）",
-                "details": "根据月龄推荐食材",
-                "notes": None
+                "title": dinner["name"],
+                "details": recipe_name,
+                "nutrition": recipe.get('tips', f"晚餐清淡易消化") if recipe else None,
+                "preparation": "→".join(recipe.get('steps', [])[:2]) if recipe else None,
+                "notes": "、".join(ingredients) if ingredients else None
             })
 
         # 睡前奶
@@ -272,7 +344,7 @@ class DailyPlanner:
                 "notes": None
             })
 
-        # 入睡
+        # 入睡 - 使用真实睡眠SOP
         items.append({
             "time": schedule.get("night_sleep", "20:00"),
             "type": "bath",
@@ -281,12 +353,14 @@ class DailyPlanner:
             "notes": None
         })
 
+        sleep_routine = kb_sop.get("description", "建立睡前仪式")
+        sleep_notes = kb_sop.get("tips", ["关灯，保持安静"])[0] if kb_sop.get("tips") else "关灯，保持安静"
         items.append({
             "time": self._add_minutes(schedule.get("night_sleep", "20:00"), 30),
             "type": "sleep",
             "title": "入睡",
-            "details": "建立睡前仪式",
-            "notes": "关灯，保持安静"
+            "details": sleep_routine,
+            "notes": sleep_notes
         })
 
         # 按时间排序
@@ -295,8 +369,8 @@ class DailyPlanner:
         # 生成提醒
         reminders = self._generate_reminders(age_months, context)
 
-        # AI Tips
-        ai_tips = self._generate_tips(age_months, context)
+        # AI Tips - 融入里程碑上下文
+        ai_tips = self._generate_tips(age_months, context, kb_milestones)
 
         return {
             "items": items,
@@ -355,7 +429,7 @@ class DailyPlanner:
 
         return reminders
 
-    def _generate_tips(self, age_months: int, context: Optional[str]) -> str:
+    def _generate_tips(self, age_months: int, context: Optional[str], milestones: List[Dict] = None) -> str:
         """生成AI小贴士"""
         tips = []
 
@@ -367,6 +441,13 @@ class DailyPlanner:
             tips.append("1岁前辅食不加盐糖，辅食性状可以从泥糊→碎末→小块过渡")
         else:
             tips.append("1岁后可以跟家人一起吃饭了，注意少油少盐，养成良好进食习惯")
+
+        # 融入当前发育里程碑
+        if milestones:
+            for m in milestones[:2]:
+                if m.get("month", 0) <= age_months:
+                    tips.append(f"【发育重点】{m.get('category','')}：{m.get('title','')} — {m.get('tips', m.get('description',''))}")
+                    break
 
         if context:
             tips.append(f"今日特殊情况：{context}")

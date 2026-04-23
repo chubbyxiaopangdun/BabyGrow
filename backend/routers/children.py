@@ -71,7 +71,7 @@ async def get_child(child_id: str):
     try:
         child = session.query(Child).filter(Child.id == child_id).first()
         if not child:
-            raise HTTPException(status_code=404, message="孩子不存在")
+            raise HTTPException(status_code=404, detail="孩子不存在")
         
         age_months = calc_age_months(child.birth_date)
         allergies = []
@@ -140,7 +140,7 @@ async def create_child(child: ChildCreate):
         )
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=400, message=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
     finally:
         session.close()
 
@@ -152,7 +152,7 @@ async def update_child(child_id: str, child: ChildUpdate):
     try:
         db_child = session.query(Child).filter(Child.id == child_id).first()
         if not db_child:
-            raise HTTPException(status_code=404, message="孩子不存在")
+            raise HTTPException(status_code=404, detail="孩子不存在")
         
         if child.name is not None:
             db_child.name = child.name
@@ -200,7 +200,7 @@ async def update_child(child_id: str, child: ChildUpdate):
         raise
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=400, message=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
     finally:
         session.close()
 
@@ -212,7 +212,7 @@ async def delete_child(child_id: str):
     try:
         child = session.query(Child).filter(Child.id == child_id).first()
         if not child:
-            raise HTTPException(status_code=404, message="孩子不存在")
+            raise HTTPException(status_code=404, detail="孩子不存在")
         
         session.delete(child)
         session.commit()
@@ -221,6 +221,6 @@ async def delete_child(child_id: str):
         raise
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=400, message=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
     finally:
         session.close()

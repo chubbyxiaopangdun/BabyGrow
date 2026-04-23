@@ -13,3 +13,6 @@ build/
 .eggs/
 venv/
 .venv/
+*.bak
+*.bak2
+*.log

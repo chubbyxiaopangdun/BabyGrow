@@ -1,9 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from datetime import datetime, date
-import json
-import uuid
 
-from models.database import get_session, Child, FeedRecord, SleepRecord, DailyPlan
+from models.database import get_session, Child, FeedRecord, SleepRecord
 from models.schemas import DailyPlanResponse
 from services.planner import daily_planner
 
@@ -46,7 +44,7 @@ async def get_today_plan(child_id: str, context: str = None):
     try:
         child = session.query(Child).filter(Child.id == child_id).first()
         if not child:
-            raise HTTPException(status_code=404, message="孩子不存在")
+            raise HTTPException(status_code=404, detail="孩子不存在")
         
         today = date.today()
         return await _generate_plan(session, child, today, context)
@@ -61,12 +59,12 @@ async def get_plan_by_date(child_id: str, plan_date: str, context: str = None):
     try:
         child = session.query(Child).filter(Child.id == child_id).first()
         if not child:
-            raise HTTPException(status_code=404, message="孩子不存在")
+            raise HTTPException(status_code=404, detail="孩子不存在")
         
         try:
             target_date = datetime.strptime(plan_date, "%Y-%m-%d").date()
         except:
-            raise HTTPException(status_code=400, message="日期格式错误，请使用YYYY-MM-DD")
+            raise HTTPException(status_code=400, detail="日期格式错误，请使用YYYY-MM-DD")
         
         return await _generate_plan(session, child, target_date, context)
     finally:

@@ -16,12 +16,17 @@ async def list_health_records(child_id: str, type_filter: str = None):
     try:
         child = session.query(Child).filter(Child.id == child_id).first()
         if not child:
-            raise HTTPException(status_code=404, message="孩子不存在")
+            raise HTTPException(status_code=404, detail="孩子不存在")
         
         query = session.query(HealthRecord).filter(HealthRecord.child_id == child_id)
         
         if type_filter:
-            query = query.filter(HealthRecord.type == type_filter)
+            from models.database import HealthTypeEnum
+            try:
+                type_enum = HealthTypeEnum(type_filter)
+                query = query.filter(HealthRecord.type == type_enum)
+            except ValueError:
+                pass  # 忽略无效的type_filter
         
         records = query.order_by(HealthRecord.date.desc()).limit(100).all()
         return [HealthRecordResponse(
@@ -45,7 +50,7 @@ async def create_health_record(child_id: str, health: HealthRecordCreate):
     try:
         child = session.query(Child).filter(Child.id == child_id).first()
         if not child:
-            raise HTTPException(status_code=404, message="孩子不存在")
+            raise HTTPException(status_code=404, detail="孩子不存在")
         
         record_id = f"hr_{uuid.uuid4().hex[:8]}"
         db_record = HealthRecord(
@@ -76,7 +81,7 @@ async def create_health_record(child_id: str, health: HealthRecordCreate):
         raise
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=400, message=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
     finally:
         session.close()
 
@@ -88,7 +93,7 @@ async def delete_health_record(child_id: str, health_id: str):
     try:
         record = session.query(HealthRecord).filter(HealthRecord.id == health_id, HealthRecord.child_id == child_id).first()
         if not record:
-            raise HTTPException(status_code=404, message="记录不存在")
+            raise HTTPException(status_code=404, detail="记录不存在")
         
         session.delete(record)
         session.commit()
@@ -97,6 +102,6 @@ async def delete_health_record(child_id: str, health_id: str):
         raise
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=400, message=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
     finally:
         session.close()

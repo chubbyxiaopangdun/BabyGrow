@@ -7,7 +7,7 @@ import os
 from typing import Dict, List, Any, Optional
 
 # 知识库路径
-KNOWLEDGE_DIR = os.path.join(os.path.dirname(__file__), "knowledge")
+KNOWLEDGE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "knowledge")
 
 
 def _load_json(filename: str) -> Dict:
