@@ -906,6 +906,30 @@
     </div>
 </div>
 
+<!-- ==================== PAGE: SLEEP ==================== -->
+<div id="page-sleep" class="page">
+    <header class="top-header">
+        <div class="top-header-left">
+            <button class="hdr-btn" onclick="showPage('home')" style="padding:8px 10px;">
+                <svg style="width:18px;height:18px"><use href="#ic-chevron"/></svg>
+            </button>
+            <div style="font-size:16px;font-weight:600;">睡眠记录</div>
+        </div>
+        <button class="hdr-btn" onclick="analyzeSleep()" id="sleep-analyze-btn" style="padding:6px 10px;font-size:12px;background:var(--s);color:#fff;border:none;border-radius:8px;">
+            🤖 AI分析
+        </button>
+    </header>
+    <div class="main-wrap">
+        <div id="sleep-filter" style="display:flex;gap:6px;margin-bottom:12px;"></div>
+        <div id="sleep-summary" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;"></div>
+        <div id="sleep-analysis-result" style="display:none;background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);"></div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+            <button onclick="openSleepModal()" style="background:var(--s);color:#fff;border:none;padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;">+ 添加记录</button>
+        </div>
+        <div id="sleep-list"></div>
+    </div>
+</div>
+
 <!-- ==================== PAGE: MILESTONES (enhanced) ==================== -->
 <div id="page-milestones" class="page">
     <header class="top-header">
@@ -2610,13 +2634,25 @@ function renderMilestones(filter) {
 
 // ==================== FEEDING PAGE ====================
 var _feedingFilter = 'week';
+var _feedingData = [];
 
 function initFeedingPage() {
+    if (!state.currentChild) return;
     var filters = [{l:'本周',v:'week'},{l:'本月',v:'month'},{l:'全部',v:'all'}];
     document.getElementById('feeding-filter').innerHTML = filters.map(function(f){
         return '<button class="chip-btn" onclick="setFeedingFilter(\''+f.v+'\',this)" style="padding:4px 10px;font-size:12px;border-radius:20px;border:1px solid var(--b2);background:'+(_feedingFilter===f.v?'var(--p)':'#fff')+';color:'+(_feedingFilter===f.v?'#fff':'var(--t2)')+'">'+f.l+'</button>';
     }).join('');
-    renderFeedingList();
+
+    fetch('/api/v1/children/' + encodeURIComponent(state.currentChild.id) + '/feeds')
+        .then(function(res){ return res.json(); })
+        .then(function(data) {
+            _feedingData = data || [];
+            renderFeedingList();
+        })
+        .catch(function() {
+            _feedingData = [];
+            renderFeedingList();
+        });
 }
 
 function setFeedingFilter(f, btn) {
@@ -2629,24 +2665,23 @@ function setFeedingFilter(f, btn) {
 function renderFeedingList() {
     if (!state.currentChild) return;
     var cid = state.currentChild.id;
-    var records = JSON.parse(localStorage.getItem('babygrow_feeding') || '[]').filter(function(r){return r.child_id===cid;});
     var now = new Date();
+    var records = _feedingData.filter(function(r){ return r.child_id === cid; });
+
     records = records.filter(function(r) {
         if (_feedingFilter === 'week') {
-            var d = new Date(r.date);
-            var diff = (now - d) / 86400000;
-            return diff <= 7;
+            var d = new Date(r.feed_time);
+            return (now - d) / 86400000 <= 7;
         } else if (_feedingFilter === 'month') {
-            return r.date && r.date.startsWith(now.getFullYear()+'-'+(now.getMonth()+1).toString().padStart(2,'0'));
+            var d = new Date(r.feed_time);
+            return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
         }
         return true;
-    }).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
+    }).sort(function(a,b){ return (b.feed_time||'').localeCompare(a.feed_time||''); });
 
-    // Summary
     var total = records.length;
-    var breast = records.filter(function(r){return r.type==='母乳';}).length;
-    var formula = records.filter(function(r){return r.type==='配方奶';}).length;
-    var solid = records.filter(function(r){return r.type==='辅食';}).length;
+    var breast = records.filter(function(r){return r.type==='breast_milk' || r.type==='母乳';}).length;
+    var formula = records.filter(function(r){return r.type==='formula' || r.type==='配方奶';}).length;
     document.getElementById('feeding-summary').innerHTML =
         '<div style="text-align:center;padding:8px;background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:20px;font-weight:700;color:var(--p)">'+total+'</div><div style="font-size:11px;color:var(--t2)">总次数</div></div>'
         + '<div style="text-align:center;padding:8px;background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:20px;font-weight:700;color:#EC4899">'+breast+'</div><div style="font-size:11px;color:var(--t2)">母乳</div></div>'
@@ -2656,33 +2691,24 @@ function renderFeedingList() {
         document.getElementById('feeding-list').innerHTML = '<div style="text-align:center;color:var(--t2);padding:40px">暂无记录<br><span style="font-size:12px">点击右上角+添加</span></div>';
         return;
     }
+    var typeName = {'breast_milk':'母乳','formula':'配方奶','solid_food':'辅食'};
     var html = records.map(function(r) {
-        var icon = r.type==='母乳'?'#ic-baby':r.type==='配方奶'?'#ic-bottle':'#ic-apple';
-        var notesSpan = r.notes ? '<span style="color:var(--t3)"> · <span id="fn-notes-'+r.id+'"></span></span>' : '';
-        var amountText = (r.amount||'') + ' ' + (r.unit||'');
+        var icon = r.type==='breast_milk'?'#ic-baby':r.type==='formula'?'#ic-bottle':'#ic-apple';
+        var tname = typeName[r.type] || r.type || '';
         return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--b2)">'
             + '<svg style="width:20px;height:20px;color:var(--p);flex-shrink:0"><use href="'+icon+'"/></svg>'
             + '<div style="flex:1">'
-            + '<div style="font-size:13px;font-weight:600" id="fn-type-'+r.id+'"></div>'
-            + '<div style="font-size:11px;color:var(--t2)"><span id="fn-amount-'+r.id+'"></span>'+notesSpan+'</div>'
+            + '<div style="font-size:13px;font-weight:600">'+tname+' <span style="font-size:11px;color:var(--t2)">'+(r.amount||'')+' '+(r.unit||'')+'</span></div>'
+            + '<div style="font-size:11px;color:var(--t2)">'+(r.notes||'')+'</div>'
             + '</div>'
             + '<div style="font-size:11px;color:var(--t2);text-align:right">'
-            + '<div>'+(r.date||'').slice(5)+'</div>'
-            + '<div>'+(r.time||'')+'</div>'
+            + '<div>'+(r.feed_time||'').slice(5,10)+'</div>'
+            + '<div>'+(r.feed_time||'').slice(11,16)+'</div>'
             + '</div>'
-            + '<button onclick="deleteRecord(\'feeding\','+r.id+')" style="background:none;border:none;padding:4px"><svg style="width:14px;height:14px;color:var(--t3)"><use href="#ic-trash"/></svg></button>'
+            + '<button onclick="deleteRecord(\'feeding\',\''+r.id+'\')" style="background:none;border:none;padding:4px"><svg style="width:14px;height:14px;color:var(--t3)"><use href="#ic-trash"/></svg></button>'
             + '</div>';
     }).join('');
     document.getElementById('feeding-list').innerHTML = html;
-    // Set text content safely (prevents XSS)
-    records.forEach(function(r) {
-        var typeEl = document.getElementById('fn-type-'+r.id);
-        var amountEl = document.getElementById('fn-amount-'+r.id);
-        var notesEl = document.getElementById('fn-notes-'+r.id);
-        if (typeEl) typeEl.textContent = r.type || '';
-        if (amountEl) amountEl.textContent = (r.amount||'') + ' ' + (r.unit||'');
-        if (notesEl) notesEl.textContent = r.notes || '';
-    });
 }
 
 function openFeedingModal() {
@@ -2701,10 +2727,10 @@ function openFeedingModal() {
         + '<input id="feed-time" type="time" value="'+hh+':'+mm+'" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
         + '<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">类型</label>'
         + '<select id="feed-type" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px">'
-        + '<option>母乳</option><option>配方奶</option><option>辅食</option></select></div>'
+        + '<option value="breast_milk">母乳</option><option value="formula">配方奶</option><option value="solid_food">辅食</option></select></div>'
         + '<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">量</label>'
         + '<div style="display:flex;gap:8px"><input id="feed-amount" type="number" placeholder="如 150" style="flex:1;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px">'
-        + '<select id="feed-unit" style="padding:8px;border:1px solid var(--b2);border-radius:8px;font-size:13px"><option>ml</option><option>克</option><option>次</option></select></div></div>'
+        + '<select id="feed-unit" style="padding:8px;border:1px solid var(--b2);border-radius:8px;font-size:13px"><option value="ml">ml</option><option value="克">克</option><option value="次">次</option></select></div></div>'
         + '<div style="margin-bottom:16px"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">备注</label>'
         + '<input id="feed-notes" type="text" placeholder="可选" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
         + '<button onclick="saveFeedingRecord()" style="width:100%;padding:10px;background:var(--p);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600">保存</button>'
@@ -2714,149 +2740,48 @@ function openFeedingModal() {
 
 function saveFeedingRecord() {
     if (!state.currentChild) return;
-    var records = JSON.parse(localStorage.getItem('babygrow_feeding') || '[]');
-    records.push({
-        id: Date.now(),
-        child_id: state.currentChild.id,
-        date: document.getElementById('feed-date').value,
-        time: document.getElementById('feed-time').value,
-        type: document.getElementById('feed-type').value,
-        amount: document.getElementById('feed-amount').value,
-        unit: document.getElementById('feed-unit').value,
-        notes: document.getElementById('feed-notes').value
-    });
-    localStorage.setItem('babygrow_feeding', JSON.stringify(records));
-    closeModal('feedingModal');
-    document.getElementById('feedingModal').remove();
-    renderFeedingList();
-}
-
-// ==================== SLEEP PAGE ====================
-var _sleepFilter = 'week';
-
-function initSleepPage() {
-    var filters = [{l:'本周',v:'week'},{l:'本月',v:'month'},{l:'全部',v:'all'}];
-    document.getElementById('sleep-filter').innerHTML = filters.map(function(f){
-        return '<button class="chip-btn" onclick="setSleepFilter(\''+f.v+'\',this)" style="padding:4px 10px;font-size:12px;border-radius:20px;border:1px solid var(--b2);background:'+(_sleepFilter===f.v?'var(--s)':'#fff')+';color:'+(_sleepFilter===f.v?'#fff':'var(--t2)')+'">'+f.l+'</button>';
-    }).join('');
-    renderSleepList();
-}
-
-function setSleepFilter(f, btn) {
-    _sleepFilter = f;
-    document.querySelectorAll('#sleep-filter .chip-btn').forEach(function(b){b.style.background='#fff';b.style.color='var(--t2)';});
-    btn.style.background='var(--s)'; btn.style.color='#fff';
-    renderSleepList();
-}
-
-function renderSleepList() {
-    if (!state.currentChild) return;
-    var cid = state.currentChild.id;
-    var records = JSON.parse(localStorage.getItem('babygrow_sleep') || '[]').filter(function(r){return r.child_id===cid;});
-    var now = new Date();
-    records = records.filter(function(r) {
-        if (_sleepFilter === 'week') {
-            var d = new Date(r.date);
-            return (now - d) / 86400000 <= 7;
-        } else if (_sleepFilter === 'month') {
-            return r.date && r.date.startsWith(now.getFullYear()+'-'+(now.getMonth()+1).toString().padStart(2,'0'));
-        }
-        return true;
-    }).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
-
-    var totalH = records.reduce(function(s,r){return s+(parseFloat(r.duration)||0);},0);
-    var avgH = records.length ? (totalH/records.length).toFixed(1) : 0;
-    var nightCount = records.filter(function(r){return r.night_wakings>0;}).length;
-    document.getElementById('sleep-summary').innerHTML =
-        '<div style="text-align:center;padding:8px;background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:20px;font-weight:700;color:var(--s)">'+avgH+'</div><div style="font-size:11px;color:var(--t2)">平均时长(h)</div></div>'
-        + '<div style="text-align:center;padding:8px;background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:20px;font-weight:700;color:var(--info)">'+records.length+'</div><div style="font-size:11px;color:var(--t2)">记录次数</div></div>'
-        + '<div style="text-align:center;padding:8px;background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:20px;font-weight:700;color:#F59E0B">'+nightCount+'</div><div style="font-size:11px;color:var(--t2)">夜醒</div></div>';
-
-    if (records.length === 0) {
-        document.getElementById('sleep-list').innerHTML = '<div style="text-align:center;color:var(--t2);padding:40px">暂无记录<br><span style="font-size:12px">点击右上角+添加</span></div>';
-        return;
-    }
-    var qualityColor = {'好':'#10B981','中':'#F59E0B','差':'#EF4444'};
-    var html = records.map(function(r) {
-        var qc = qualityColor[r.quality] || '#6B7280';
-        return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--b2)">'
-            + '<svg style="width:20px;height:20px;color:var(--s);flex-shrink:0"><use href="#ic-moon"/></svg>'
-            + '<div style="flex:1">'
-            + '<div style="font-size:13px;font-weight:600">'+r.type+' <span style="font-size:11px;color:var(--t2)">'+r.duration+'h</span></div>'
-            + '<div style="font-size:11px;color:var(--t2)">'+r.start_time+' → '+r.end_time+'</div>'
-            + '<div style="font-size:11px;color:var(--t2)">夜醒'+(r.night_wakings||0)+'次 · <span style="color:'+qc+'">'+r.quality+'</span></div>'
-            + '</div>'
-            + '<div style="font-size:11px;color:var(--t2)">'+(r.date||'').slice(5)+'</div>'
-            + '<button onclick="deleteRecord(\'sleep\','+r.id+')" style="background:none;border:none;padding:4px"><svg style="width:14px;height:14px;color:var(--t3)"><use href="#ic-trash"/></svg></button>'
-            + '</div>';
-    }).join('');
-    document.getElementById('sleep-list').innerHTML = html;
-}
-
-function openSleepModal() {
-    var now = new Date();
-    var today = now.toISOString().slice(0,10);
-    var hh = now.getHours().toString().padStart(2,'0');
-    var mm = now.getMinutes().toString().padStart(2,'0');
-    var html = '<div class="modal-overlay" id="sleepModal"><div class="modal" style="padding:20px">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
-        + '<div style="font-size:15px;font-weight:600">添加睡眠记录</div>'
-        + '<button onclick="closeModal(\'sleepModal\')" style="background:none;border:none"><svg style="width:18px;height:18px"><use href="#ic-x"/></svg></button>'
-        + '</div>'
-        + '<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">日期</label>'
-        + '<input id="sleep-date" type="date" value="'+today+'" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
-        + '<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">睡眠类型</label>'
-        + '<select id="sleep-type" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px">'
-        + '<option value="nap">午睡</option><option value="afternoon">白天小睡</option><option value="night">夜睡</option></select></div>'
-        + '<div style="display:flex;gap:8px;margin-bottom:12px">'
-        + '<div style="flex:1"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">开始</label>'
-        + '<input id="sleep-start" type="time" value="12:00" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
-        + '<div style="flex:1"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">结束</label>'
-        + '<input id="sleep-end" type="time" value="14:00" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
-        + '</div>'
-        + '<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">睡眠质量</label>'
-        + '<select id="sleep-quality" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px"><option>好</option><option>中</option><option>差</option></select></div>'
-        + '<div style="margin-bottom:16px"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">夜醒次数</label>'
-        + '<input id="sleep-night" type="number" value="0" min="0" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
-        + '<button onclick="saveSleepRecord()" style="width:100%;padding:10px;background:var(--s);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600">保存</button>'
-        + '</div></div>';
-    document.body.insertAdjacentHTML('beforeend', html);
-}
-
-function saveSleepRecord() {
-    if (!state.currentChild) return;
-    var start = document.getElementById('sleep-start').value;
-    var end = document.getElementById('sleep-end').value;
-    var sh = parseInt(start.split(':')[0]) + parseInt(start.split(':')[1])/60;
-    var eh = parseInt(end.split(':')[0]) + parseInt(end.split(':')[1])/60;
-    var duration = eh > sh ? (eh - sh).toFixed(1) : (24 - sh + eh).toFixed(1);
-    var records = JSON.parse(localStorage.getItem('babygrow_sleep') || '[]');
-    records.push({
-        id: Date.now(),
-        child_id: state.currentChild.id,
-        date: document.getElementById('sleep-date').value,
-        type: document.getElementById('sleep-type').value,
-        start_time: start,
-        end_time: end,
-        duration: duration,
-        quality: document.getElementById('sleep-quality').value,
-        night_wakings: parseInt(document.getElementById('sleep-night').value) || 0
-    });
-    localStorage.setItem('babygrow_sleep', JSON.stringify(records));
-    closeModal('sleepModal');
-    document.getElementById('sleepModal').remove();
-    renderSleepList();
+    var date = document.getElementById('feed-date').value;
+    var time = document.getElementById('feed-time').value;
+    fetch('/api/v1/children/' + encodeURIComponent(state.currentChild.id) + '/feeds', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+            type: document.getElementById('feed-type').value,
+            feed_time: date + 'T' + time + ':00',
+            amount: parseFloat(document.getElementById('feed-amount').value) || null,
+            unit: document.getElementById('feed-unit').value,
+            notes: document.getElementById('feed-notes').value || null
+        })
+    }).then(function(res){ return res.json(); })
+      .then(function() {
+            closeModal('feedingModal');
+            document.getElementById('feedingModal').remove();
+            initFeedingPage();
+      })
+      .catch(function() { alert('保存失败'); });
 }
 
 // ==================== HEALTH PAGE ====================
 var _healthFilter = 'month';
+var _healthData = [];
 
 function initHealthPage() {
+    if (!state.currentChild) return;
     var filters = [{l:'本月',v:'month'},{l:'全部',v:'all'}];
     document.getElementById('health-filter').innerHTML = filters.map(function(f){
         return '<button class="chip-btn" onclick="setHealthFilter(\''+f.v+'\',this)" style="padding:4px 10px;font-size:12px;border-radius:20px;border:1px solid var(--b2);background:'+(_healthFilter===f.v?'var(--s)':'#fff')+';color:'+(_healthFilter===f.v?'#fff':'var(--t2)')+'">'+f.l+'</button>';
     }).join('');
-    renderHealthList();
+
+    fetch('/api/v1/children/' + encodeURIComponent(state.currentChild.id) + '/health')
+        .then(function(res){ return res.json(); })
+        .then(function(data) {
+            _healthData = data || [];
+            renderHealthList();
+        })
+        .catch(function() {
+            _healthData = [];
+            renderHealthList();
+        });
 }
 
 function setHealthFilter(f, btn) {
@@ -2869,14 +2794,15 @@ function setHealthFilter(f, btn) {
 function renderHealthList() {
     if (!state.currentChild) return;
     var cid = state.currentChild.id;
-    var records = JSON.parse(localStorage.getItem('babygrow_health') || '[]').filter(function(r){return r.child_id===cid;});
     var now = new Date();
+    var records = _healthData.filter(function(r){ return r.child_id === cid; });
+
     records = records.filter(function(r) {
         if (_healthFilter === 'month') {
-            return r.date && r.date.startsWith(now.getFullYear()+'-'+(now.getMonth()+1).toString().padStart(2,'0'));
+            return r.recorded_at && r.recorded_at.startsWith(now.getFullYear()+'-'+(now.getMonth()+1).toString().padStart(2,'0'));
         }
         return true;
-    }).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
+    }).sort(function(a,b){ return (b.recorded_at||'').localeCompare(a.recorded_at||''); });
 
     if (records.length === 0) {
         document.getElementById('health-list').innerHTML = '<div style="text-align:center;color:var(--t2);padding:40px">暂无记录<br><span style="font-size:12px">点击右上角+添加</span></div>';
@@ -2884,17 +2810,20 @@ function renderHealthList() {
     }
     var typeIcon = {'体温':'#ic-temp','体重':'#ic-scale','身高':'#ic-height','症状':'#ic-heart'};
     var typeColor = {'体温':'#EF4444','体重':'#3B82F6','身高':'#10B981','症状':'#F59E0B'};
+    var typeUnit = {'体温':'℃','体重':'kg','身高':'cm','症状':''};
     var html = records.map(function(r) {
         var icon = typeIcon[r.type] || '#ic-heart';
         var color = typeColor[r.type] || '#6B7280';
+        var unit = typeUnit[r.type] || '';
+        var displayVal = r.type === '症状' ? (r.notes||'') : ((r.value||'')+unit);
         return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--b2)">'
             + '<svg style="width:20px;height:20px;color:'+color+';flex-shrink:0"><use href="'+icon+'"/></svg>'
             + '<div style="flex:1">'
             + '<div style="font-size:13px;font-weight:600">'+r.type+'</div>'
-            + '<div style="font-size:12px;color:var(--t2)">'+(r.value||'')+(r.unit||'')+(r.notes?' · '+r.notes:'')+'</div>'
+            + '<div style="font-size:12px;color:var(--t2)">'+displayVal+'</div>'
             + '</div>'
-            + '<div style="font-size:11px;color:var(--t2)">'+(r.date||'').slice(5)+'</div>'
-            + '<button onclick="deleteRecord(\'health\','+r.id+')" style="background:none;border:none;padding:4px"><svg style="width:14px;height:14px;color:var(--t3)"><use href="#ic-trash"/></svg></button>'
+            + '<div style="font-size:11px;color:var(--t2)">'+(r.recorded_at||'').slice(5,10)+'</div>'
+            + '<button onclick="deleteRecord(\'health\',\''+r.id+'\')" style="background:none;border:none;padding:4px"><svg style="width:14px;height:14px;color:var(--t3)"><use href="#ic-trash"/></svg></button>'
             + '</div>';
     }).join('');
     document.getElementById('health-list').innerHTML = html;
@@ -2932,24 +2861,213 @@ function updateHealthUnit() {
 function saveHealthRecord() {
     if (!state.currentChild) return;
     var type = document.getElementById('health-type').value;
-    var units = {'体温':'℃','体重':'kg','身高':'cm','症状':''};
-    var records = JSON.parse(localStorage.getItem('babygrow_health') || '[]');
-    records.push({
-        id: Date.now(),
-        child_id: state.currentChild.id,
-        date: document.getElementById('health-date').value,
-        type: type,
-        value: document.getElementById('health-value').value,
-        unit: units[type] || '',
-        notes: document.getElementById('health-notes').value
-    });
-    localStorage.setItem('babygrow_health', JSON.stringify(records));
-    closeModal('healthModal');
-    document.getElementById('healthModal').remove();
-    renderHealthList();
+    var typeMap = {'体温':'temperature','体重':'weight','身高':'height','症状':'symptom'};
+    var value = document.getElementById('health-value').value;
+    var notes = document.getElementById('health-notes').value;
+    var date = document.getElementById('health-date').value;
+    var payload = { type: typeMap[type] || type, recorded_at: date + 'T12:00:00' };
+    if (type === '体温') payload.temperature = parseFloat(value);
+    else if (type === '体重') payload.weight = parseFloat(value);
+    else if (type === '身高') payload.height = parseFloat(value);
+    else if (type === '症状') payload.symptom = value;
+    if (notes) payload.notes = notes;
+
+    fetch('/api/v1/children/' + encodeURIComponent(state.currentChild.id) + '/health', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+    }).then(function(res){ return res.json(); })
+      .then(function() {
+            closeModal('healthModal');
+            document.getElementById('healthModal').remove();
+            initHealthPage();
+      })
+      .catch(function() { alert('保存失败'); });
 }
 
-// ==================== SHARED ====================
+// ==================== SLEEP PAGE ====================
+var _sleepFilter = 'week';
+var _sleepData = [];
+
+function initSleepPage() {
+    if (!state.currentChild) return;
+    var filters = [{l:'本周',v:'week'},{l:'本月',v:'month'},{l:'全部',v:'all'}];
+    document.getElementById('sleep-filter').innerHTML = filters.map(function(f){
+        return '<button class="chip-btn" onclick="setSleepFilter(\''+f.v+'\',this)" style="padding:4px 10px;font-size:12px;border-radius:20px;border:1px solid var(--b2);background:'+(_sleepFilter===f.v?'var(--s)':'#fff')+';color:'+(_sleepFilter===f.v?'#fff':'var(--t2)')+'">'+f.l+'</button>';
+    }).join('');
+
+    // 加载 API 数据
+    fetch('/api/v1/children/' + encodeURIComponent(state.currentChild.id) + '/sleeps')
+        .then(function(res){ return res.json(); })
+        .then(function(data) {
+            _sleepData = data || [];
+            renderSleepList();
+        })
+        .catch(function() {
+            _sleepData = [];
+            renderSleepList();
+        });
+}
+
+function setSleepFilter(f, btn) {
+    _sleepFilter = f;
+    document.querySelectorAll('#sleep-filter .chip-btn').forEach(function(b){b.style.background='#fff';b.style.color='var(--t2)';});
+    btn.style.background='var(--s)'; btn.style.color='#fff';
+    renderSleepList();
+}
+
+function renderSleepList() {
+    if (!state.currentChild) return;
+    var cid = state.currentChild.id;
+    var now = new Date();
+    var records = _sleepData.filter(function(r){ return r.child_id === cid; });
+
+    records = records.filter(function(r) {
+        if (_sleepFilter === 'week') {
+            var d = new Date(r.start_time);
+            return (now - d) / 86400000 <= 7;
+        } else if (_sleepFilter === 'month') {
+            var d = new Date(r.start_time);
+            return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+        }
+        return true;
+    }).sort(function(a,b){ return (b.start_time||'').localeCompare(a.start_time||''); });
+
+    var totalH = records.reduce(function(s,r){return s+(parseFloat(r.duration_minutes||0)/60||0);},0);
+    var avgH = records.length ? (totalH/records.length).toFixed(1) : 0;
+    var nightCount = records.filter(function(r){return (r.night_wakings||0)>0;}).length;
+    document.getElementById('sleep-summary').innerHTML =
+        '<div style="text-align:center;padding:8px;background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:20px;font-weight:700;color:var(--s)">'+avgH+'</div><div style="font-size:11px;color:var(--t2)">平均时长(h)</div></div>'
+        + '<div style="text-align:center;padding:8px;background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:20px;font-weight:700;color:var(--info)">'+records.length+'</div><div style="font-size:11px;color:var(--t2)">记录次数</div></div>'
+        + '<div style="text-align:center;padding:8px;background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:20px;font-weight:700;color:#F59E0B">'+nightCount+'</div><div style="font-size:11px;color:var(--t2)">夜醒</div></div>';
+
+    if (records.length === 0) {
+        document.getElementById('sleep-list').innerHTML = '<div style="text-align:center;color:var(--t2);padding:40px">暂无记录<br><span style="font-size:12px">点击右上角+添加</span></div>';
+        return;
+    }
+    var qualityColor = {'好':'#10B981','中':'#F59E0B','差':'#EF4444','良好':'#10B981','一般':'#F59E0B','需改善':'#EF4444'};
+    var typeName = {'nap':'午睡','afternoon':'白天小睡','night':'夜睡'};
+    var html = records.map(function(r) {
+        var qc = qualityColor[r.quality] || '#6B7280';
+        var tname = typeName[r.type] || r.type || '';
+        var start = r.start_time ? r.start_time.slice(11,16) : '';
+        var end = r.end_time ? r.end_time.slice(11,16) : '';
+        var date = r.start_time ? r.start_time.slice(5,10) : '';
+        return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--b2)">'
+            + '<svg style="width:20px;height:20px;color:var(--s);flex-shrink:0"><use href="#ic-moon"/></svg>'
+            + '<div style="flex:1">'
+            + '<div style="font-size:13px;font-weight:600">'+tname+' <span style="font-size:11px;color:var(--t2)">'+((r.duration_minutes||0)/60).toFixed(1)+'h</span></div>'
+            + '<div style="font-size:11px;color:var(--t2)">'+start+' → '+end+'</div>'
+            + '<div style="font-size:11px;color:var(--t2)">夜醒'+(r.night_wakings||0)+'次 · <span style="color:'+qc+'">'+(r.quality||'')+'</span></div>'
+            + '</div>'
+            + '<div style="font-size:11px;color:var(--t2)">'+date+'</div>'
+            + '<button onclick="deleteRecord(\'sleep\',\''+r.id+'\')" style="background:none;border:none;padding:4px"><svg style="width:14px;height:14px;color:var(--t3)"><use href="#ic-trash"/></svg></button>'
+            + '</div>';
+    }).join('');
+    document.getElementById('sleep-list').innerHTML = html;
+}
+
+function openSleepModal() {
+    var now = new Date();
+    var today = now.toISOString().slice(0,10);
+    var hh = now.getHours().toString().padStart(2,'0');
+    var mm = now.getMinutes().toString().padStart(2,'0');
+    var html = '<div class="modal-overlay" id="sleepModal"><div class="modal" style="padding:20px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
+        + '<div style="font-size:15px;font-weight:600">添加睡眠记录</div>'
+        + '<button onclick="closeModal(\'sleepModal\')" style="background:none;border:none"><svg style="width:18px;height:18px"><use href="#ic-x"/></svg></button>'
+        + '</div>'
+        + '<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">日期</label>'
+        + '<input id="sleep-date" type="date" value="'+today+'" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
+        + '<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">睡眠类型</label>'
+        + '<select id="sleep-type" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px">'
+        + '<option value="nap">午睡</option><option value="afternoon">白天小睡</option><option value="night">夜睡</option></select></div>'
+        + '<div style="display:flex;gap:8px;margin-bottom:12px">'
+        + '<div style="flex:1"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">开始</label>'
+        + '<input id="sleep-start" type="time" value="12:00" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
+        + '<div style="flex:1"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">结束</label>'
+        + '<input id="sleep-end" type="time" value="14:00" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
+        + '</div>'
+        + '<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">睡眠质量</label>'
+        + '<select id="sleep-quality" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px"><option>好</option><option>中</option><option>差</option></select></div>'
+        + '<div style="margin-bottom:16px"><label style="font-size:12px;color:var(--t2);display:block;margin-bottom:4px">夜醒次数</label>'
+        + '<input id="sleep-night" type="number" value="0" min="0" style="width:100%;padding:8px 10px;border:1px solid var(--b2);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
+        + '<button onclick="saveSleepRecord()" style="width:100%;padding:10px;background:var(--s);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600">保存</button>'
+        + '</div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function saveSleepRecord() {
+    if (!state.currentChild) return;
+    var date = document.getElementById('sleep-date').value;
+    var startTime = document.getElementById('sleep-start').value;
+    var endTime = document.getElementById('sleep-end').value;
+    var startDt = date + 'T' + startTime + ':00';
+    var endDt = date + 'T' + endTime + ':00';
+    var qualityMap = {'好':'good','中':'medium','差':'poor'};
+    var typeMap = {'nap':'nap','afternoon':'afternoon_nap','night':'night'};
+
+    fetch('/api/v1/children/' + encodeURIComponent(state.currentChild.id) + '/sleeps', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+            type: typeMap[document.getElementById('sleep-type').value] || 'nap',
+            start_time: startDt,
+            end_time: endDt,
+            night_wakings: parseInt(document.getElementById('sleep-night').value) || 0,
+            quality: qualityMap[document.getElementById('sleep-quality').value] || 'medium',
+            notes: null
+        })
+    }).then(function(res){ return res.json(); })
+      .then(function() {
+            closeModal('sleepModal');
+            document.getElementById('sleepModal').remove();
+            initSleepPage();
+      })
+      .catch(function() { alert('保存失败'); });
+}
+
+function analyzeSleep() {
+    if (!state.currentChild) return;
+    var btn = document.getElementById('sleep-analyze-btn');
+    var resultDiv = document.getElementById('sleep-analysis-result');
+    btn.disabled = true;
+    btn.textContent = '分析中...';
+    resultDiv.style.display = 'none';
+
+    fetch('/api/v1/children/' + encodeURIComponent(state.currentChild.id) + '/sleeps/analyze?days=7')
+        .then(function(res){ return res.json(); })
+        .then(function(data) {
+            if (data.code === 0 && data.data) {
+                var d = data.data;
+                var qualityColor = {'良好':'#10B981','一般':'#F59E0B','需改善':'#EF4444','数据不足':'#6B7280'};
+                var qc = qualityColor[d.summary.sleep_quality] || '#6B7280';
+                var meets = d.summary.meets_recommendation;
+                var meetsText = meets === true ? '✅ 达标' : meets === false ? '❌ 未达标' : '—';
+                var report = d.report || '';
+                var tips = (d.tips || []).map(function(t){ return '<div style="margin-bottom:8px"><span style="font-size:11px;color:var(--p);font-weight:600">'+t.category+'</span><div style="font-size:13px;color:var(--t1)">'+t.content+'</div></div>'; }).join('');
+                resultDiv.innerHTML = '<div style="margin-bottom:12px"><span style="font-size:13px;font-weight:600">睡眠分析报告</span> <span style="font-size:11px;color:'+qc+'">'+d.summary.sleep_quality+'</span></div>'
+                    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'
+                    + '<div style="text-align:center;background:var(--bg-c);padding:8px;border-radius:8px"><div style="font-size:16px;font-weight:700">'+(d.summary.total_sleep_hours||0)+'</div><div style="font-size:10px;color:var(--t2)">总睡眠(h)</div></div>'
+                    + '<div style="text-align:center;background:var(--bg-c);padding:8px;border-radius:8px"><div style="font-size:16px;font-weight:700">'+(d.summary.avg_night_wakings||0)+'</div><div style="font-size:10px;color:var(--t2)">平均夜醒</div></div>'
+                    + '<div style="text-align:center;background:var(--bg-c);padding:8px;border-radius:8px"><div style="font-size:16px;font-weight:700;font-size:11px">'+meetsText+'</div><div style="font-size:10px;color:var(--t2)">月龄建议</div></div>'
+                    + '</div>'
+                    + '<div style="font-size:13px;color:var(--t1);margin-bottom:12px;line-height:1.6">'+report+'</div>'
+                    + (tips ? '<div style="border-top:1px solid var(--b2);padding-top:12px">'+tips+'</div>' : '');
+            } else {
+                resultDiv.innerHTML = '<div style="color:var(--t2);font-size:13px">暂无足够数据（需要至少2天记录）</div>';
+            }
+            resultDiv.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = '🤖 AI分析';
+        })
+        .catch(function() {
+            resultDiv.innerHTML = '<div style="color:#EF4444;font-size:13px">分析失败，请重试</div>';
+            resultDiv.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = '🤖 AI分析';
+        });
+}
 function deleteRecord(type, id) {
     if (!confirm('确定删除？')) return;
     var apiPath = null;
@@ -2957,7 +3075,6 @@ function deleteRecord(type, id) {
     else if (type === 'sleep') apiPath = '/api/v1/children/' + encodeURIComponent(state.currentChild.id) + '/sleeps/' + id;
     else if (type === 'health') apiPath = '/api/v1/children/' + encodeURIComponent(state.currentChild.id) + '/health/' + id;
     else if (type === 'growth') {
-        // Growth records still use localStorage
         var records = JSON.parse(localStorage.getItem('babygrow_growth') || '[]');
         records = records.filter(function(r){return r.id !== id;});
         localStorage.setItem('babygrow_growth', JSON.stringify(records));
@@ -2966,13 +3083,15 @@ function deleteRecord(type, id) {
     }
     if (!apiPath) return;
     fetch(apiPath, { method: 'DELETE' })
-        .then(function() {
-            if (type === 'feeding') renderFeedingList ? renderFeedingList() : initRecordsPage();
-            else if (type === 'sleep') renderSleepList ? renderSleepList() : initRecordsPage();
-            else if (type === 'health') renderHealthList ? renderHealthList() : initHealthPage();
+        .then(function(res) {
+            if (!res.ok) throw new Error('删除失败');
+            if (type === 'feeding') initRecordsPage ? initRecordsPage() : renderFeedingList();
+            else if (type === 'sleep') initSleepPage ? initSleepPage() : renderSleepList();
+            else if (type === 'health') initHealthPage ? initHealthPage() : renderHealthList();
         })
-        .catch(function() {
-            alert('删除失败');
+        .catch(function(e) {
+            console.error(e);
+            alert('删除失败，请重试');
         });
 }
 
@@ -3385,178 +3504,6 @@ function saveRecordSleep(modalId) {
         if (window._recordDate) renderRecordsLists(window._recordDate);
         else initRecordsPage();
     });
-}
-
-function initHealthPage() {
-    var filters = [{l:'本月',v:'month'},{l:'全部',v:'all'}];
-    document.getElementById('health-filter').innerHTML = filters.map(function(f){
-        return '<button class="chip-btn" onclick="setHealthFilter(\''+f.v+'\',this)" style="padding:4px 10px;font-size:12px;border-radius:20px;border:1px solid rgba(44,20,17,.08);background:'+(_healthFilter===f.v?'var(--s)':'#fff')+';color:'+(_healthFilter===f.v?'#fff':'var(--t-2)')+'">'+f.l+'</button>';
-    }).join('');
-    renderHealthList();
-    renderHealthSummary();
-    drawGrowthChart();
-}
-
-function renderHealthSummary() {
-    if (!state.currentChild) return;
-    var cid = state.currentChild.id;
-    var records = JSON.parse(localStorage.getItem('babygrow_health') || '[]').filter(function(r){return r.child_id===cid;});
-    var now = new Date();
-    var monthRecords = records.filter(function(r) {
-        return r.date && r.date.startsWith(now.getFullYear()+'-'+(now.getMonth()+1).toString().padStart(2,'0'));
-    });
-    var symptomCount = monthRecords.filter(function(r){return r.type==='症状';}).length;
-    var latestWeight = '--';
-    var latestHeight = '--';
-    var weightRecords = records.filter(function(r){return r.type==='体重';}).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
-    var heightRecords = records.filter(function(r){return r.type==='身高';}).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
-    if (weightRecords.length > 0) latestWeight = weightRecords[0].value;
-    if (heightRecords.length > 0) latestHeight = heightRecords[0].value;
-    document.getElementById('health-summary').innerHTML =
-        '<div style="text-align:center;padding:10px;background:var(--bg-c);border-radius:12px;box-shadow:var(--sh-sm)"><div style="font-size:22px;font-weight:700;color:var(--s)">'+latestHeight+'</div><div style="font-size:11px;color:var(--t-2)">身高(cm)</div></div>'
-        +'<div style="text-align:center;padding:10px;background:var(--bg-c);border-radius:12px;box-shadow:var(--sh-sm)"><div style="font-size:22px;font-weight:700;color:var(--p)">'+latestWeight+'</div><div style="font-size:11px;color:var(--t-2)">体重(kg)</div></div>'
-        +'<div style="text-align:center;padding:10px;background:var(--bg-c);border-radius:12px;box-shadow:var(--sh-sm)"><div style="font-size:22px;font-weight:700;color:var(--err)">'+symptomCount+'</div><div style="font-size:11px;color:var(--t-2)">本月症状</div></div>';
-}
-
-function drawGrowthChart() {
-    if (!state.currentChild) return;
-    var cid = state.currentChild.id;
-    var records = JSON.parse(localStorage.getItem('babygrow_health') || '[]').filter(function(r){return r.child_id===cid;});
-    var weightRecords = records.filter(function(r){return r.type==='体重';}).sort(function(a,b){return (a.date||'').localeCompare(b.date||'');});
-
-    var svg = document.getElementById('who-growth-svg');
-    if (!svg) return;
-    var w = 360, h = 260;
-    var padding = {left:40, right:20, top:20, bottom:30};
-    var chartW = w - padding.left - padding.right;
-    var chartH = h - padding.top - padding.bottom;
-    var months = [0, 3, 6, 9, 12, 15, 18, 21, 24];
-
-    // WHO growth standards (gender-correct, 0-60 months)
-    var isBoy = (state.currentChild.gender !== 'female');
-    var KB = window.KNOWLEDGE;
-    var whoWeight = isBoy ? KB.getWhoWeightBoys() : KB.getWhoWeightGirls();
-    var whoHeight = isBoy ? KB.getWhoHeightBoys() : KB.getWhoHeightGirls();
-    // WHO BMI-for-age (3rd/15th/50th/85th/97th), interpolated monthly
-    var bmiBoys = [
-        [0,11.2,11.9,12.9,13.9,15.0],[1,12.3,13.0,14.1,15.3,16.5],[2,13.2,14.0,15.2,16.4,17.7],
-        [3,13.9,14.7,15.9,17.2,18.6],[4,14.3,15.1,16.3,17.7,19.2],[5,14.6,15.4,16.7,18.1,19.7],
-        [6,14.7,15.5,16.8,18.3,19.9],[7,14.7,15.5,16.8,18.4,20.1],[8,14.7,15.5,16.8,18.4,20.3],
-        [9,14.6,15.4,16.8,18.4,20.4],[10,14.5,15.4,16.8,18.5,20.6],[11,14.4,15.3,16.7,18.5,20.8],
-        [12,14.3,15.3,16.7,18.4,20.9],[13,14.2,15.2,16.6,18.4,21.0],[14,14.1,15.1,16.6,18.5,21.2],
-        [15,14.0,15.0,16.6,18.5,21.4],[16,13.9,15.0,16.6,18.6,21.6],[17,13.8,14.9,16.6,18.7,21.8],
-        [18,13.7,14.9,16.6,18.7,22.0],[19,13.7,14.9,16.6,18.8,22.2],[20,13.6,14.8,16.6,18.9,22.4],
-        [21,13.6,14.8,16.6,18.9,22.6],[22,13.5,14.8,16.7,19.0,22.8],[23,13.5,14.8,16.7,19.1,23.0],
-        [24,13.5,14.8,16.7,19.2,23.2]
-    ];
-    var bmiGirls = [
-        [0,10.8,11.4,12.4,13.5,14.7],[1,11.8,12.5,13.6,14.8,16.1],[2,12.7,13.4,14.6,15.9,17.3],
-        [3,13.3,14.0,15.3,16.7,18.2],[4,13.6,14.4,15.7,17.2,18.8],[5,13.8,14.6,16.0,17.5,19.2],
-        [6,13.9,14.7,16.1,17.7,19.5],[7,13.9,14.7,16.2,17.8,19.7],[8,13.8,14.7,16.2,17.9,20.0],
-        [9,13.7,14.6,16.2,18.0,20.2],[10,13.6,14.5,16.2,18.1,20.4],[11,13.5,14.4,16.1,18.2,20.7],
-        [12,13.4,14.4,16.1,18.2,20.9],[13,13.3,14.3,16.1,18.3,21.0],[14,13.2,14.3,16.1,18.3,21.2],
-        [15,13.1,14.2,16.1,18.4,21.4],[16,13.1,14.2,16.1,18.5,21.6],[17,13.0,14.2,16.1,18.6,21.8],
-        [18,12.9,14.1,16.1,18.6,22.0],[19,12.9,14.1,16.1,18.7,22.2],[20,12.8,14.1,16.1,18.8,22.4],
-        [21,12.8,14.1,16.1,18.8,22.6],[22,12.7,14.0,16.1,18.9,22.8],[23,12.7,14.0,16.1,19.0,23.0],
-        [24,12.7,14.0,16.2,19.1,23.2]
-    ];
-    var whoBMI = isBoy ? bmiBoys : bmiGirls;
-    var colors = {'3rd':'#f4a261','15th':'#a8dadc','50th':'#7ECFB3','85th':'#a8dadc','97th':'#f4a261'};
-    var widths = {'3rd':'1','15th':'1','50th':'2','85th':'1','97th':'1'};
-    var opacity = {'3rd':'0.5','15th':'0.5','50th':'0.8','85th':'0.5','97th':'0.5'};
-
-    var html = '';
-
-    // Grid lines
-    for (var i = 0; i <= 4; i++) {
-        var y = padding.top + (chartH * i / 4);
-        html += '<line x1="'+padding.left+'" y1="'+y+'" x2="'+(w-padding.right)+'" y2="'+y+'" stroke="rgba(44,20,17,.06)" stroke-width="1"/>';
-    }
-
-    // X axis
-    for (var m = 0; m < months.length; m++) {
-        var x = padding.left + (chartW * months[m] / 24);
-        html += '<text x="'+x+'" y="'+(h-8)+'" text-anchor="middle" font-size="10" fill="var(--t-3)">'+months[m]+'月</text>';
-    }
-
-    // Y axis label
-    html += '<text x="10" y="'+(h/2)+'" text-anchor="middle" font-size="10" fill="var(--t-3)" transform="rotate(-90,10,'+(h/2)+')">体重(kg)</text>';
-
-    // WHO percentile curves (x=月龄, y=体重)
-    var minW = 2.5, maxW = 16;
-    for (var pkey in whoWeight) {
-        var vals = whoWeight[pkey];
-        var pts = vals.map(function(v,i){
-            var x = padding.left + (chartW * months[i] / 24);
-            var y = padding.top + chartH - ((v - minW) / (maxW - minW) * chartH);
-            return x.toFixed(1)+','+y.toFixed(1);
-        });
-        html += '<path d="M'+pts.join('L')+'" fill="none" stroke="'+colors[pkey]+'" stroke-width="'+widths[pkey]+'" stroke-dasharray="'+(pkey==='50th'?'4,0':(pkey==='3rd'||pkey==='97th'?'2,2':'3,2'))+'" opacity="'+opacity[pkey]+'"/>';
-    }
-
-    // Child weight points
-    weightRecords.forEach(function(r) {
-        if (!r.value) return;
-        var v = parseFloat(r.value);
-        if (isNaN(v)) return;
-        var recordDate = new Date(r.date);
-        var birthDate = new Date(state.currentChild.birth);
-        var monthsAtRecord = (recordDate.getFullYear() - birthDate.getFullYear()) * 12 + (recordDate.getMonth() - birthDate.getMonth());
-        if (recordDate.getDate() < birthDate.getDate()) monthsAtRecord--;
-        var x = padding.left + (chartW * monthsAtRecord / 24);
-        var y = padding.top + chartH - ((v - minW) / (maxW - minW) * chartH);
-        if (y < padding.top) y = padding.top;
-        if (y > h - padding.bottom) y = h - padding.bottom;
-        html += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="4" fill="var(--p)"/>';
-    });
-
-    // Legend
-    html += '<line x1="265" y1="10" x2="295" y2="10" stroke="var(--s)" stroke-width="2" opacity="0.8"/>';
-    html += '<text x="298" y="14" font-size="9" fill="var(--t-2)">P50</text>';
-    html += '<line x1="265" y1="22" x2="295" y2="22" stroke="#f4a261" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>';
-    html += '<text x="298" y="26" font-size="9" fill="var(--t-2)">P3/P97</text>';
-    html += '<circle cx="255" cy="16" r="4" fill="var(--p)"/>';
-    html += '<text x="233" y="20" font-size="9" fill="var(--t-2)">自家</text>';
-
-    svg.innerHTML = html;
-}
-
-function setHealthFilter(f, btn) {
-    _healthFilter = f;
-    document.querySelectorAll('#health-filter .chip-btn').forEach(function(b){b.style.background='#fff';b.style.color='var(--t-2)';});
-    btn.style.background='var(--s)'; btn.style.color='#fff';
-    renderHealthList();
-}
-
-function renderHealthList() {
-    if (!state.currentChild) return;
-    var cid = state.currentChild.id;
-    var records = JSON.parse(localStorage.getItem('babygrow_health') || '[]').filter(function(r){return r.child_id===cid;});
-    var now = new Date();
-    records = records.filter(function(r) {
-        if (_healthFilter === 'month') {
-            return r.date && r.date.startsWith(now.getFullYear()+'-'+(now.getMonth()+1).toString().padStart(2,'0'));
-        }
-        return true;
-    }).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
-
-    if (records.length === 0) {
-        document.getElementById('health-list').innerHTML = '<div style="text-align:center;color:var(--t-2);padding:40px">暂无记录<br><span style="font-size:12px">点击右上角+添加</span></div>';
-        return;
-    }
-    var typeIcon = {'体温':'#ic-temp','体重':'#ic-scale','身高':'#ic-height','症状':'#ic-heart'};
-    var typeColor = {'体温':'#EF4444','体重':'#3B82F6','身高':'#10B981','症状':'#F59E0B'};
-    var html = records.map(function(r) {
-        var icon = typeIcon[r.type] || '#ic-heart';
-        var color = typeColor[r.type] || '#6B7280';
-        return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(44,20,17,.04)">'
-            +'<svg style="width:20px;height:20px;color:'+color+';flex-shrink:0"><use href="'+icon+'"/></svg>'
-            +'<div style="flex:1"><div style="font-size:13px;font-weight:600">'+r.type+'</div>'
-            +'<div style="font-size:12px;color:var(--t-2)">'+(r.value||'')+(r.unit||'')+(r.notes?' · '+r.notes:'')+'</div></div>'
-            +'<div style="font-size:11px;color:var(--t-2)">'+(r.date||'').slice(5)+'</div>'
-            +'<button onclick="deleteRecord(\'health\','+r.id+')" style="background:none;border:none;padding:4px"><svg style="width:14px;height:14px;color:var(--t-3)"><use href="#ic-trash"/></svg></button></div>';
-    }).join('');
-    document.getElementById('health-list').innerHTML = html;
 }
 
 function initProfilePage() {
