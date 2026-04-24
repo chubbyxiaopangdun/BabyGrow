@@ -1902,7 +1902,14 @@ function renderApiRecipeDetail(item) {
 function renderApiGenericDetail(item) {
     var html = '';
     if (item.details) html += '<div class="schedule-section"><div class="schedule-section-title"><svg class=""><use href="#ic-info"/></svg>详情</div><div class="schedule-note">' + escapeHtml(item.details) + '</div></div>';
-    if (item.recipe && item.recipe.tips) html += '<div class="schedule-section"><div class="schedule-section-title"><svg class=""><use href="#ic-tips"/></svg>提示</div><div class="schedule-note">' + escapeHtml(item.recipe.tips) + '</div></div>';
+    if (item.nutrition) html += '<div class="schedule-section"><div class="schedule-section-title"><svg class=""><use href="#ic-growth"/></svg>营养价值</div><div class="schedule-note">' + escapeHtml(item.nutrition) + '</div></div>';
+    if (item.preparation) {
+        var steps = item.preparation.split('→').map(function(s) { return s.trim(); });
+        html += '<div class="schedule-section"><div class="schedule-section-title"><svg class=""><use href="#ic-list"/></svg>操作步骤</div><div class="schedule-steps">';
+        steps.forEach(function(step, si) { html += '<div class="schedule-step"><span class="step-num">' + (si + 1) + '</span><span class="step-text">' + escapeHtml(step) + '</span></div>'; });
+        html += '</div></div>';
+    }
+    if (item.notes) html += '<div class="schedule-section"><div class="schedule-section-title"><svg class=""><use href="#ic-tips"/></svg>小贴士</div><div class="schedule-note">' + escapeHtml(item.notes) + '</div></div>';
     return html;
 }
 
@@ -2071,19 +2078,14 @@ function generateDefaultPlan(child, months) {
 }
 
 function renderSchedule(type) {
-    // Always use the API-transformed plan (renderScheduleFromApi already ran)
     var plan = state.todayPlan;
     if (!plan) {
         document.getElementById('schedule-list').innerHTML =
             '<div class="schedule-empty"><div class="schedule-empty-icon"><svg class=""><use href="#ic-calendar"/></svg></div><div class="empty-title">暂无安排</div><div class="empty-desc">点击"生成今日安排"获取建议</div></div>';
         return;
     }
-    // renderScheduleFromApi already populated plan.schedule from plan.items
-    // Filter items by type for food/game/story tabs
-    var typeMap = { food: 'food', game: 'game', story: 'story', schedule: 'schedule' };
-    var filterType = typeMap[type] || 'schedule';
     var allItems = plan.schedule || plan.items || [];
-    var items = allItems.filter(function(item) { return item.type === filterType; });
+    var items = allItems.filter(function(item) { return true; }); // show all, no filter
 
     if (items.length === 0) {
         document.getElementById('schedule-list').innerHTML =
@@ -2091,11 +2093,11 @@ function renderSchedule(type) {
         return;
     }
 
-    var typeDotMap = { food: 'p-food', game: 'p-game', story: 'p-story', schedule: 'p-schedule' };
+    var dotMap = { food: 'p-food', game: 'p-game', story: 'p-story', wake: 'p-other', sleep: 'p-other', outdoor: 'p-other', bath: 'p-other', meal: 'p-food', other: 'p-other' };
     var html = '';
     items.forEach(function(item) {
-        var dotClass = typeDotMap[item.type] || 'p-other';
-        var title = item.activity || '';
+        var dotClass = dotMap[item.type] || 'p-other';
+        var title = item.activity || item.title || '';
         var time = item.time || '';
         html += '<div class="schedule-item">' +
             '<div class="schedule-item-header" onclick="toggleScheduleItem(this)">' +
