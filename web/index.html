@@ -2071,54 +2071,45 @@ function generateDefaultPlan(child, months) {
 }
 
 function renderSchedule(type) {
-    var container = document.getElementById('schedule-list');
+    // Always use the API-transformed plan (renderScheduleFromApi already ran)
     var plan = state.todayPlan;
-
     if (!plan) {
-        container.innerHTML = '<div class="schedule-empty"><div class="schedule-empty-icon"><svg class=""><use href="#ic-calendar"/></svg></div><div class="empty-title">暂无安排</div><div class="empty-desc">点击"生成今日安排"获取建议</div></div>';
+        document.getElementById('schedule-list').innerHTML =
+            '<div class="schedule-empty"><div class="schedule-empty-icon"><svg class=""><use href="#ic-calendar"/></svg></div><div class="empty-title">暂无安排</div><div class="empty-desc">点击"生成今日安排"获取建议</div></div>';
         return;
     }
-
-    var items = [];
-    var typeMap = { food: 'p-food', game: 'p-game', story: 'p-story', schedule: 'p-schedule' };
-
-    if (type === 'food') {
-        items = plan.meals || [];
-    } else if (type === 'game') {
-        items = plan.games || [];
-    } else if (type === 'story') {
-        items = plan.stories || [];
-    } else {
-        items = plan.schedule || [];
-    }
+    // renderScheduleFromApi already populated plan.schedule from plan.items
+    // Filter items by type for food/game/story tabs
+    var typeMap = { food: 'food', game: 'game', story: 'story', schedule: 'schedule' };
+    var filterType = typeMap[type] || 'schedule';
+    var allItems = plan.schedule || plan.items || [];
+    var items = allItems.filter(function(item) { return item.type === filterType; });
 
     if (items.length === 0) {
-        container.innerHTML = '<div class="schedule-empty"><div class="schedule-empty-icon"><svg class=""><use href="#ic-calendar"/></svg></div><div class="empty-title">暂无安排</div></div>';
+        document.getElementById('schedule-list').innerHTML =
+            '<div class="schedule-empty"><div class="schedule-empty-icon"><svg class=""><use href="#ic-calendar"/></svg></div><div class="empty-title">暂无安排</div></div>';
         return;
     }
 
+    var typeDotMap = { food: 'p-food', game: 'p-game', story: 'p-story', schedule: 'p-schedule' };
     var html = '';
-    items.forEach(function(item, idx) {
-        var dotClass = typeMap[item.type] || 'p-other';
-        var title = item.activity || item.recipe && item.recipe.name || item.game && item.game.name || item.story && item.story.name || '';
+    items.forEach(function(item) {
+        var dotClass = typeDotMap[item.type] || 'p-other';
+        var title = item.activity || '';
         var time = item.time || '';
-        html +=
-            '<div class="schedule-item">' +
-                '<div class="schedule-item-header" onclick="toggleScheduleItem(this)">' +
-                    '<div class="schedule-time">' + time + '</div>' +
-                    '<div class="schedule-dot ' + dotClass + '"></div>' +
-                    '<div class="schedule-title">' + escapeHtml(title) + '</div>' +
-                    '<div class="schedule-chevron"><svg class="" style="width:16px;height:16px;color:var(--t-3)"><use href="#ic-chevron-down"/></svg></div>' +
-                '</div>' +
-                '<div class="schedule-content">' +
-                    '<div class="schedule-inner">' +
-                        renderScheduleDetail(item, type) +
-                    '</div>' +
-                '</div>' +
-            '</div>';
+        html += '<div class="schedule-item">' +
+            '<div class="schedule-item-header" onclick="toggleScheduleItem(this)">' +
+                '<div class="schedule-time">' + escapeHtml(time) + '</div>' +
+                '<div class="schedule-dot ' + dotClass + '"></div>' +
+                '<div class="schedule-title">' + escapeHtml(title) + '</div>' +
+                '<div class="schedule-details-preview" style="flex:1;font-size:12px;color:var(--t-2);margin-left:8px">' + escapeHtml(item.details || '') + '</div>' +
+                '<div class="schedule-chevron"><svg class="" style="width:16px;height:16px;color:var(--t-3)"><use href="#ic-chevron-down"/></svg></div>' +
+            '</div>' +
+            '<div class="schedule-content"><div class="schedule-inner">' +
+                (item.recipe ? renderApiRecipeDetail(item) : renderApiGenericDetail(item)) +
+            '</div></div></div>';
     });
-
-    container.innerHTML = html;
+    document.getElementById('schedule-list').innerHTML = html;
 }
 
 function renderScheduleDetail(item, type) {
