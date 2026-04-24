@@ -406,6 +406,39 @@
         .ai-bar-question { font-size:14px; font-weight:500; color:var(--t); }
         .ai-bar-arrow svg { width:18px; height:18px; color:var(--t-3); opacity:.5; }
 
+        /* ---- Bottom Tab Navigation ---- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #fff;
+            border-top: 1px solid rgba(44,20,17,.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            z-index: 90;
+            padding-bottom: var(--sb);
+        }
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--t-3);
+            transition: color .2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .bottom-nav-item svg { width:22px; height:22px; }
+        .bottom-nav-item span { font-size:10px; font-weight:500; }
+        .bottom-nav-item.active { color: var(--p); }
+        .bottom-nav-item.active svg { stroke: var(--p); fill: none; }
+
         /* ---- Modal ---- */
         .modal-overlay {
             display:none; position:fixed; inset:0;
@@ -1509,6 +1542,27 @@ function saveState() {
 }
 
 // ==================== PAGE NAVIGATION ====================
+var _currentTab = 'home';
+
+function switchTab(tab) {
+    _currentTab = tab;
+    var nav = document.getElementById('bottom-nav');
+    if (nav) {
+        nav.querySelectorAll('.bottom-nav-item').forEach(function(it) { it.classList.remove('active'); });
+        var btn = document.getElementById('tab-' + tab);
+        if (btn) btn.classList.add('active');
+    }
+    var aiBar = document.getElementById('ai-bar');
+    if (tab === 'chat') {
+        showChat();
+        if (aiBar) aiBar.style.display = 'none';
+    } else {
+        if (aiBar) aiBar.style.display = 'flex';
+        var pageMap = { 'home': 'home', 'records': 'records', 'profile': 'profile' };
+        showPage(pageMap[tab] || 'home');
+    }
+}
+
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(function(p) {
         p.classList.remove('active');
@@ -1519,13 +1573,18 @@ function showPage(pageId) {
     }
     var aiBar = document.getElementById('ai-bar');
     if (aiBar) {
-        aiBar.style.display = (pageId === 'welcome') ? 'none' : 'flex';
+        aiBar.style.display = (pageId === 'welcome' || pageId === 'chat') ? 'none' : 'flex';
     }
+    // Show bottom nav on non-welcome pages
+    var nav = document.getElementById('bottom-nav');
+    if (nav) nav.style.display = (pageId === 'welcome') ? 'none' : 'flex';
     // Initialize page data
     if (pageId === 'milestones' && typeof initMilestonesPage === 'function') initMilestonesPage();
     else if (pageId === 'records' && typeof initRecordsPage === 'function') initRecordsPage();
     else if (pageId === 'health' && typeof initHealthPage === 'function') initHealthPage();
+    else if (pageId === 'sleep' && typeof initSleepPage === 'function') initSleepPage();
     else if (pageId === 'profile' && typeof initProfilePage === 'function') initProfilePage();
+    else if (pageId === 'growth' && typeof initGrowthPage === 'function') initGrowthPage();
 }
 
 // ==================== HELPERS ====================
