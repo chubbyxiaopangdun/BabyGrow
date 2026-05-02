@@ -1193,7 +1193,7 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
     <span>健康</span>
   </button>
-  <button class="tab-btn" onclick="showTab('profile')">
+  <button class="tab-btn" onclick="showSettings()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     <span>设置</span>
   </button>
@@ -2607,12 +2607,24 @@ function escapeHtml(str) {
 // ==================== MODALS ====================
 function closeModal(id) {
     document.getElementById(id).classList.remove('active');
+    // When settings modal closes, restore tab highlight to current page
+    if (id === 'settingsModal' || id === 'apiKeyModal') {
+        document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+        var pageMap = { 'home': 0, 'milestones': 1, 'records': 2, 'health': 3 };
+        var idx = pageMap[_currentTab];
+        var btns = document.querySelectorAll('.tab-btn');
+        if (idx !== undefined && btns[idx]) btns[idx].classList.add('active');
+    }
 }
 
 function showSettings() {
     document.getElementById('settingsModal').classList.add('active');
     var status = document.getElementById('api-key-status');
     status.textContent = state.apiKey ? '已设置自定义Key' : '使用默认Key';
+    // Highlight the settings tab
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    var btns = document.querySelectorAll('.tab-btn');
+    if (btns[4]) btns[4].classList.add('active');
 }
 
 function showApiKeyInput() {
