@@ -249,3 +249,65 @@ async def get_shopping_list(child_id: str):
         }
     finally:
         session.close()
+
+
+# ============ 7天个性化食谱 ============
+
+@router.get("/children/{child_id}/meal-plan")
+async def get_7day_meal_plan(child_id: str):
+    """生成7天个性化食谱"""
+    from services.meal_planner import generate_7day_meal_plan as gen_plan
+    import json as json_mod
+
+    session = get_session()
+    try:
+        child = session.query(Child).filter(Child.id == child_id).first()
+        if not child:
+            raise HTTPException(status_code=404, detail="孩子不存在")
+
+        age_months = _calc_age_months(child.birth_date)
+        allergies = []
+        if child.allergies:
+            try:
+                allergies = json_mod.loads(child.allergies) if isinstance(child.allergies, str) else child.allergies
+            except:
+                allergies = []
+
+        plan = gen_plan(
+            age_months=age_months,
+            allergies=allergies,
+            child_name=child.name,
+        )
+        return plan
+    finally:
+        session.close()
+
+
+@router.get("/children/{child_id}/shopping-list-gen")
+async def generate_shopping_list_from_plan(child_id: str):
+    """从7天食谱生成采购清单"""
+    from services.meal_planner import generate_7day_meal_plan as gen_plan
+    import json as json_mod
+
+    session = get_session()
+    try:
+        child = session.query(Child).filter(Child.id == child_id).first()
+        if not child:
+            raise HTTPException(status_code=404, detail="孩子不存在")
+
+        age_months = _calc_age_months(child.birth_date)
+        allergies = []
+        if child.allergies:
+            try:
+                allergies = json_mod.loads(child.allergies) if isinstance(child.allergies, str) else child.allergies
+            except:
+                allergies = []
+
+        plan = gen_plan(age_months=age_months, allergies=allergies, child_name=child.name)
+        return {
+            "child_name": child.name,
+            "age_months": age_months,
+            "shopping_list": plan["shopping_list"],
+        }
+    finally:
+        session.close()

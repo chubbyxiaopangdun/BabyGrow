@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>BabyGrow · Apple Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════ APPLE DESIGN TOKENS ═══════════════ */
+:root{
+  /* System Colors */
+  --blue:#007AFF;--green:#34C759;--red:#FF3B30;--orange:#FF9500;
+  --yellow:#FFCC00;--mint:#00C7BE;--teal:#30B0C7;--indigo:#5856D6;
+  --purple:#AF52DE;--pink:#FF2D55;
+  /* BabyGrow Brand — refined warm accent */
+  --brand:#FF6B35;--brand-light:#FFF0E8;--brand-dark:#E85A28;
+  /* Surfaces */
+  --bg:#F2F2F7;--bgC:#FFFFFF;--bgS:#F2F2F7;
+  /* Labels */
+  --label:#000000;--label2:rgba(60,60,67,0.6);--label3:rgba(60,60,67,0.3);
+  /* Separators */
+  --sep:rgba(60,60,67,0.12);
+  /* Fill */
+  --fill:rgba(120,120,128,0.2);--fill2:rgba(120,120,128,0.16);
+  /* Type — system font stack */
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Noto Sans SC',sans-serif;
+  --mono:'SF Mono',Menlo,monospace;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+body{
+  background:#000;font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:100vh;padding:20px;
+}
+
+/* ═══════════════ iPHONE 15 PRO FRAME ═══════════════ */
+.frame{
+  position:relative;width:393px;height:852px;
+  background:#000;border-radius:55px;padding:11px 10px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 40px 100px rgba(0,0,0,0.8),
+    inset 0 0 0 1px rgba(255,255,255,0.05);
+}
+.frame-inner{
+  width:373px;height:830px;background:var(--bg);
+  border-radius:45px;overflow:hidden;position:relative;
+}
+/* Dynamic Island */
+.island{
+  position:absolute;top:11px;left:50%;transform:translateX(-50%);
+  width:126px;height:37px;background:#000;border-radius:20px;z-index:100;
+}
+/* Status Bar */
+.sbar{
+  position:absolute;top:0;left:0;right:0;height:54px;z-index:90;
+  display:flex;justify-content:space-between;align-items:flex-end;
+  padding:0 32px 6px;pointer-events:none;
+}
+.sbar-time{font-size:15px;font-weight:600;color:var(--label);letter-spacing:0.01em}
+.sbar-icons{display:flex;gap:5px;align-items:center}
+/* Home Indicator */
+.home-ind{
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  width:134px;height:5px;background:var(--label);border-radius:3px;
+  opacity:0.18;z-index:100;
+}
+
+/* ═══════════════ SCREEN LAYOUT ═══════════════ */
+.screen{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  overflow:hidden;display:flex;flex-direction:column;
+}
+.screen-scroll{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  padding-bottom:90px;
+}
+.screen-scroll::-webkit-scrollbar{display:none}
+.screen-scroll.no-tab{padding-bottom:20px}
+
+/* ═══════════════ NAVIGATION BAR ═══════════════ */
+.nav-large{
+  padding:58px 20px 8px;background:var(--bg);
+  position:sticky;top:0;z-index:50;
+}
+.nav-large h1{
+  font-size:34px;font-weight:700;color:var(--label);
+  letter-spacing:-0.02em;line-height:1.1;
+}
+.nav-bar{
+  padding:58px 16px 10px;background:rgba(242,242,247,0.72);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  display:flex;justify-content:space-between;align-items:flex-end;
+  position:sticky;top:0;z-index:50;
+}
+.nav-bar h1{font-size:17px;font-weight:600;color:var(--label)}
+.nav-btn{
+  font-size:17px;color:var(--brand);cursor:pointer;
+  background:none;border:none;font-family:var(--font);font-weight:400;
+}
+.nav-btn:active{opacity:0.5}
+.nav-back{display:flex;align-items:center;gap:2px;color:var(--brand);font-size:17px;cursor:pointer}
+.nav-back:active{opacity:0.5}
+.nav-back svg{width:12px;height:20px}
+
+/* ═══════════════ FROSTED TAB BAR ═══════════════ */
+.tabbar{
+  position:absolute;bottom:0;left:0;right:0;height:83px;z-index:80;
+  background:rgba(249,249,249,0.78);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-top:0.5px solid var(--sep);
+  display:flex;align-items:flex-start;justify-content:space-around;
+  padding-top:6px;
+}
+.tab{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  cursor:pointer;padding:4px 0;min-width:64px;
+  -webkit-tap-highlight-color:transparent;transition:opacity .15s;
+}
+.tab:active{opacity:0.5}
+.tab-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center}
+.tab-icon svg{width:24px;height:24px}
+.tab-label{font-size:10px;font-weight:500;color:var(--label3);transition:color .2s}
+.tab.on .tab-label{color:var(--brand)}
+
+/* ═══════════════ iOS GROUPED LIST ═══════════════ */
+.group{
+  background:var(--bgC);border-radius:12px;margin:0 16px 20px;
+  overflow:hidden;
+}
+.group-inset{
+  background:var(--bgC);border-radius:12px;margin:0 16px 20px;
+  overflow:hidden;
+}
+.group-header{
+  font-size:13px;font-weight:400;color:var(--label2);
+  text-transform:uppercase;letter-spacing:0.02em;
+  padding:24px 28px 8px;
+}
+.group-footer{
+  font-size:13px;color:var(--label3);
+  padding:8px 28px 0;line-height:1.4;
+}
+.row{
+  display:flex;align-items:center;padding:12px 16px;gap:12px;
+  min-height:44px;cursor:pointer;transition:background .1s;
+  position:relative;
+}
+.row:active{background:var(--fill2)}
+.row+.row::before{
+  content:'';position:absolute;top:0;left:52px;right:0;height:0.5px;
+  background:var(--sep);
+}
+.row:first-child::before{left:16px}
+.row-icon{
+  width:30px;height:30px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.row-content{flex:1;min-width:0}
+.row-title{font-size:17px;color:var(--label);font-weight:400}
+.row-subtitle{font-size:13px;color:var(--label2);margin-top:1px}
+.row-value{font-size:17px;color:var(--label2);font-weight:400}
+.row-chevron{color:var(--label3);font-size:14px;opacity:0.3;font-weight:600}
+.row-stepper{display:flex;align-items:center;gap:12px}
+
+/* ═══════════════ iOS CARDS ═══════════════ */
+.card{
+  background:var(--bgC);border-radius:16px;margin:0 16px 12px;
+  padding:16px;box-shadow:0 0.5px 0 rgba(0,0,0,0.04);
+}
+.card-hero{
+  background:linear-gradient(135deg,#FF6B35 0%,#FF8F65 100%);
+  border-radius:16px;margin:0 16px 12px;padding:20px;
+  color:#fff;position:relative;overflow:hidden;
+}
+.card-hero::after{
+  content:'';position:absolute;top:-40%;right:-20%;width:180px;height:180px;
+  background:radial-gradient(circle,rgba(255,255,255,0.15),transparent);border-radius:50%;
+}
+
+/* ═══════════════ STAT RING ═══════════════ */
+.stat-ring{
+  width:56px;height:56px;position:relative;flex-shrink:0;
+}
+.stat-ring svg{transform:rotate(-90deg);width:56px;height:56px}
+.stat-ring circle{fill:none;stroke-linecap:round}
+.stat-ring .track{stroke:var(--fill2);stroke-width:5}
+.stat-ring .fill{stroke-width:5;transition:stroke-dashoffset 1s ease-out}
+.stat-ring-val{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:600;color:var(--label);
+}
+
+/* ═══════════════ APPLE-STYLE ANIMATIONS ═══════════════ */
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleSpring{from{opacity:0;transform:scale(0.92)}to{opacity:1;transform:scale(1)}}
+@keyframes countPop{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:scale(1)}}
+@keyframes ringDraw{from{stroke-dashoffset:var(--circ)}to{stroke-dashoffset:var(--target)}}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes gentlePulse{0%,100%{opacity:1}50%{opacity:0.6}}
+@keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideInLeft{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+
+.a-up{animation:slideUp .45s cubic-bezier(.25,.46,.45,.94) both}
+.a-in{animation:fadeIn .35s ease both}
+.a-scale{animation:scaleSpring .4s cubic-bezier(.25,.46,.45,.94) both}
+.a-right{animation:slideInRight .4s cubic-bezier(.25,.46,.45,.94) both}
+.a-left{animation:slideInLeft .4s cubic-bezier(.25,.46,.45,.94) both}
+
+/* Stagger */
+.s1{animation-delay:.04s}.s2{animation-delay:.08s}.s3{animation-delay:.12s}
+.s4{animation-delay:.16s}.s5{animation-delay:.2s}.s6{animation-delay:.24s}
+.s7{animation-delay:.28s}.s8{animation-delay:.32s}.s9{animation-delay:.36s}
+.s10{animation-delay:.4s}
+
+/* ═══════════════ CONFETTI ═══════════════ */
+.confetti-wrap{position:absolute;inset:0;pointer-events:none;z-index:999;overflow:hidden}
+.confetti-p{
+  position:absolute;border-radius:2px;
+  animation:confettiFall 1.2s cubic-bezier(.25,.46,.45,.94) forwards;
+}
+@keyframes confettiFall{
+  0%{opacity:1;transform:translate(0,0) rotate(0) scale(1)}
+  100%{opacity:0;transform:translate(var(--tx),220px) rotate(var(--rot)) scale(0.3)}
+}
+
+/* ═══════════════ TOAST ═══════════════ */
+.toast{
+  position:absolute;top:60px;left:16px;right:16px;z-index:200;
+  background:rgba(30,30,30,0.92);backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-radius:14px;padding:12px 16px;
+  display:flex;align-items:center;gap:10px;
+  animation:slideUp .35s cubic-bezier(.25,.46,.45,.94) both;
+  box-shadow:0 8px 32px rgba(0,0,0,0.2);
+}
+.toast-icon{font-size:20px}
+.toast-text{font-size:15px;color:#fff;font-weight:500}
+
+/* ═══════════════ WELCOME ═══════════════ */
+.welcome{
+  display:flex;flex-direction:column;align-items:center;
+  padding:80px 24px 40px;text-align:center;
+  background:linear-gradient(180deg,#FFFFFF 0%,#F2F2F7 100%);
+}
+.welcome-logo{
+  width:88px;height:88px;border-radius:22px;
+  background:linear-gradient(135deg,var(--brand),#FF8F65);
+  display:flex;align-items:center;justify-content:center;
+  font-size:44px;margin-bottom:20px;
+  box-shadow:0 8px 32px rgba(255,107,53,0.25);
+}
+.welcome h1{
+  font-size:28px;font-weight:700;color:var(--label);
+  letter-spacing:-0.02em;margin-bottom:6px;
+}
+.welcome p{font-size:17px;color:var(--label2);line-height:1.5;margin-bottom:32px}
+.welcome-form{width:100%;text-align:left}
+.field{margin-bottom:16px}
+.field-label{
+  font-size:13px;font-weight:500;color:var(--label2);
+  padding:0 4px;margin-bottom:6px;text-transform:uppercase;
+  letter-spacing:0.04em;
+}
+.field-input{
+  width:100%;background:var(--bgC);border:none;border-radius:12px;
+  padding:12px 16px;font-size:17px;color:var(--label);
+  font-family:var(--font);outline:none;
+  box-shadow:0 0.5px 0 rgba(0,0,0,0.04);
+}
+.field-input:focus{box-shadow:0 0 0 3px rgba(255,107,53,0.25),0 0.5px 0 rgba(0,0,0,0.04)}
+.field-row{display:flex;gap:10px}
+.field-row .field{flex:1}
+.gender-pill{
+  display:flex;background:var(--fill2);border-radius:10px;padding:2px;
+  gap:2px;
+}
+.gp{
+  flex:1;text-align:center;padding:9px;border-radius:8px;
+  font-size:15px;color:var(--label2);cursor:pointer;
+  transition:all .2s;font-weight:500;
+}
+.gp.on{background:var(--bgC);color:var(--brand);box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+.tags-row{display:flex;flex-wrap:wrap;gap:8px}
+.tag-pill{
+  padding:8px 16px;border-radius:20px;font-size:15px;
+  background:var(--fill2);color:var(--label2);
+  cursor:pointer;transition:all .2s;font-weight:500;
+}
+.tag-pill.on{background:var(--brand);color:#fff}
+.primary-btn{
+  width:100%;background:var(--brand);color:#fff;border:none;
+  border-radius:14px;padding:16px;font-size:17px;font-weight:600;
+  font-family:var(--font);cursor:pointer;margin-top:8px;
+  transition:all .15s;position:relative;overflow:hidden;
+}
+.primary-btn:active{transform:scale(0.98);opacity:0.9}
+
+/* ═══════════════ HOME ═══════════════ */
+.home-top{
+  padding:58px 20px 4px;display:flex;justify-content:space-between;align-items:center;
+}
+.child-chip{
+  display:flex;align-items:center;gap:10px;padding:6px 12px 6px 6px;
+  background:var(--bgC);border-radius:20px;cursor:pointer;
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:all .15s;
+}
+.child-chip:active{transform:scale(0.97)}
+.child-av{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,#FFE0CC,var(--brand-light));
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+}
+.child-info .name{font-size:15px;font-weight:600;color:var(--label)}
+.child-info .age{font-size:12px;color:var(--label2)}
+.settings-btn{
+  width:34px;height:34px;border-radius:50%;background:var(--bgC);
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:all .15s;
+}
+.settings-btn:active{transform:scale(0.9)}
+
+/* Hero Card */
+.hero-card{
+  background:linear-gradient(135deg,var(--brand) 0%,#FF8F65 100%);
+  border-radius:20px;margin:16px 16px 12px;padding:20px;
+  color:#fff;position:relative;overflow:hidden;
+}
+.hero-card::after{
+  content:'';position:absolute;top:-30%;right:-15%;width:160px;height:160px;
+  background:radial-gradient(circle,rgba(255,255,255,0.18),transparent);border-radius:50%;
+}
+.hero-label{font-size:13px;font-weight:600;opacity:0.8;margin-bottom:6px;position:relative;z-index:1}
+.hero-text{font-size:15px;line-height:1.55;font-weight:500;position:relative;z-index:1;opacity:0.95}
+.hero-name{
+  font-size:22px;font-weight:700;margin-bottom:4px;
+  position:relative;z-index:1;
+}
+.hero-sub{font-size:13px;opacity:0.7;position:relative;z-index:1}
+
+/* Quick Grid */
+.quick-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px 16px;
+}
+.quick-card{
+  background:var(--bgC);border-radius:16px;padding:16px;
+  cursor:pointer;transition:all .15s;position:relative;
+  box-shadow:0 0.5px 0 rgba(0,0,0,0.04);
+}
+.quick-card:active{transform:scale(0.97);background:var(--fill2)}
+.qc-icon{font-size:28px;margin-bottom:8px}
+.qc-title{font-size:15px;font-weight:600;color:var(--label)}
+.qc-desc{font-size:13px;color:var(--label2);margin-top:2px}
+
+/* Section Header */
+.sec-hdr{
+  font-size:13px;font-weight:500;color:var(--label2);
+  text-transform:uppercase;letter-spacing:0.02em;
+  padding:4px 28px 8px;
+}
+
+/* AI Suggestion */
+.ai-suggest{
+  margin:0 16px 16px;background:var(--bgC);border-radius:16px;
+  padding:14px 16px;display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:all .15s;
+  box-shadow:0 0.5px 0 rgba(0,0,0,0.04);
+}
+.ai-suggest:active{transform:scale(0.98)}
+.ai-av{
+  width:38px;height:38px;border-radius:10px;
+  background:linear-gradient(135deg,#E8F5E9,#C8E6C9);
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  flex-shrink:0;
+}
+.ai-text{flex:1;min-width:0}
+.ai-text .q{font-size:15px;color:var(--label);font-weight:500}
+.ai-text .hint{font-size:13px;color:var(--label2);margin-top:2px}
+
+/* ═══════════════ SCHEDULE ═══════════════ */
+.sched-date{
+  padding:4px 20px 12px;font-size:15px;color:var(--label2);font-weight:400;
+}
+.tl{padding:0 16px}
+.tl-item{
+  display:flex;gap:12px;margin-bottom:2px;position:relative;
+  padding-left:0;
+}
+.tl-time{
+  width:48px;font-size:13px;color:var(--label2);font-weight:500;
+  padding-top:14px;text-align:right;flex-shrink:0;
+}
+.tl-line{
+  width:1.5px;background:var(--sep);position:relative;flex-shrink:0;
+}
+.tl-line::before{
+  content:'';position:absolute;top:16px;left:50%;transform:translateX(-50%);
+  width:8px;height:8px;border-radius:50%;background:var(--fill);
+  z-index:1;
+}
+.tl-line.now::before{background:var(--brand);box-shadow:0 0 0 3px rgba(255,107,53,0.2)}
+.tl-body{flex:1;padding:10px 14px;background:var(--bgC);border-radius:12px;margin:4px 0 8px;
+  box-shadow:0 0.5px 0 rgba(0,0,0,0.04);cursor:pointer;transition:all .15s}
+.tl-body:active{transform:scale(0.98)}
+.tl-title{font-size:15px;font-weight:600;color:var(--label);margin-bottom:3px}
+.tl-desc{font-size:13px;color:var(--label2);line-height:1.4}
+.tl-tip{font-size:12px;color:var(--green);margin-top:4px;font-weight:500}
+
+/* ═══════════════ SLEEP ═══════════════ */
+.sleep-stats{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 16px 16px;
+}
+.sleep-stat{
+  background:var(--bgC);border-radius:16px;padding:16px 12px;text-align:center;
+  box-shadow:0 0.5px 0 rgba(0,0,0,0.04);
+}
+.sleep-val{font-size:28px;font-weight:700;color:var(--label);letter-spacing:-0.02em}
+.sleep-unit{font-size:15px;font-weight:400;color:var(--label2)}
+.sleep-lbl{font-size:12px;color:var(--label2);margin-top:4px}
+
+.ai-card{
+  margin:0 16px 16px;background:var(--bgC);border-radius:16px;
+  padding:16px;box-shadow:0 0.5px 0 rgba(0,0,0,0.04);
+  display:flex;gap:14px;align-items:flex-start;
+}
+.ai-card-text{flex:1}
+.ai-card-label{font-size:13px;color:var(--label2);margin-bottom:4px}
+.ai-card-score{font-size:28px;font-weight:700;color:var(--green);letter-spacing:-0.02em}
+.ai-card-desc{font-size:13px;color:var(--label2);margin-top:6px;line-height:1.4}
+
+/* ═══════════════ CHAT ═══════════════ */
+.chat-area{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
+.chat-area::-webkit-scrollbar{display:none}
+.msg-row{display:flex;gap:8px;margin-bottom:14px}
+.msg-row.user{justify-content:flex-end}
+.msg-av-sm{
+  width:28px;height:28px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;font-size:14px;flex-shrink:0;
+}
+.msg-av-sm.ai{background:#E8F5E9}
+.bubble{
+  max-width:260px;padding:10px 14px;border-radius:18px;
+  font-size:15px;line-height:1.5;
+}
+.msg-row.ai .bubble{background:var(--bgC);color:var(--label);border-bottom-left-radius:4px}
+.msg-row.user .bubble{background:var(--brand);color:#fff;border-bottom-right-radius:4px}
+.quick-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.quick-pill{
+  padding:7px 14px;background:var(--bgC);border-radius:18px;
+  font-size:14px;color:var(--label);cursor:pointer;transition:all .15s;
+  border:0.5px solid var(--sep);
+}
+.quick-pill:active{background:var(--fill2);transform:scale(0.97)}
+.typing{display:flex;gap:4px;padding:10px 14px;background:var(--bgC);border-radius:18px;width:fit-content}
+.typing-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--label3);
+  animation:gentlePulse 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2){animation-delay:.15s}
+.typing-dot:nth-child(3){animation-delay:.3s}
+.chat-input-bar{
+  padding:8px 12px;background:rgba(249,249,249,0.78);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-top:0.5px solid var(--sep);
+  display:flex;align-items:center;gap:8px;
+}
+.chat-field{
+  flex:1;background:var(--bgC);border:none;border-radius:20px;
+  padding:9px 16px;font-size:15px;color:var(--label);
+  font-family:var(--font);outline:none;
+  box-shadow:0 0.5px 0 rgba(0,0,0,0.04);
+}
+.send-btn{
+  width:32px;height:32px;border-radius:50%;background:var(--brand);
+  border:none;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .15s;color:#fff;font-size:16px;
+}
+.send-btn:active{transform:scale(0.9)}
+
+/* ═══════════════ MILESTONES ═══════════════ */
+.ms-age{text-align:center;padding:20px 0 24px}
+.ms-age-num{
+  display:inline-flex;align-items:baseline;gap:2px;
+  background:var(--fill2);border-radius:20px;padding:12px 28px;
+}
+.ms-age-num .n{font-size:40px;font-weight:700;color:var(--brand);letter-spacing:-0.03em}
+.ms-age-num .u{font-size:17px;color:var(--label2);font-weight:500}
+.ms-cats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px 16px}
+.ms-cat{
+  background:var(--bgC);border-radius:16px;padding:16px;
+  cursor:pointer;transition:all .15s;
+  box-shadow:0 0.5px 0 rgba(0,0,0,0.04);
+}
+.ms-cat:active{transform:scale(0.97)}
+.ms-cat-icon{font-size:22px;margin-bottom:6px}
+.ms-cat-name{font-size:13px;color:var(--label2);font-weight:500}
+.ms-cat-count{font-size:22px;font-weight:700;color:var(--label);letter-spacing:-0.02em}
+.ms-check{
+  width:24px;height:24px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .2s;
+}
+.ms-check.done{background:var(--green);color:#fff;font-size:14px}
+.ms-check.not{border:1.5px solid var(--label3)}
+.ms-item-text{font-size:17px;color:var(--label);flex:1}
+.ms-item.done .ms-item-text{color:var(--label3);text-decoration:line-through}
+
+/* ═══════════════ PROFILE ═══════════════ */
+.profile-hero{text-align:center;padding:60px 0 24px}
+.profile-av{
+  width:80px;height:80px;border-radius:50%;
+  background:linear-gradient(135deg,#FFE0CC,var(--brand-light));
+  display:flex;align-items:center;justify-content:center;font-size:40px;
+  margin:0 auto 12px;
+  box-shadow:0 4px 16px rgba(255,107,53,0.15);
+}
+.profile-name{font-size:22px;font-weight:700;color:var(--label)}
+.profile-sub{font-size:15px;color:var(--label2);margin-top:2px}
+.profile-edit{
+  display:inline-block;margin-top:12px;padding:8px 20px;
+  background:var(--fill2);border-radius:20px;font-size:15px;
+  color:var(--brand);cursor:pointer;font-weight:500;transition:all .15s;
+}
+.profile-edit:active{transform:scale(0.95)}
+</style>
+</head>
+<body>
+
+<div class="frame">
+<div class="frame-inner">
+  <div class="island"></div>
+  <div class="sbar">
+    <span class="sbar-time">9:41</span>
+    <div class="sbar-icons">
+      <svg width="16" height="11" viewBox="0 0 16 11"><rect x="0" y="7" width="3" height="4" rx="0.5" fill="#000"/><rect x="4.5" y="4.5" width="3" height="6.5" rx="0.5" fill="#000"/><rect x="9" y="2" width="3" height="9" rx="0.5" fill="#000"/><rect x="13.5" y="0" width="2.5" height="11" rx="0.5" fill="#000"/></svg>
+      <svg width="15" height="11" viewBox="0 0 15 11"><rect x="0" y="0" width="13" height="11" rx="2" stroke="#000" stroke-width="1" fill="none"/><rect x="13.5" y="3.5" width="1.5" height="4" rx="0.5" fill="#000"/><rect x="1.5" y="1.5" width="10" height="8" rx="1" fill="#000"/></svg>
+    </div>
+  </div>
+  <div id="app"></div>
+  <div class="home-ind"></div>
+</div>
+</div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useRef}=React;
+
+/* ═══════ SVG ICONS (SF Symbols style) ═══════ */
+const Icon=({name,size=24,color='currentColor'})=>{
+  const s={width:size,height:size,fill:'none',stroke:color,'stroke-width':1.8,'stroke-linecap':'round','stroke-linejoin':'round'};
+  const icons={
+    home:<svg viewBox="0 0 24 24" style={s}><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5z"/></svg>,
+    homeFill:<svg viewBox="0 0 24 24" style={{...s,'stroke-width':0,fill:color}}><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5z"/></svg>,
+    list:<svg viewBox="0 0 24 24" style={s}><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1" fill={color} stroke="none"/><circle cx="4" cy="12" r="1" fill={color} stroke="none"/><circle cx="4" cy="18" r="1" fill={color} stroke="none"/></svg>,
+    chat:<svg viewBox="0 0 24 24" style={s}><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>,
+    star:<svg viewBox="0 0 24 24" style={s}><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
+    starFill:<svg viewBox="0 0 24 24" style={{...s,'stroke-width':0,fill:color}}><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
+    user:<svg viewBox="0 0 24 24" style={s}><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+    userFill:<svg viewBox="0 0 24 24" style={{...s,'stroke-width':0,fill:color}}><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+    gear:<svg viewBox="0 0 24 24" style={s}><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,
+    chevRight:<svg viewBox="0 0 24 24" style={{...s,'stroke-width':2.2}}><path d="M9 18l6-6-6-6"/></svg>,
+    chevLeft:<svg viewBox="0 0 24 24" style={{...s,'stroke-width':2.2}}><path d="M15 18l-6-6 6-6"/></svg>,
+    check:<svg viewBox="0 0 24 24" style={{...s,'stroke-width':3}}><path d="M5 12l5 5L19 7"/></svg>,
+    send:<svg viewBox="0 0 24 24" style={{...s,fill:color,'stroke-width':0}}><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>,
+    mic:<svg viewBox="0 0 24 24" style={s}><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>,
+  };
+  return icons[name]||null;
+};
+
+/* ═══════ COUNT UP ═══════ */
+function Count({to,dur=800}){
+  const [v,setV]=useState(0);
+  const r=useRef();
+  useEffect(()=>{
+    let s=null;
+    const step=t=>{if(!s)s=t;const p=Math.min((t-s)/dur,1);setV(Math.round(p*to*10)/10);if(p<1)r.current=requestAnimationFrame(step)};
+    r.current=requestAnimationFrame(step);
+    return()=>cancelAnimationFrame(r.current);
+  },[to,dur]);
+  return <span>{v}</span>;
+}
+
+/* ═══════ WELCOME ═══════ */
+function Welcome({onDone}){
+  const [g,setG]=useState('m');
+  const [tags,setTags]=useState(['喂养','睡眠']);
+  const toggle=t=>setTags(p=>p.includes(t)?p.filter(x=>x!==t):[...p,t]);
+  return(
+    <div className="screen">
+      <div className="screen-scroll no-tab">
+        <div className="welcome">
+          <div className="welcome-logo a-scale">🍼</div>
+          <h1 className="a-up s1">欢迎使用 BabyGrow</h1>
+          <p className="a-up s2">您的专属 AI 育儿顾问</p>
+          <div className="welcome-form">
+            <div className="field a-up s3">
+              <div className="field-label">宝宝小名</div>
+              <input className="field-input" defaultValue="豆豆"/>
+            </div>
+            <div className="field a-up s4">
+              <div className="field-label">出生日期</div>
+              <div className="field-input" style={{display:'flex',justifyContent:'space-between',cursor:'pointer'}}>
+                <span>2025年7月15日</span>
+                <span style={{color:'var(--brand)',fontSize:15,fontWeight:500}}>已满 10 个月</span>
+              </div>
+            </div>
+            <div className="field a-up s5">
+              <div className="field-label">性别</div>
+              <div className="gender-pill">
+                <div className={`gp ${g==='m'?'on':''}`} onClick={()=>setG('m')}>男</div>
+                <div className={`gp ${g==='f'?'on':''}`} onClick={()=>setG('f')}>女</div>
+              </div>
+            </div>
+            <div className="field a-up s6">
+              <div className="field-label">喂养方式</div>
+              <div className="field-input" style={{display:'flex',justifyContent:'space-between',cursor:'pointer'}}>
+                <span>混合喂养</span>
+                <span style={{color:'var(--label3)',fontSize:13}}>▼</span>
+              </div>
+            </div>
+            <div className="field a-up s7">
+              <div className="field-label">最关心的问题</div>
+              <div className="tags-row">
+                {['喂养','睡眠','辅食','早教','安全','其他'].map(t=>(
+                  <div key={t} className={`tag-pill ${tags.includes(t)?'on':''}`} onClick={()=>toggle(t)}>{t}</div>
+                ))}
+              </div>
+            </div>
+            <button className="primary-btn a-up s8" onClick={onDone}>开始使用</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════ HOME ═══════ */
+function Home({go}){
+  return(
+    <div className="screen">
+      <div className="screen-scroll">
+        <div className="home-top a-in">
+          <div className="child-chip">
+            <div className="child-av">👶</div>
+            <div className="child-info"><div className="name">豆豆</div><div className="age">10个月</div></div>
+          </div>
+          <div className="settings-btn" onClick={()=>go('profile')}><Icon name="gear" size={18} color="var(--label2)"/></div>
+        </div>
+        <div className="hero-card a-up s1" onClick={()=>go('schedule')}>
+          <div className="hero-label">📌 今日重点</div>
+          <div className="hero-text">豆豆这个月可以开始练习用勺子了，准备一些软烂的食物让宝宝自己抓着吃。</div>
+          <div style={{marginTop:14,display:'flex',gap:8,position:'relative',zIndex:1}}>
+            <span style={{background:'rgba(255,255,255,0.2)',borderRadius:8,padding:'4px 10px',fontSize:12,fontWeight:500}}>查看完整日程 →</span>
+          </div>
+        </div>
+        <div className="sec-hdr a-in s2">快捷入口</div>
+        <div className="quick-grid">
+          {[
+            {icon:'🍽️',title:'今日辅食',desc:'3餐食谱',page:'schedule'},
+            {icon:'🎮',title:'游戏时间',desc:'适龄游戏',page:'schedule'},
+            {icon:'📖',title:'故事时间',desc:'推荐故事',page:'schedule'},
+            {icon:'⏰',title:'作息安排',desc:'全天作息',page:'schedule'},
+          ].map((c,i)=>(
+            <div key={i} className={`quick-card a-up s${i+3}`} onClick={()=>go(c.page)}>
+              <div className="qc-icon">{c.icon}</div>
+              <div className="qc-title">{c.title}</div>
+              <div className="qc-desc">{c.desc}</div>
+            </div>
+          ))}
+        </div>
+        <div className="sec-hdr a-in s6">记录</div>
+        <div className="group a-up s7">
+          {[
+            {icon:'⭐',text:'发育里程碑',bg:'#FFF3E0',page:'milestones'},
+            {icon:'🍼',text:'喂养记录',bg:'#E8F5E9',page:'records'},
+            {icon:'😴',text:'睡眠记录',bg:'#E3F2FD',page:'sleep'},
+            {icon:'💚',text:'健康记录',bg:'#F3E5F5',page:'records'},
+            {icon:'📈',text:'生长曲线',bg:'#FFF8E1',page:'records'},
+          ].map((r,i)=>(
+            <div key={i} className="row" onClick={()=>go(r.page)}>
+              <div className="row-icon" style={{background:r.bg}}>{r.icon}</div>
+              <div className="row-content"><div className="row-title">{r.text}</div></div>
+              <span className="row-chevron"><Icon name="chevRight" size={14} color="var(--label3)"/></span>
+            </div>
+          ))}
+        </div>
+        <div className="ai-suggest a-up s8" onClick={()=>go('chat')}>
+          <div className="ai-av">🤖</div>
+          <div className="ai-text">
+            <div className="q">试试问 AI</div>
+            <div className="hint">「10个月宝宝总是扔食物怎么办？」</div>
+          </div>
+          <span className="row-chevron"><Icon name="chevRight" size={14} color="var(--label3)"/></span>
+        </div>
+      </div>
+      <TabBar active="home" go={go}/>
+    </div>
+  );
+}
+
+/* ═══════ SCHEDULE ═══════ */
+function Schedule({go}){
+  const items=[
+    {t:'07:00',icon:'☀️',title:'起床 · 喝奶',desc:'母乳/配方奶 180ml',now:false},
+    {t:'08:30',icon:'🥣',title:'早餐辅食',desc:'南瓜小米粥 + 蒸蛋',tip:'💡 南瓜蒸熟压泥，拌入小米粥',now:false},
+    {t:'10:00',icon:'🧸',title:'上午活动',desc:'积木游戏 · 认颜色',tip:'📍 推荐：滨江公园散步',now:true},
+    {t:'12:00',icon:'🍚',title:'午餐辅食',desc:'软饭 + 肉末蒸蛋',now:false},
+    {t:'14:00',icon:'😴',title:'午睡',desc:'约1.5小时',now:false},
+    {t:'16:00',icon:'🍼',title:'下午奶',desc:'配方奶 150ml',now:false},
+  ];
+  return(
+    <div className="screen">
+      <div className="nav-bar">
+        <div className="nav-back" onClick={()=>go('home')}>
+          <Icon name="chevLeft" size={12} color="var(--brand)"/>返回
+        </div>
+        <h1>今日安排</h1>
+        <div style={{width:44}}/>
+      </div>
+      <div className="screen-scroll">
+        <div className="sched-date a-in">📅 2026年4月30日 · 周四</div>
+        <div className="tl">
+          {items.map((it,i)=>(
+            <div key={i} className={`tl-item a-up s${i+1}`}>
+              <div className="tl-time">{it.t}</div>
+              <div className={`tl-line ${it.now?'now':''}`}/>
+              <div className="tl-body">
+                <div className="tl-title">{it.icon} {it.title}</div>
+                <div className="tl-desc">{it.desc}</div>
+                {it.tip&&<div className="tl-tip">{it.tip}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="group a-up s8" style={{marginTop:12}}>
+          <div className="row"><div className="row-icon" style={{background:'#E8F5E9'}}>🌡️</div><div className="row-content"><div className="row-title">杭州 22°C</div><div className="row-subtitle">适合户外活动</div></div></div>
+          <div className="row"><div className="row-icon" style={{background:'#FFF3E0'}}>🥬</div><div className="row-content"><div className="row-title">本周辅食建议</div><div className="row-subtitle">可以尝试菠菜泥</div></div></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════ SLEEP ═══════ */
+function Sleep({go}){
+  return(
+    <div className="screen">
+      <div className="nav-bar">
+        <div className="nav-back" onClick={()=>go('home')}><Icon name="chevLeft" size={12} color="var(--brand)"/>返回</div>
+        <h1>睡眠记录</h1>
+        <div className="nav-btn">🤖 AI</div>
+      </div>
+      <div className="screen-scroll">
+        <div className="sleep-stats a-up s1">
+          <div className="sleep-stat"><div className="sleep-val"><Count to={8.5}/></div><div className="sleep-lbl">平均时长(h)</div></div>
+          <div className="sleep-stat"><div className="sleep-val"><Count to={3}/></div><div className="sleep-lbl">日均次数</div></div>
+          <div className="sleep-stat"><div className="sleep-val"><Count to={2}/></div><div className="sleep-lbl">夜醒次数</div></div>
+        </div>
+        <div className="ai-card a-up s2">
+          <div className="stat-ring">
+            <svg viewBox="0 0 56 56">
+              <circle className="track" cx="28" cy="28" r="24"/>
+              <circle className="fill" cx="28" cy="28" r="24" stroke="var(--green)"
+                style={{strokeDasharray:150.8,strokeDashoffset:150.8,animation:'ringDraw 1s ease forwards',animationDelay:'.5s',
+                  '--circ':150.8,'--target':150.8*0.15}}/>
+            </svg>
+            <div className="stat-ring-val">85</div>
+          </div>
+          <div className="ai-card-text">
+            <div className="ai-card-label">AI 睡眠分析</div>
+            <div style={{fontSize:13,color:'var(--green)',fontWeight:600}}>质量良好</div>
+            <div className="ai-card-desc">本周睡眠时长稳定，建议睡前减少刺激活动，保持固定的睡前仪式。</div>
+          </div>
+        </div>
+        <div className="sec-hdr a-in s3">最近记录</div>
+        <div className="group a-up s4">
+          {[
+            {d:'4/30 21:00 – 06:30',type:'夜睡',dur:'9.5h',ok:true},
+            {d:'4/29 13:00 – 14:30',type:'午睡',dur:'1.5h',ok:true},
+            {d:'4/28 22:00 – 05:30',type:'夜睡',dur:'7.5h',ok:false},
+          ].map((r,i)=>(
+            <div key={i} className="row">
+              <div className="row-icon" style={{background:r.ok?'#E8F5E9':'#FFF3E0'}}>{r.ok?'✓':'⚠️'}</div>
+              <div className="row-content">
+                <div className="row-title">{r.type} · {r.dur}</div>
+                <div className="row-subtitle">{r.d}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════ RECORDS ═══════ */
+function Records({go}){
+  return(
+    <div className="screen">
+      <div className="nav-bar">
+        <div style={{width:44}}/>
+        <h1>成长记录</h1>
+        <div className="nav-btn">+ 添加</div>
+      </div>
+      <div className="screen-scroll">
+        <div className="sec-hdr a-in s1">2026年4月30日 · 周四</div>
+        <div className="sec-hdr a-in s2">喂养</div>
+        <div className="group a-up s3">
+          {[{t:'08:30',x:'母乳 150ml',bg:'#E3F2FD'},{t:'12:00',x:'南瓜粥 80g',bg:'#FFF3E0'},{t:'15:00',x:'配方奶 180ml',bg:'#E3F2FD'},{t:'18:00',x:'软饭+肉末 100g',bg:'#FFF3E0'}].map((f,i)=>(
+            <div key={i} className="row">
+              <div className="row-icon" style={{background:f.bg,fontSize:12,color:'var(--label2)',fontWeight:600}}>{f.t}</div>
+              <div className="row-content"><div className="row-title">{f.x}</div></div>
+            </div>
+          ))}
+        </div>
+        <div className="sec-hdr a-in s4">睡眠</div>
+        <div className="group a-up s5">
+          <div className="row"><div className="row-icon" style={{background:'#E3F2FD'}}>😴</div><div className="row-content"><div className="row-title">午睡 1.5h</div><div className="row-subtitle">13:00 – 14:30</div></div></div>
+          <div className="row"><div className="row-icon" style={{background:'#E3F2FD'}}>😴</div><div className="row-content"><div className="row-title">夜睡 9.5h</div><div className="row-subtitle">21:00 – 06:30</div></div></div>
+        </div>
+        <div className="sec-hdr a-in s6">健康</div>
+        <div style={{margin:'0 16px',padding:'24px',textAlign:'center',background:'var(--bgC)',borderRadius:12,color:'var(--label3)',fontSize:15}} className="a-scale s7">
+          <div style={{fontSize:28,marginBottom:6}}>💚</div>
+          今天还没有健康记录
+          <div style={{color:'var(--brand)',fontSize:15,marginTop:8,fontWeight:500,cursor:'pointer'}}>+ 添加</div>
+        </div>
+      </div>
+      <TabBar active="records" go={go}/>
+    </div>
+  );
+}
+
+/* ═══════ AI CHAT ═══════ */
+function Chat({go}){
+  const [msgs,setMsgs]=useState([]);
+  const [input,setInput]=useState('');
+  const [typing,setTyping]=useState(false);
+  const endRef=useRef();
+  const send=(text)=>{
+    if(!text)return;
+    setMsgs(p=>[...p,{role:'user',text}]);setInput('');
+    setTimeout(()=>{setTyping(true)},200);
+    setTimeout(()=>{setTyping(false);setMsgs(p=>[...p,{role:'ai',text:'这是个很好的问题！豆豆10个月大，正处于对食物探索的阶段。建议：\n\n1. 变换食物造型和颜色\n2. 让宝宝自己抓着吃\n3. 固定就餐时间\n4. 准备防摔餐碗\n\n每个宝宝都有自己的节奏，耐心引导就好 💛'}]);},2000);
+  };
+  useEffect(()=>{endRef.current?.scrollIntoView({behavior:'smooth'})},[msgs,typing]);
+  return(
+    <div className="screen" style={{background:'var(--bg)'}}>
+      <div className="nav-bar">
+        <div className="nav-back" onClick={()=>go('home')}><Icon name="chevLeft" size={12} color="var(--brand)"/>返回</div>
+        <h1>育儿助手</h1>
+        <div style={{width:44}}/>
+      </div>
+      <div className="chat-area">
+        <div className="msg-row ai a-left s1">
+          <div className="msg-av-sm ai">🤖</div>
+          <div className="bubble">你好！我是豆豆的专属育儿顾问。有什么我能帮到你的吗？</div>
+        </div>
+        {msgs.length===0&&(
+          <div className="quick-row a-up s2">
+            {['宝宝不爱吃饭','什么时候加辅食','夜醒频繁','出牙期注意事项'].map(q=>(
+              <div key={q} className="quick-pill" onClick={()=>send(q)}>{q}</div>
+            ))}
+          </div>
+        )}
+        {msgs.map((m,i)=>(
+          <div key={i} className={`msg-row ${m.role} a-${m.role==='user'?'right':'left'}`}>
+            {m.role==='ai'&&<div className="msg-av-sm ai">🤖</div>}
+            <div className="bubble" style={{whiteSpace:'pre-line'}}>{m.text}</div>
+          </div>
+        ))}
+        {typing&&<div className="msg-row ai a-in"><div className="msg-av-sm ai">🤖</div><div className="typing"><div className="typing-dot"/><div className="typing-dot"/><div className="typing-dot"/></div></div>}
+        <div ref={endRef}/>
+      </div>
+      <div className="chat-input-bar">
+        <input className="chat-field" placeholder="输入你的问题..." value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send(input)}/>
+        <button className="send-btn" onClick={()=>send(input)}>
+          <Icon name="send" size={16} color="#fff"/>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════ MILESTONES ═══════ */
+function Milestones({go}){
+  const [data,setData]=useState([
+    {cat:'大运动',items:[{t:'扶站',done:true},{t:'独坐稳定',done:true},{t:'独站片刻',done:false},{t:'扶走',done:false}]},
+    {cat:'语言',items:[{t:'叫"爸爸""妈妈"有指向',done:true},{t:'有意识说3个以上词汇',done:false}]},
+  ]);
+  const [conf,setConf]=useState([]);
+  const toggle=(ci,ii)=>{
+    setData(p=>{const n=[...p];n[ci]={...n[ci],items:[...n[ci].items]};n[ci].items[ii]={...n[ci].items[ii],done:!n[ci].items[ii].done};return n});
+    const colors=['#FF6B35','#34C759','#007AFF','#FF9500','#AF52DE'];
+    setConf(Array.from({length:20},(_,i)=>({id:Date.now()+i,color:colors[i%5],tx:(Math.random()-0.5)*180,rot:Math.random()*540,del:Math.random()*0.2})));
+    setTimeout(()=>setConf([]),1500);
+  };
+  return(
+    <div className="screen">
+      <div className="screen-scroll">
+        <div className="nav-large"><h1>发育里程碑</h1></div>
+        <div className="ms-age a-scale s1">
+          <div className="ms-age-num"><span className="n">10</span><span className="u">个月</span></div>
+        </div>
+        <div className="ms-cats">
+          {[{icon:'🏃',name:'大运动',n:5,d:8},{icon:'🗣️',name:'语言',n:3,d:6},{icon:'🧠',name:'认知',n:4,d:7},{icon:'🤝',name:'社交',n:2,d:5}].map((c,i)=>(
+            <div key={i} className={`ms-cat a-scale s${i+2}`}>
+              <div className="ms-cat-icon">{c.icon}</div>
+              <div className="ms-cat-name">{c.name}</div>
+              <div className="ms-cat-count">{c.n}/{c.d}</div>
+            </div>
+          ))}
+        </div>
+        {data.map((g,gi)=>(
+          <React.Fragment key={gi}>
+            <div className="sec-hdr a-in s{gi+6}">{g.cat} · 10个月</div>
+            <div className="group a-up s{gi+7}" style={{position:'relative'}}>
+              {g.items.map((it,ii)=>(
+                <div key={ii} className={`row ms-item ${it.done?'done':''}`} onClick={()=>toggle(gi,ii)}>
+                  <div className={`ms-check ${it.done?'done':'not'}`}>{it.done&&<Icon name="check" size={14} color="#fff"/>}</div>
+                  <div className="row-content"><div className="ms-item-text">{it.t}</div></div>
+                </div>
+              ))}
+              {conf.length>0&&gi===0&&(
+                <div className="confetti-wrap">
+                  {conf.map(c=><div key={c.id} className="confetti-p" style={{left:'50%',top:'30%',background:c.color,['--tx']:c.tx+'px',['--rot']:c.rot+'deg',animationDelay:c.del+'s'}}/>)}
+                </div>
+              )}
+            </div>
+          </React.Fragment>
+        ))}
+      </div>
+      <TabBar active="milestones" go={go}/>
+    </div>
+  );
+}
+
+/* ═══════ PROFILE ═══════ */
+function Profile({go}){
+  return(
+    <div className="screen">
+      <div className="screen-scroll">
+        <div className="profile-hero a-scale s1">
+          <div className="profile-av">👶</div>
+          <div className="profile-name">豆豆</div>
+          <div className="profile-sub">10个月 · 男 · 混合喂养</div>
+          <div className="profile-edit">编辑信息</div>
+        </div>
+        <div className="sec-hdr a-in s2">孩子管理</div>
+        <div className="group a-up s3">
+          {[
+            {icon:'👶',text:'切换/管理孩子',bg:'#E3F2FD'},
+            {icon:'➕',text:'添加新孩子',bg:'#E8F5E9'},
+          ].map((m,i)=>(
+            <div key={i} className="row">
+              <div className="row-icon" style={{background:m.bg}}>{m.icon}</div>
+              <div className="row-content"><div className="row-title">{m.text}</div></div>
+              <span className="row-chevron"><Icon name="chevRight" size={14} color="var(--label3)"/></span>
+            </div>
+          ))}
+        </div>
+        <div className="sec-hdr a-in s4">设置</div>
+        <div className="group a-up s5">
+          {[
+            {icon:'🏙️',text:'城市区域',val:'杭州',bg:'#FFF3E0'},
+            {icon:'🚇',text:'交通偏好',val:'地铁+打车',bg:'#F3E5F5'},
+          ].map((m,i)=>(
+            <div key={i} className="row">
+              <div className="row-icon" style={{background:m.bg}}>{m.icon}</div>
+              <div className="row-content"><div className="row-title">{m.text}</div></div>
+              <div className="row-value">{m.val}</div>
+              <span className="row-chevron"><Icon name="chevRight" size={14} color="var(--label3)"/></span>
+            </div>
+          ))}
+        </div>
+        <div className="sec-hdr a-in s6">数据</div>
+        <div className="group a-up s7">
+          <div className="row"><div className="row-icon" style={{background:'#E3F2FD'}}>📤</div><div className="row-content"><div className="row-title">导出数据</div></div><span className="row-chevron"><Icon name="chevRight" size={14} color="var(--label3)"/></span></div>
+          <div className="row"><div className="row-icon" style={{background:'#FFEBEE'}}>🗑️</div><div className="row-content"><div className="row-title" style={{color:'var(--red)'}}>清除所有数据</div></div></div>
+        </div>
+        <div style={{textAlign:'center',padding:'16px 0 32px',fontSize:13,color:'var(--label3)'}}>
+          BabyGrow v1.0 · AI 育儿助手
+        </div>
+      </div>
+      <TabBar active="profile" go={go}/>
+    </div>
+  );
+}
+
+/* ═══════ TAB BAR ═══════ */
+function TabBar({active,go}){
+  const tabs=[
+    {id:'home',icon:'home',iconF:'homeFill',label:'首页'},
+    {id:'records',icon:'list',iconF:'list',label:'记录'},
+    {id:'chat',icon:'chat',iconF:'chat',label:'AI 助手'},
+    {id:'milestones',icon:'star',iconF:'starFill',label:'里程碑'},
+    {id:'profile',icon:'user',iconF:'userFill',label:'我的'},
+  ];
+  return(
+    <div className="tabbar">
+      {tabs.map(t=>(
+        <div key={t.id} className={`tab ${active===t.id?'on':''}`} onClick={()=>go(t.id)}>
+          <div className="tab-icon"><Icon name={active===t.id?t.iconF:t.icon} size={24} color={active===t.id?'var(--brand)':'var(--label3)'}/></div>
+          <div className="tab-label">{t.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ═══════ APP ═══════ */
+function App(){
+  const [screen,setScreen]=useState('welcome');
+  const [key,setKey]=useState(0);
+  const go=s=>{if(s!==screen){setScreen(s);setKey(k=>k+1)}};
+  const isOverlay=screen==='welcome'||screen==='schedule'||screen==='sleep'||screen==='chat';
+  const render=()=>{
+    switch(screen){
+      case 'welcome':return <Welcome onDone={()=>go('home')}/>;
+      case 'home':return <Home go={go}/>;
+      case 'schedule':return <Schedule go={go}/>;
+      case 'sleep':return <Sleep go={go}/>;
+      case 'records':return <Records go={go}/>;
+      case 'chat':return <Chat go={go}/>;
+      case 'milestones':return <Milestones go={go}/>;
+      case 'profile':return <Profile go={go}/>;
+    }
+  };
+  return <div key={key} style={{position:'absolute',inset:0}}>{render()}</div>;
+}
+
+ReactDOM.createRoot(document.getElementById('app')).render(<App/>);
+</script>
+</body>
+</html>

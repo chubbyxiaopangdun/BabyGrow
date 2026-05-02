@@ -190,6 +190,8 @@ class ConversationHistory(Base):
     child_id = Column(String, ForeignKey("children.id"), nullable=False)
     role = Column(String, nullable=False)  # "user" / "assistant"
     content = Column(Text, nullable=False)
+    agent = Column(String, nullable=True)  # "nutrition" / "sleep" / "schedule" / "health" / "general"
+    card_json = Column(Text, nullable=True)  # 结构化卡片 JSON
     created_at = Column(DateTime, default=datetime.utcnow)
 
     child = relationship("Child")

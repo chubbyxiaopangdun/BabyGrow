@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BabyGrow - 动效原型</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════ RESET & BASE ═══════════════ */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --p:#FF9B5E;--pL:#FFC9A0;--pD:#E87840;--pG:#FFF1E8;
+  --s:#7ECFB3;--sL:#A8E6CF;--sD:#5BB896;--sG:#EEF9F4;
+  --bg:#FFFCF8;--bgC:#FFFFFF;--bgS:#FBF7F2;--bgH:#F5EDE4;
+  --t:#1C1411;--t2:#6B5A4E;--t3:#A8998E;
+  --ok:#5BB896;--warn:#F5A623;--err:#E85C5C;--info:#4A9EF5;
+  --sh-sm:0 1px 4px rgba(44,20,17,.06);
+  --sh-md:0 4px 16px rgba(44,20,17,.08);
+  --sh-lg:0 8px 32px rgba(44,20,17,.12);
+  --sh-glow:0 4px 20px rgba(255,155,94,.30);
+}
+body{
+  background:linear-gradient(135deg,#0a0a1a 0%,#1a1030 50%,#0f1520 100%);
+  font-family:'Noto Sans SC',-apple-system,sans-serif;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:20px;overflow-x:hidden;
+}
+
+/* ═══════════════ FLOATING PARTICLES ═══════════════ */
+.particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.particle{
+  position:absolute;border-radius:50%;opacity:.15;
+  animation:floatParticle linear infinite;
+}
+@keyframes floatParticle{
+  0%{transform:translateY(100vh) rotate(0deg)}
+  100%{transform:translateY(-100px) rotate(360deg)}
+}
+
+/* ═══════════════ PAGE TITLE ═══════════════ */
+.proto-title{
+  text-align:center;color:#fff;margin-bottom:6px;
+  font-family:'Noto Serif SC',serif;font-size:28px;font-weight:700;
+  letter-spacing:.02em;position:relative;z-index:1;
+  text-shadow:0 2px 20px rgba(255,155,94,.3);
+}
+.proto-sub{
+  text-align:center;color:rgba(255,255,255,.4);margin-bottom:32px;
+  font-size:13px;position:relative;z-index:1;letter-spacing:.1em;
+}
+
+/* ═══════════════ iPHONE FRAME ═══════════════ */
+.phone-wrap{position:relative;z-index:1;perspective:1200px}
+.phone{
+  width:340px;height:700px;background:#000;border-radius:52px;
+  padding:10px 8px;position:relative;
+  box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.08),
+    inset 0 0 0 1px rgba(255,255,255,.05);
+  transition:transform .6s cubic-bezier(.34,1.56,.64,1);
+}
+.phone:hover{transform:rotateY(-2deg) rotateX(1deg)}
+.island{
+  position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  width:110px;height:30px;background:#000;border-radius:16px;z-index:30;
+}
+.screen{
+  width:320px;height:676px;background:var(--bg);border-radius:44px;
+  overflow:hidden;position:relative;
+}
+.status-bar{
+  position:absolute;top:0;left:0;right:0;height:50px;z-index:20;
+  display:flex;justify-content:space-between;align-items:flex-end;
+  padding:0 24px 4px;pointer-events:none;
+}
+.sb-time{font-size:13px;font-weight:600;color:var(--t)}
+.sb-icons{display:flex;gap:5px;align-items:center}
+.sb-icons svg{display:block}
+.home-ind{
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  width:110px;height:5px;background:rgba(0,0,0,.2);border-radius:3px;z-index:30;
+}
+
+/* ═══════════════ ANIMATIONS ═══════════════ */
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideRight{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideLeft{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+@keyframes bounceIn{0%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.05)}70%{transform:scale(.95)}100%{transform:scale(1)}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.05)}}
+@keyframes glow{0%,100%{box-shadow:0 0 8px rgba(255,155,94,.2)}50%{box-shadow:0 0 24px rgba(255,155,94,.5)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes breathe{0%,100%{box-shadow:0 2px 8px rgba(44,20,17,.06)}50%{box-shadow:0 4px 20px rgba(255,155,94,.2)}}
+@keyframes typing{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0) scale(1);opacity:1}100%{transform:translateY(200px) rotate(720deg) scale(0);opacity:0}}
+@keyframes ringDraw{from{stroke-dashoffset:157}to{stroke-dashoffset:23.5}}
+@keyframes countUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes dotPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,155,94,.4)}50%{transform:scale(1.1);box-shadow:0 0 0 8px rgba(255,155,94,0)}}
+@keyframes tiltCard{0%{transform:perspective(600px) rotateY(0) scale(1)}50%{transform:perspective(600px) rotateY(3deg) scale(1.02)}100%{transform:perspective(600px) rotateY(0) scale(1)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes tabBounce{0%{transform:scale(1)}40%{transform:scale(1.25)}70%{transform:scale(.9)}100%{transform:scale(1)}}
+@keyframes sweep{0%{left:-100%}100%{left:200%}}
+@keyframes avatarRing{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{0%{opacity:0;transform:scale(0) rotate(-10deg)}60%{transform:scale(1.1) rotate(2deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+
+.anim-slide-up{animation:slideUp .5s cubic-bezier(.34,1.56,.64,1) both}
+.anim-fade{animation:fadeIn .4s ease both}
+.anim-scale{animation:scaleIn .4s cubic-bezier(.34,1.56,.64,1) both}
+.anim-bounce{animation:bounceIn .6s ease both}
+
+/* Stagger delays */
+.d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}
+.d4{animation-delay:.2s}.d5{animation-delay:.25s}.d6{animation-delay:.3s}
+.d7{animation-delay:.35s}.d8{animation-delay:.4s}.d9{animation-delay:.45s}
+.d10{animation-delay:.5s}.d11{animation-delay:.55s}.d12{animation-delay:.6s}
+
+/* ═══════════════ BOTTOM TAB BAR ═══════════════ */
+.tab-bar{
+  position:absolute;bottom:0;left:0;right:0;height:64px;
+  background:var(--bgC);border-top:1px solid var(--bgH);
+  display:flex;align-items:center;justify-content:space-around;
+  z-index:10;padding-bottom:8px;
+}
+.tab-item{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  cursor:pointer;transition:all .3s;position:relative;padding:4px 12px;
+  -webkit-tap-highlight-color:transparent;
+}
+.tab-icon{font-size:20px;transition:transform .3s cubic-bezier(.34,1.56,.64,1);position:relative}
+.tab-label{font-size:9px;color:var(--t3);transition:color .3s;font-weight:500}
+.tab-item.active .tab-label{color:var(--p);font-weight:600}
+.tab-item.active .tab-icon{animation:tabBounce .4s ease}
+.tab-dot{
+  position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;background:var(--p);
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+}
+.tab-item.ai-tab .tab-icon{
+  background:linear-gradient(135deg,var(--s),var(--sL));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:pulse 2s ease-in-out infinite;
+}
+.tab-item.ai-tab.active .tab-icon{
+  -webkit-text-fill-color:initial;
+  filter:drop-shadow(0 0 8px rgba(126,207,179,.4));
+}
+
+/* ═══════════════ SCREEN CONTAINER ═══════════════ */
+.screen-content{
+  position:absolute;top:50px;left:0;right:0;bottom:64px;
+  overflow-y:auto;overflow-x:hidden;padding:0 16px 16px;
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+}
+.screen-content::-webkit-scrollbar{display:none}
+.screen-content.no-tab{bottom:0}
+
+/* ═══════════════ WELCOME SCREEN ═══════════════ */
+.welcome-header{
+  background:linear-gradient(135deg,#FF9B5E 0%,#FFB88C 40%,#FFC9A0 70%,#FFD4B5 100%);
+  background-size:200% 200%;animation:gradientShift 6s ease infinite;
+  padding:56px 24px 36px;text-align:center;
+  border-radius:0 0 28px 28px;margin:-50px -16px 0;
+  position:relative;
+}
+.welcome-logo{font-size:52px;animation:float 3s ease-in-out infinite;display:inline-block}
+.welcome-title{
+  font-family:'Noto Serif SC',serif;font-size:22px;font-weight:700;
+  color:#fff;margin-top:8px;text-shadow:0 2px 12px rgba(0,0,0,.1);
+}
+.welcome-sub{font-size:13px;color:rgba(255,255,255,.85);margin-top:4px}
+.welcome-card{
+  background:var(--bgC);margin:-20px 12px 16px;border-radius:18px;
+  padding:22px 18px;box-shadow:var(--sh-lg);position:relative;z-index:2;
+}
+.welcome-card h3{
+  font-family:'Noto Serif SC',serif;font-size:16px;font-weight:700;
+  color:var(--t);margin-bottom:16px;
+}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;color:var(--t2);margin-bottom:6px;font-weight:500}
+.form-input{
+  background:var(--bgS);border-radius:10px;padding:11px 13px;font-size:14px;
+  color:var(--t);border:1.5px solid transparent;transition:all .3s;
+  width:100%;
+}
+.form-input:focus{border-color:var(--p);background:var(--pG);outline:none}
+.gender-row{display:flex;gap:10px}
+.gender-btn{
+  flex:1;border-radius:10px;padding:9px;text-align:center;font-size:13px;
+  cursor:pointer;transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  border:1.5px solid transparent;
+}
+.gender-btn.sel{background:var(--pG);border-color:var(--p);color:var(--p);font-weight:600}
+.gender-btn:not(.sel){background:var(--bgS);color:var(--t3)}
+.gender-btn:hover{transform:scale(1.02)}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{
+  padding:7px 16px;border-radius:20px;font-size:12px;font-weight:500;
+  cursor:pointer;transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  border:1px solid transparent;
+}
+.tag.on{background:var(--pG);color:var(--p);border-color:var(--p);transform:scale(1)}
+.tag:not(.on){background:var(--bgS);color:var(--t3)}
+.tag:hover{transform:scale(1.05)}
+.cta-btn{
+  background:linear-gradient(135deg,var(--p),var(--pD));color:#fff;
+  border-radius:16px;padding:15px;text-align:center;font-size:16px;
+  font-weight:700;cursor:pointer;position:relative;overflow:hidden;
+  box-shadow:var(--sh-glow);transition:all .3s;
+}
+.cta-btn:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(255,155,94,.4)}
+.cta-btn:active{transform:scale(.98)}
+.cta-sweep{
+  position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);
+  animation:sweep 2.5s ease-in-out infinite;
+}
+
+/* ═══════════════ HOME SCREEN ═══════════════ */
+.home-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:4px 0 12px;
+}
+.child-pill{
+  display:flex;align-items:center;gap:8px;cursor:pointer;
+  padding:4px 10px 4px 4px;border-radius:20px;transition:all .3s;
+}
+.child-pill:hover{background:var(--bgS)}
+.child-avatar{
+  width:32px;height:32px;border-radius:50%;background:var(--p);
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  animation:breathe 3s ease-in-out infinite;
+}
+.child-name{font-size:14px;font-weight:700;color:var(--t)}
+.child-age{font-size:11px;color:var(--t3)}
+.header-icon{font-size:18px;cursor:pointer;transition:transform .3s}
+.header-icon:hover{transform:rotate(90deg)}
+
+.child-card{
+  background:var(--bgC);border-radius:18px;padding:16px;margin-bottom:12px;
+  box-shadow:var(--sh-md);transition:all .3s;cursor:pointer;
+}
+.child-card:hover{box-shadow:var(--sh-lg);transform:translateY(-2px)}
+.cc-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.cc-avatar{
+  width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--pL),var(--p));
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  box-shadow:0 4px 12px rgba(255,155,94,.3);animation:float 4s ease-in-out infinite;
+}
+.cc-info h3{font-family:'Noto Serif SC',serif;font-size:16px;font-weight:700;color:var(--t)}
+.cc-info span{font-size:11px;color:var(--t3)}
+.ai-tip{
+  background:var(--pG);border-radius:12px;padding:12px 14px;
+  animation:breathe 4s ease-in-out infinite;border:1px solid rgba(255,155,94,.15);
+}
+.ai-tip-label{font-size:12px;font-weight:600;color:var(--p);margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.ai-tip-text{font-size:12px;color:var(--t2);line-height:1.6}
+
+.advisors{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.advisor-card{
+  background:var(--bgC);border-radius:14px;padding:16px 14px;
+  box-shadow:var(--sh-sm);cursor:pointer;transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  position:relative;overflow:hidden;
+}
+.advisor-card:hover{
+  transform:perspective(600px) rotateY(3deg) translateY(-3px);
+  box-shadow:var(--sh-md);
+}
+.advisor-card:active{transform:scale(.97)}
+.advisor-icon{font-size:28px;margin-bottom:8px;display:block}
+.advisor-title{font-size:13px;font-weight:600;color:var(--t)}
+.advisor-desc{font-size:11px;color:var(--t3);margin-top:2px}
+.advisor-arrow{color:var(--p);font-size:12px;margin-top:8px;font-weight:600}
+
+.section-label{font-size:13px;font-weight:600;color:var(--t2);margin-bottom:8px;padding-left:4px}
+.record-list{background:var(--bgC);border-radius:14px;overflow:hidden;margin-bottom:14px;box-shadow:var(--sh-sm)}
+.record-item{
+  display:flex;align-items:center;padding:13px 14px;gap:10px;
+  cursor:pointer;transition:all .2s;
+}
+.record-item:hover{background:var(--bgS)}
+.record-item:active{background:var(--bgH)}
+.record-item+.record-item{border-top:1px solid var(--bgH)}
+.record-icon{font-size:18px;width:24px;text-align:center}
+.record-text{flex:1;font-size:13px;color:var(--t)}
+.record-arrow{color:var(--t3);font-size:12px;transition:transform .2s}
+.record-item:hover .record-arrow{transform:translateX(3px)}
+
+.ai-float{
+  background:var(--bgC);border-radius:14px;padding:12px 16px;margin-bottom:12px;
+  border:1.5px solid var(--sL);cursor:pointer;transition:all .3s;
+  animation:float 5s ease-in-out infinite;box-shadow:var(--sh-sm);
+}
+.ai-float:hover{border-color:var(--s);box-shadow:0 4px 16px rgba(126,207,179,.2)}
+.ai-float-title{font-size:12px;color:var(--s);font-weight:600;display:flex;align-items:center;gap:4px}
+.ai-float-text{font-size:11px;color:var(--t3);margin-top:2px;font-style:italic}
+
+/* ═══════════════ SCHEDULE ═══════════════ */
+.sched-header{display:flex;justify-content:space-between;align-items:center;padding:4px 0 12px}
+.sched-back{font-size:14px;color:var(--t);font-weight:600;cursor:pointer}
+.sched-date{font-size:12px;color:var(--t2);padding:0 0 14px}
+.timeline{position:relative;padding-left:56px}
+.timeline::before{
+  content:'';position:absolute;left:68px;top:0;bottom:0;width:2px;
+  background:linear-gradient(to bottom,var(--pL),var(--bgH));
+}
+.tl-item{position:relative;margin-bottom:12px}
+.tl-time{
+  position:absolute;left:-56px;top:12px;width:48px;text-align:right;
+  font-size:12px;font-weight:600;color:var(--t2);
+}
+.tl-dot{
+  position:absolute;left:-12px;top:14px;width:12px;height:12px;
+  border-radius:50%;z-index:2;transition:all .3s;
+}
+.tl-dot.current{animation:dotPulse 2s ease-in-out infinite}
+.tl-card{
+  border-radius:12px;padding:12px 14px;transition:all .3s;cursor:pointer;
+}
+.tl-card:hover{transform:translateX(4px)}
+.tl-card-title{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.tl-card-title span{font-size:14px}
+.tl-card-title strong{font-size:13px;color:var(--t)}
+.tl-card-desc{font-size:11px;color:var(--t2);line-height:1.5}
+.tl-card-tip{font-size:10px;color:var(--sD);margin-top:4px}
+
+.sched-tips{
+  background:var(--bgC);border-radius:12px;padding:14px;margin-top:8px;
+  box-shadow:var(--sh-sm);
+}
+.sched-tips h4{font-size:12px;font-weight:600;color:var(--t);margin-bottom:6px}
+.sched-tips p{font-size:11px;color:var(--t2);line-height:1.7}
+
+/* ═══════════════ SLEEP ═══════════════ */
+.sleep-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.stat-card{
+  background:var(--bgC);border-radius:12px;padding:14px 8px;text-align:center;
+  box-shadow:var(--sh-sm);transition:all .3s;cursor:default;
+}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.stat-val{
+  font-family:'Noto Serif SC',serif;font-size:22px;font-weight:700;color:var(--p);
+  transition:all .6s cubic-bezier(.34,1.56,.64,1);
+}
+.stat-label{font-size:10px;color:var(--t3);margin-top:3px}
+
+.ai-report{
+  background:var(--sG);border-radius:14px;padding:14px;margin-bottom:14px;
+  border:1px solid var(--sL);position:relative;overflow:hidden;
+}
+.ai-report::before{
+  content:'';position:absolute;top:-50%;right:-20%;width:100px;height:100px;
+  background:radial-gradient(circle,rgba(126,207,179,.15),transparent);border-radius:50%;
+}
+.ai-report h4{font-size:12px;font-weight:600;color:var(--sD);margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.ai-report-score{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.score-ring{width:40px;height:40px;position:relative}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring circle{fill:none;stroke-width:4;stroke-linecap:round}
+.score-ring .bg{stroke:var(--sL)}
+.score-ring .fg{stroke:var(--sD);stroke-dasharray:157;animation:ringDraw 1.5s ease forwards}
+.score-num{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Noto Serif SC',serif;font-size:14px;font-weight:700;color:var(--sD);
+}
+.ai-report p{font-size:11px;color:var(--t2);line-height:1.5}
+
+.sleep-record{
+  background:var(--bgC);border-radius:12px;overflow:hidden;margin-bottom:10px;
+  box-shadow:var(--sh-sm);
+}
+.sr-date{padding:5px 14px;font-size:11px;color:var(--t3);border-bottom:1px solid var(--bgH)}
+.sr-content{padding:12px 14px;display:flex;align-items:center;justify-content:space-between}
+.sr-info{font-size:13px;font-weight:600;color:var(--t)}
+.sr-status{font-size:11px;margin-top:2px}
+.sr-status.good{color:var(--ok)}
+.sr-status.warn{color:var(--warn)}
+.sr-del{font-size:14px;cursor:pointer;transition:transform .2s}
+.sr-del:hover{transform:scale(1.2)}
+
+/* ═══════════════ RECORDS ═══════════════ */
+.date-switch{display:flex;justify-content:center;align-items:center;gap:12px;padding:8px 0 14px}
+.date-arrow{
+  font-size:14px;color:var(--t3);cursor:pointer;transition:all .3s;
+  width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+}
+.date-arrow:hover{background:var(--bgS);color:var(--t);transform:scale(1.1)}
+.date-text{font-size:13px;font-weight:600;color:var(--t)}
+
+.record-section{
+  background:var(--bgC);border-radius:14px;margin-bottom:12px;
+  box-shadow:var(--sh-sm);overflow:hidden;
+}
+.rs-header{
+  padding:11px 14px;display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--bgH);
+}
+.rs-header h4{font-size:13px;font-weight:600;color:var(--t);display:flex;align-items:center;gap:6px}
+.rs-add{font-size:11px;color:var(--p);cursor:pointer;font-weight:600;transition:transform .2s}
+.rs-add:hover{transform:scale(1.05)}
+.rs-item{
+  padding:9px 14px;font-size:12px;color:var(--t);display:flex;gap:8px;
+  transition:background .2s;cursor:default;
+}
+.rs-item:hover{background:var(--bgS)}
+.rs-item+.rs-item{border-top:1px solid var(--bgH)}
+.rs-time{color:var(--t3);width:36px;flex-shrink:0;font-size:11px}
+
+.empty-state{text-align:center;padding:28px 14px;box-shadow:var(--sh-sm);border-radius:14px;background:var(--bgC)}
+.empty-icon{font-size:32px;margin-bottom:8px;animation:float 3s ease-in-out infinite;display:inline-block}
+.empty-text{font-size:13px;color:var(--t3)}
+.empty-action{font-size:12px;color:var(--p);margin-top:10px;cursor:pointer;font-weight:600}
+
+/* ═══════════════ AI CHAT ═══════════════ */
+.chat-wrap{display:flex;flex-direction:column;height:100%}
+.chat-header{
+  padding:4px 0 12px;display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--bgH);margin-bottom:0;
+}
+.chat-header h3{font-size:14px;font-weight:600;color:var(--t);display:flex;align-items:center;gap:6px}
+.chat-close{font-size:14px;color:var(--t3);cursor:pointer;transition:transform .3s}
+.chat-close:hover{transform:rotate(90deg)}
+
+.chat-messages{flex:1;overflow-y:auto;padding:16px 0}
+.chat-messages::-webkit-scrollbar{display:none}
+
+.msg{display:flex;gap:8px;margin-bottom:16px}
+.msg.user{justify-content:flex-end}
+.msg-av{
+  width:28px;height:28px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:14px;flex-shrink:0;
+}
+.msg-av.ai{background:var(--sG)}
+.msg-bubble{
+  max-width:220px;padding:11px 13px;border-radius:14px;font-size:13px;
+  line-height:1.65;box-shadow:var(--sh-sm);
+}
+.msg.ai .msg-bubble{background:var(--bgC);border-radius:14px 14px 14px 4px;color:var(--t)}
+.msg.user .msg-bubble{background:var(--p);color:#fff;border-radius:14px 14px 4px 14px}
+
+.quick-questions{margin-bottom:16px}
+.qq-label{font-size:11px;color:var(--t3);margin-bottom:8px}
+.qq-tags{display:flex;flex-wrap:wrap;gap:6px}
+.qq-tag{
+  padding:6px 12px;background:var(--sG);border-radius:16px;font-size:11px;
+  color:var(--sD);cursor:pointer;transition:all .3s;border:1px solid transparent;
+}
+.qq-tag:hover{background:var(--sL);border-color:var(--s);transform:scale(1.05)}
+
+.typing-indicator{display:flex;gap:4px;padding:8px 14px}
+.typing-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--t3);
+  animation:typing 1.4s ease-in-out infinite;
+}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+
+.chat-input{
+  padding:10px 0;display:flex;align-items:center;gap:8px;
+  border-top:1px solid var(--bgH);
+}
+.chat-attach{font-size:18px;color:var(--t3);cursor:pointer}
+.chat-text{
+  flex:1;background:var(--bgS);border-radius:20px;padding:9px 14px;
+  font-size:12px;color:var(--t3);border:none;outline:none;
+}
+.chat-voice{font-size:18px;color:var(--t3);cursor:pointer}
+.chat-send{
+  width:32px;height:32px;border-radius:50%;background:var(--p);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:#fff;cursor:pointer;transition:all .3s;
+  border:none;
+}
+.chat-send:hover{background:var(--pD);transform:scale(1.08)}
+
+/* ═══════════════ MILESTONES ═══════════════ */
+.milestone-age{text-align:center;padding:12px 0 18px}
+.age-badge{
+  display:inline-block;background:linear-gradient(135deg,var(--pG),var(--pL));
+  border-radius:20px;padding:14px 36px;box-shadow:0 4px 16px rgba(255,155,94,.15);
+}
+.age-num{font-family:'Noto Serif SC',serif;font-size:36px;font-weight:700;color:var(--p)}
+.age-unit{font-size:13px;color:var(--pD);font-weight:600}
+
+.ms-filters{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.ms-filter{
+  padding:5px 12px;border-radius:16px;font-size:11px;font-weight:500;
+  cursor:pointer;transition:all .3s;border:1px solid transparent;
+}
+.ms-filter.active{background:var(--p);color:#fff;border-color:var(--p)}
+.ms-filter:not(.active){background:var(--bgS);color:var(--t3)}
+
+.ms-categories{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.ms-cat{
+  border-radius:14px;padding:14px;cursor:pointer;transition:all .3s;
+  position:relative;overflow:hidden;
+}
+.ms-cat:hover{transform:translateY(-2px)}
+.ms-cat-icon{font-size:18px;margin-bottom:4px}
+.ms-cat-name{font-size:13px;font-weight:600;color:var(--t)}
+.ms-cat-count{
+  font-family:'Noto Serif SC',serif;font-size:22px;font-weight:700;
+  color:var(--t);margin-top:2px;
+}
+
+.ms-group{margin-bottom:16px}
+.ms-group-title{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:8px}
+.ms-list{background:var(--bgC);border-radius:12px;overflow:hidden;box-shadow:var(--sh-sm)}
+.ms-item{
+  display:flex;align-items:center;padding:11px 14px;gap:10px;
+  cursor:pointer;transition:all .3s;position:relative;
+}
+.ms-item:hover{background:var(--bgS)}
+.ms-item+.ms-item{border-top:1px solid var(--bgH)}
+.ms-check{font-size:16px;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.ms-item:active .ms-check{transform:scale(1.3)}
+.ms-text{font-size:12px;color:var(--t);flex:1}
+.ms-item.done .ms-text{text-decoration:line-through;color:var(--t3)}
+
+/* ═══════════════ PROFILE ═══════════════ */
+.profile-avatar{text-align:center;padding:24px 0 20px}
+.pa-ring{
+  position:relative;display:inline-block;
+}
+.pa-ring::before{
+  content:'';position:absolute;inset:-4px;border-radius:50%;
+  background:conic-gradient(var(--p),var(--s),var(--pL),var(--p));
+  animation:avatarRing 4s linear infinite;z-index:0;
+}
+.pa-img{
+  width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,var(--pL),var(--p));
+  display:flex;align-items:center;justify-content:center;font-size:40px;
+  position:relative;z-index:1;border:3px solid var(--bg);
+}
+.pa-name{
+  font-family:'Noto Serif SC',serif;font-size:22px;font-weight:700;
+  color:var(--t);margin-top:14px;
+}
+.pa-info{font-size:13px;color:var(--t2);margin-top:4px}
+.pa-birthday{font-size:12px;color:var(--t3);margin-top:2px}
+.pa-edit{
+  display:inline-block;margin-top:12px;padding:7px 20px;
+  background:var(--bgS);border-radius:20px;font-size:12px;color:var(--t2);
+  cursor:pointer;transition:all .3s;
+}
+.pa-edit:hover{background:var(--bgH);transform:scale(1.03)}
+
+.menu-group{
+  background:var(--bgC);border-radius:14px;overflow:hidden;margin-bottom:12px;
+  box-shadow:var(--sh-sm);
+}
+.menu-item{
+  display:flex;align-items:center;padding:14px;gap:10px;
+  cursor:pointer;transition:all .2s;
+}
+.menu-item:hover{background:var(--bgS)}
+.menu-item+.menu-item{border-top:1px solid var(--bgH)}
+.menu-icon{font-size:18px;width:24px;text-align:center}
+.menu-text{flex:1;font-size:13px;color:var(--t)}
+.menu-desc{font-size:11px;color:var(--t3)}
+.menu-arrow{color:var(--t3);font-size:12px}
+
+.danger-zone{
+  background:var(--bgC);border-radius:14px;padding:14px;box-shadow:var(--sh-sm);
+  cursor:pointer;transition:all .3s;
+}
+.danger-zone:hover{background:#FFF5F5;border:1px solid rgba(232,92,92,.2)}
+.danger-zone:hover .danger-text{animation:pulse 1s ease infinite}
+.danger-inner{display:flex;align-items:center;gap:10px}
+.danger-text{font-size:13px;color:var(--err)}
+
+/* ═══════════════ CONFETTI ═══════════════ */
+.confetti-container{position:fixed;inset:0;pointer-events:none;z-index:9999}
+.confetti{
+  position:absolute;width:8px;height:8px;border-radius:2px;
+  animation:confettiFall 1.5s ease forwards;
+}
+
+/* ═══════════════ TOAST ═══════════════ */
+.toast{
+  position:absolute;top:56px;left:16px;right:16px;z-index:100;
+  background:var(--bgC);border-radius:12px;padding:12px 16px;
+  box-shadow:var(--sh-lg);display:flex;align-items:center;gap:8px;
+  animation:slideDown .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+.toast-icon{font-size:18px}
+.toast-text{font-size:13px;color:var(--t);font-weight:500}
+
+/* ═══════════════ SCROLLBAR HIDE ═══════════════ */
+::-webkit-scrollbar{display:none}
+</style>
+</head>
+<body>
+
+<!-- Floating Particles -->
+<div class="particles" id="particles"></div>
+
+<!-- Title -->
+<div class="proto-title">✨ BabyGrow 互动原型</div>
+<div class="proto-sub">TAP THE TABS · 点击底部导航切换页面</div>
+
+<!-- Phone Frame -->
+<div class="phone-wrap">
+<div class="phone">
+  <div class="island"></div>
+  <div class="screen" id="app">
+    <div class="status-bar">
+      <span class="sb-time" id="sbTime">9:41</span>
+      <div class="sb-icons">
+        <svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="6" width="2.5" height="4" rx=".5" fill="#1C1411"/><rect x="3.5" y="4" width="2.5" height="6" rx=".5" fill="#1C1411"/><rect x="7" y="2" width="2.5" height="8" rx=".5" fill="#1C1411"/><rect x="10.5" y="0" width="2.5" height="10" rx=".5" fill="#1C1411"/></svg>
+        <svg width="22" height="11" viewBox="0 0 22 11"><rect x="0" y="0" width="18" height="11" rx="2.5" stroke="#1C1411" stroke-width="1" fill="none"/><rect x="18.5" y="3" width="2" height="5" rx="1" fill="#1C1411"/><rect x="1.5" y="1.5" width="14" height="8" rx="1" fill="#1C1411"/></svg>
+      </div>
+    </div>
+
+    <!-- Screens rendered by React -->
+    <div id="react-root"></div>
+
+    <div class="home-ind"></div>
+  </div>
+</div>
+</div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback}=React;
+
+/* ═══════════════ HELPERS ═══════════════ */
+function AnimateCount({target,suffix='',duration=1200}){
+  const [val,setVal]=useState(0);
+  const ref=useRef(null);
+  useEffect(()=>{
+    let start=null;
+    const step=ts=>{
+      if(!start)start=ts;
+      const p=Math.min((ts-start)/duration,1);
+      setVal(Math.round(p*target));
+      if(p<1)ref.current=requestAnimationFrame(step);
+    };
+    ref.current=requestAnimationFrame(step);
+    return()=>cancelAnimationFrame(ref.current);
+  },[target,duration]);
+  return <span>{val}{suffix}</span>;
+}
+
+/* ═══════════════ WELCOME ═══════════════ */
+function Welcome({onDone}){
+  const [gender,setGender]=useState('m');
+  const [tags,setTags]=useState(['喂养','睡眠']);
+  const toggleTag=t=>setTags(p=>p.includes(t)?p.filter(x=>x!==t):[...p,t]);
+  return(
+    <div className="screen-content no-tab" style={{padding:'0'}}>
+      <div className="welcome-header anim-fade">
+        <div className="welcome-logo">🍼</div>
+        <div className="welcome-title">欢迎使用 BabyGrow</div>
+        <div className="welcome-sub">您的专属AI育儿顾问</div>
+      </div>
+      <div className="welcome-card">
+        <h3 className="anim-slide-up d1">宝宝基本情况</h3>
+        <div className="form-group anim-slide-up d2">
+          <div className="form-label">宝宝小名</div>
+          <input className="form-input" defaultValue="豆豆" readOnly/>
+        </div>
+        <div className="form-group anim-slide-up d3">
+          <div className="form-label">出生日期</div>
+          <div className="form-input" style={{display:'flex',justifyContent:'space-between'}}>
+            <span>2025-07-15</span><span style={{color:'var(--p)',fontSize:12}}>已满 10 个月</span>
+          </div>
+        </div>
+        <div className="form-group anim-slide-up d4">
+          <div className="form-label">性别</div>
+          <div className="gender-row">
+            <div className={`gender-btn ${gender==='m'?'sel':''}`} onClick={()=>setGender('m')}>👨 男</div>
+            <div className={`gender-btn ${gender==='f'?'sel':''}`} onClick={()=>setGender('f')}>👧 女</div>
+          </div>
+        </div>
+        <div className="form-group anim-slide-up d5">
+          <div className="form-label">喂养方式</div>
+          <div className="form-input" style={{display:'flex',justifyContent:'space-between'}}>
+            <span>混合喂养</span><span style={{color:'var(--t3)'}}>▼</span>
+          </div>
+        </div>
+        <div className="form-group anim-slide-up d6">
+          <div className="form-label">最关心的问题</div>
+          <div className="tags">
+            {['喂养','睡眠','辅食','早教','安全','其他'].map(t=>(
+              <div key={t} className={`tag ${tags.includes(t)?'on':''}`}
+                style={{animationDelay:`${0.3+['喂养','睡眠','辅食','早教','安全','其他'].indexOf(t)*0.08}s`}}
+                onClick={()=>toggleTag(t)}>{t}</div>
+            ))}
+          </div>
+        </div>
+        <div className="cta-btn anim-slide-up d8" onClick={onDone} style={{marginTop:8}}>
+          <div className="cta-sweep"></div>
+          开始使用 BabyGrow
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════ HOME ═══════════════ */
+function Home({onNavigate}){
+  const advisors=[
+    {icon:'🍽️',title:'今日辅食',desc:'3餐食谱',page:'schedule'},
+    {icon:'🎮',title:'游戏时间',desc:'适龄游戏',page:'schedule'},
+    {icon:'📖',title:'故事时间',desc:'推荐故事',page:'schedule'},
+    {icon:'⏰',title:'作息安排',desc:'全天作息',page:'schedule'},
+  ];
+  const records=[
+    {icon:'🌟',text:'发育里程碑',page:'milestones'},
+    {icon:'🍼',text:'喂养记录',page:'records'},
+    {icon:'😴',text:'睡眠记录',page:'sleep'},
+    {icon:'💚',text:'健康记录',page:'records'},
+    {icon:'📈',text:'生长曲线',page:'records'},
+  ];
+  return(
+    <>
+      <div className="home-header anim-fade">
+        <div className="child-pill">
+          <div className="child-avatar">👶</div>
+          <div><div className="child-name">豆豆</div><div className="child-age">10个月</div></div>
+        </div>
+        <div className="header-icon">⚙️</div>
+      </div>
+      <div className="child-card anim-slide-up d1" onClick={()=>onNavigate('profile')}>
+        <div className="cc-top">
+          <div className="cc-avatar">👶</div>
+          <div className="cc-info">
+            <h3>豆豆 · 10个月</h3>
+            <span>点击切换 ></span>
+          </div>
+        </div>
+        <div className="ai-tip">
+          <div className="ai-tip-label">📌 今日重点</div>
+          <div className="ai-tip-text">豆豆这个月可以开始练习用勺子了，准备一些软烂的食物让宝宝自己抓着吃。这个阶段宝宝喜欢模仿大人的动作哦！</div>
+        </div>
+      </div>
+      <div className="advisors">
+        {advisors.map((a,i)=>(
+          <div key={i} className={`advisor-card anim-slide-up d${i+2}`}
+            onClick={()=>onNavigate(a.page)}>
+            <span className="advisor-icon">{a.icon}</span>
+            <div className="advisor-title">{a.title}</div>
+            <div className="advisor-desc">{a.desc}</div>
+            <div className="advisor-arrow">›</div>
+          </div>
+        ))}
+      </div>
+      <div className="section-label anim-fade d6">记录</div>
+      <div className="record-list anim-slide-up d7">
+        {records.map((r,i)=>(
+          <div key={i} className="record-item" onClick={()=>onNavigate(r.page)}>
+            <span className="record-icon">{r.icon}</span>
+            <span className="record-text">{r.text}</span>
+            <span className="record-arrow">›</span>
+          </div>
+        ))}
+      </div>
+      <div className="cta-btn anim-slide-up d8" onClick={()=>onNavigate('schedule')}>
+        <div className="cta-sweep"></div>🔄 生成今日安排
+      </div>
+      <div className="ai-float anim-slide-up d9" onClick={()=>onNavigate('chat')}>
+        <div className="ai-float-title">💬 试试问AI</div>
+        <div className="ai-float-text">「10个月宝宝总是扔食物怎么办？」</div>
+      </div>
+    </>
+  );
+}
+
+/* ═══════════════ SCHEDULE ═══════════════ */
+function Schedule({onBack}){
+  const items=[
+    {time:'07:00',icon:'☀️',title:'起床 · 喝奶',desc:'母乳/配方奶 180ml',bg:'var(--pG)',current:false},
+    {time:'08:30',icon:'🍽️',title:'早餐辅食',desc:'南瓜小米粥 + 蒸蛋',tip:'💡 做法：南瓜蒸熟压泥…',bg:'#FFF8E6',current:false},
+    {time:'10:00',icon:'🎮',title:'上午活动',desc:'积木游戏 · 认颜色',tip:'📍 推荐：滨江公园散步',bg:'var(--sG)',current:true},
+    {time:'12:00',icon:'🍚',title:'午餐辅食',desc:'软饭 + 肉末蒸蛋',bg:'#FFF8E6',current:false},
+    {time:'14:00',icon:'😴',title:'午睡',desc:'约1.5小时',bg:'#E6F0FF',current:false},
+    {time:'16:00',icon:'🍼',title:'下午奶',desc:'配方奶 150ml',bg:'var(--pG)',current:false},
+  ];
+  return(
+    <>
+      <div className="sched-header anim-fade">
+        <div className="sched-back" onClick={onBack}>‹ 今日安排</div>
+        <div style={{fontSize:14,color:'var(--t3)',cursor:'pointer'}}>🔄</div>
+      </div>
+      <div className="sched-date anim-fade d1">📅 2026年4月30日 · 周四</div>
+      <div className="timeline">
+        {items.map((it,i)=>(
+          <div key={i} className={`tl-item anim-slide-up d${i+1}`}>
+            <div className="tl-time">{it.time}</div>
+            <div className={`tl-dot ${it.current?'current':''}`}
+              style={{background:it.current?'var(--p)':'var(--bgC)',border:`2px solid ${it.current?'var(--p)':'var(--t3)'}`}}/>
+            <div className="tl-card" style={{background:it.bg}}>
+              <div className="tl-card-title"><span>{it.icon}</span><strong>{it.title}</strong></div>
+              <div className="tl-card-desc">{it.desc}</div>
+              {it.tip&&<div className="tl-card-tip">{it.tip}</div>}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="sched-tips anim-slide-up d8">
+        <h4>💡 温馨提示</h4>
+        <p>· 杭州今天22°C 适合户外<br/>· 这周可以尝试菠菜泥<br/>· 附近医院：滨江区妇幼保健院</p>
+      </div>
+    </>
+  );
+}
+
+/* ═══════════════ SLEEP ═══════════════ */
+function Sleep({onBack}){
+  const [showToast,setShowToast]=useState(false);
+  return(
+    <>
+      <div className="sched-header anim-fade">
+        <div className="sched-back" onClick={onBack}>‹ 睡眠记录</div>
+        <div style={{fontSize:12,color:'var(--s)',fontWeight:600,cursor:'pointer'}}>🤖AI分析</div>
+      </div>
+      <div className="ms-filters anim-slide-up d1" style={{marginBottom:14}}>
+        {['本周','本月','全部'].map((t,i)=>(
+          <div key={t} className={`ms-filter ${i===0?'active':''}`}>{t}</div>
+        ))}
+      </div>
+      <div className="sleep-stats anim-scale d2">
+        <div className="stat-card"><div className="stat-val"><AnimateCount target={8.5} suffix="h"/></div><div className="stat-label">平均时长</div></div>
+        <div className="stat-card"><div className="stat-val"><AnimateCount target={3} suffix="次"/></div><div className="stat-label">日均次数</div></div>
+        <div className="stat-card"><div className="stat-val"><AnimateCount target={2} suffix="次"/></div><div className="stat-label">夜醒次数</div></div>
+      </div>
+      <div className="ai-report anim-slide-up d3">
+        <h4>📊 AI分析报告</h4>
+        <div className="ai-report-score">
+          <div className="score-ring">
+            <svg width="40" height="40" viewBox="0 0 40 40">
+              <circle className="bg" cx="20" cy="20" r="18"/>
+              <circle className="fg" cx="20" cy="20" r="18"/>
+            </svg>
+            <div className="score-num"><AnimateCount target={85}/></div>
+          </div>
+          <div>
+            <div style={{fontSize:12,color:'var(--t2)'}}>睡眠质量评分</div>
+            <div style={{fontSize:11,color:'var(--ok)',fontWeight:500}}>良好</div>
+          </div>
+        </div>
+        <p>豆豆本周睡眠时长稳定，建议睡前减少刺激活动，保持固定的睡前仪式。</p>
+      </div>
+      <div style={{textAlign:'right',marginBottom:10}}>
+        <span style={{fontSize:12,color:'var(--p)',fontWeight:600,cursor:'pointer'}}>+ 添加记录</span>
+      </div>
+      {[
+        {date:'4/30 21:00 ~ 06:30',type:'夜睡',dur:'9.5小时',status:'良好 ✓',cls:'good'},
+        {date:'4/29 13:00 ~ 14:30',type:'午睡',dur:'1.5小时',status:'正常 ✓',cls:'good'},
+        {date:'4/28 22:00 ~ 05:30',type:'夜睡',dur:'7.5小时',status:'偏少 ⚠️',cls:'warn'},
+      ].map((r,i)=>(
+        <div key={i} className={`sleep-record anim-slide-right d${i+4}`}>
+          <div className="sr-date">{r.date}</div>
+          <div className="sr-content">
+            <div>
+              <div className="sr-info">😴 {r.type} · {r.dur}</div>
+              <div className={`sr-status ${r.cls}`}>{r.status}</div>
+            </div>
+            <div className="sr-del">🗑️</div>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+/* ═══════════════ RECORDS ═══════════════ */
+function Records(){
+  return(
+    <>
+      <div className="anim-fade" style={{padding:'4px 0 0'}}><div style={{fontSize:14,fontWeight:600,color:'var(--t)'}}>‹ 成长记录</div></div>
+      <div className="date-switch anim-fade d1">
+        <div className="date-arrow">‹</div>
+        <div className="date-text">2026年4月30日 周四</div>
+        <div className="date-arrow">›</div>
+      </div>
+      <div className="record-section anim-slide-up d2">
+        <div className="rs-header"><h4>🍼 喂养记录</h4><span className="rs-add">+ 添加</span></div>
+        {[{t:'08:30',x:'母乳 150ml'},{t:'12:00',x:'南瓜粥 80g'},{t:'15:00',x:'配方奶 180ml'},{t:'18:00',x:'软饭+肉末 100g'}].map((f,i)=>(
+          <div key={i} className="rs-item"><span className="rs-time">{f.t}</span><span>{f.x}</span></div>
+        ))}
+      </div>
+      <div className="record-section anim-slide-up d4">
+        <div className="rs-header"><h4>😴 睡眠记录</h4><span className="rs-add">+ 添加</span></div>
+        <div className="rs-item"><span className="rs-time">13:00</span><span>午睡 1.5h</span></div>
+        <div className="rs-item"><span className="rs-time">21:00</span><span>夜睡 9.5h</span></div>
+      </div>
+      <div className="empty-state anim-scale d6">
+        <div className="empty-icon">💚</div>
+        <div className="empty-text">今天还没有健康记录</div>
+        <div className="empty-action">+ 添加健康记录</div>
+      </div>
+    </>
+  );
+}
+
+/* ═══════════════ AI CHAT ═══════════════ */
+function Chat({onBack}){
+  const [msgs,setMsgs]=useState([]);
+  const [input,setInput]=useState('');
+  const [typing,setTyping]=useState(false);
+  const bottomRef=useRef(null);
+
+  const aiReply=(text)=>{
+    setTyping(true);
+    setTimeout(()=>{
+      setTyping(false);
+      setMsgs(p=>[...p,{role:'ai',text}]);
+    },1500);
+  };
+
+  const send=(text)=>{
+    if(!text)return;
+    setMsgs(p=>[...p,{role:'user',text}]);
+    setInput('');
+    setTimeout(()=>{
+      aiReply('这是个很好的问题！豆豆10个月大，正处于对食物探索的阶段。建议：\n\n1. 变换食物造型和颜色\n2. 让宝宝自己抓着吃\n3. 固定就餐时间\n4. 准备防摔餐碗\n\n每个宝宝都有自己的节奏，耐心引导就好 💛');
+    },500);
+  };
+
+  useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:'smooth'})},[msgs,typing]);
+
+  return(
+    <div className="chat-wrap">
+      <div className="chat-header anim-fade">
+        <h3>🤖 育儿助手</h3>
+        <div className="chat-close" onClick={onBack}>✕</div>
+      </div>
+      <div className="chat-messages">
+        <div className="msg ai anim-slide-left d1">
+          <div className="msg-av ai">🤖</div>
+          <div className="msg-bubble">你好！我是豆豆的专属育儿顾问。有什么我能帮到你的吗？</div>
+        </div>
+        {msgs.length===0&&(
+          <div className="quick-questions anim-slide-up d2">
+            <div className="qq-label">快速提问：</div>
+            <div className="qq-tags">
+              {['宝宝不爱吃饭','什么时候加辅食','夜醒频繁','出牙期注意事项'].map(q=>(
+                <div key={q} className="qq-tag" onClick={()=>send(q)}>{q}</div>
+              ))}
+            </div>
+          </div>
+        )}
+        {msgs.map((m,i)=>(
+          <div key={i} className={`msg ${m.role} anim-slide-${m.role==='user'?'right':'left'}`}>
+            {m.role==='ai'&&<div className="msg-av ai">🤖</div>}
+            <div className="msg-bubble" style={{whiteSpace:'pre-line'}}>{m.text}</div>
+          </div>
+        ))}
+        {typing&&(
+          <div className="msg ai anim-fade">
+            <div className="msg-av ai">🤖</div>
+            <div className="msg-bubble">
+              <div className="typing-indicator">
+                <div className="typing-dot"/><div className="typing-dot"/><div className="typing-dot"/>
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef}/>
+      </div>
+      <div className="chat-input anim-slide-up">
+        <div className="chat-attach">📎</div>
+        <input className="chat-text" placeholder="输入你的问题..." value={input}
+          onChange={e=>setInput(e.target.value)}
+          onKeyDown={e=>e.key==='Enter'&&send(input)}/>
+        <div className="chat-voice">🎤</div>
+        <button className="chat-send" onClick={()=>send(input)}>›</button>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════ MILESTONES ═══════════════ */
+function Milestones(){
+  const [milestones,setMilestones]=useState([
+    {cat:'大运动',items:[
+      {text:'扶站',done:true},{text:'独坐稳定',done:true},
+      {text:'独站片刻',done:false},{text:'扶走',done:false},
+    ]},
+    {cat:'语言',items:[
+      {text:'叫"爸爸""妈妈"有指向',done:true},
+      {text:'有意识说3个以上词汇',done:false},
+    ]},
+  ]);
+  const [confetti,setConfetti]=useState([]);
+
+  const toggle=(ci,ii)=>{
+    setMilestones(p=>{
+      const n=[...p];n[ci]={...n[ci],items:[...n[ci].items]};
+      n[ci].items[ii]={...n[ci].items[ii],done:!n[ci].items[ii].done};
+      return n;
+    });
+    // confetti burst
+    const colors=['#FF9B5E','#7ECFB3','#FFC9A0','#A8E6CF','#E85C5C','#4A9EF5','#F5A623'];
+    const pieces=Array.from({length:25},(_,i)=>({
+      id:Date.now()+i,
+      x:160,y:200,
+      color:colors[Math.floor(Math.random()*colors.length)],
+      rot:Math.random()*360,
+      tx:(Math.random()-0.5)*200,
+      delay:Math.random()*0.3,
+    }));
+    setConfetti(pieces);
+    setTimeout(()=>setConfetti([]),2000);
+  };
+
+  const cats=[
+    {icon:'🏃',name:'大运动',done:5,total:8,bg:'var(--pG)'},
+    {icon:'🗣️',name:'语言',done:3,total:6,bg:'var(--sG)'},
+    {icon:'🧠',name:'认知',done:4,total:7,bg:'#F0E6FF'},
+    {icon:'🤝',name:'社交',done:2,total:5,bg:'#E6F0FF'},
+  ];
+
+  return(
+    <>
+      <div className="anim-fade" style={{padding:'4px 0'}}><div style={{fontSize:14,fontWeight:600,color:'var(--t)'}}>‹ 发育里程碑</div></div>
+      <div className="milestone-age anim-scale d1">
+        <div className="age-badge">
+          <div className="age-num">10</div>
+          <div className="age-unit">个月</div>
+        </div>
+      </div>
+      <div className="ms-filters anim-slide-up d2">
+        {['全部','大运动','语言','认知','社交'].map((t,i)=>(
+          <div key={t} className={`ms-filter ${i===0?'active':''}`}>{t}</div>
+        ))}
+      </div>
+      <div className="ms-categories">
+        {cats.map((c,i)=>(
+          <div key={i} className={`ms-cat anim-scale d${i+3}`} style={{background:c.bg}}>
+            <div className="ms-cat-icon">{c.icon}</div>
+            <div className="ms-cat-name">{c.name}</div>
+            <div className="ms-cat-count">{c.done}/{c.total}</div>
+          </div>
+        ))}
+      </div>
+      {milestones.map((g,gi)=>(
+        <div key={gi} className="ms-group anim-slide-up d${gi+6}">
+          <div className="ms-group-title">{g.cat} · 10个月</div>
+          <div className="ms-list">
+            {g.items.map((it,ii)=>(
+              <div key={ii} className={`ms-item ${it.done?'done':''}`} onClick={()=>toggle(gi,ii)}>
+                <div className="ms-check">{it.done?'✅':'⬜'}</div>
+                <div className="ms-text">{it.text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      {/* Confetti */}
+      {confetti.length>0&&(
+        <div className="confetti-container">
+          {confetti.map(c=>(
+            <div key={c.id} className="confetti" style={{
+              left:c.x,top:c.y,background:c.color,
+              transform:`rotate(${c.rot}deg)`,
+              animationDelay:`${c.delay}s`,
+              '--tx':`${c.tx}px`,
+            }}/>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ═══════════════ PROFILE ═══════════════ */
+function Profile(){
+  return(
+    <>
+      <div className="anim-fade" style={{padding:'4px 0'}}><div style={{fontSize:14,fontWeight:600,color:'var(--t)'}}>‹ 孩子档案</div></div>
+      <div className="profile-avatar anim-scale d1">
+        <div className="pa-ring"><div className="pa-img">👶</div></div>
+        <div className="pa-name">豆豆</div>
+        <div className="pa-info">10个月 · 男 · 混合喂养</div>
+        <div className="pa-birthday">2025.07.15 出生</div>
+        <div className="pa-edit">✏️ 编辑信息</div>
+      </div>
+      <div className="menu-group anim-slide-up d2">
+        {[
+          {icon:'👶',text:'切换/管理孩子'},
+          {icon:'📊',text:'数据导出'},
+          {icon:'🏙️',text:'城市设置',desc:'杭州 滨江区'},
+          {icon:'❓',text:'帮助与反馈'},
+          {icon:'ℹ️',text:'关于 BabyGrow',desc:'v1.0'},
+        ].map((m,i)=>(
+          <div key={i} className="menu-item">
+            <span className="menu-icon">{m.icon}</span>
+            <div style={{flex:1}}>
+              <div className="menu-text">{m.text}</div>
+              {m.desc&&<div className="menu-desc">{m.desc}</div>}
+            </div>
+            <span className="menu-arrow">›</span>
+          </div>
+        ))}
+      </div>
+      <div className="danger-zone anim-slide-up d3">
+        <div className="danger-inner">
+          <span style={{fontSize:18}}>🗑️</span>
+          <span className="danger-text">清除所有数据</span>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ═══════════════ APP ═══════════════ */
+function App(){
+  const [screen,setScreen]=useState('welcome');
+  const [prevScreen,setPrevScreen]=useState(null);
+  const [animKey,setAnimKey]=useState(0);
+
+  const navigate=(s)=>{
+    if(s===screen)return;
+    setPrevScreen(screen);
+    setScreen(s);
+    setAnimKey(k=>k+1);
+  };
+
+  const tabs=[
+    {id:'home',icon:'🏠',label:'首页'},
+    {id:'records',icon:'📋',label:'记录'},
+    {id:'chat',icon:'🤖',label:'AI助手',ai:true},
+    {id:'milestones',icon:'⭐',label:'里程碑'},
+    {id:'profile',icon:'👤',label:'我的'},
+  ];
+
+  const isModal=screen==='welcome'||screen==='schedule'||screen==='sleep'||screen==='chat';
+  const renderScreen=()=>{
+    switch(screen){
+      case 'welcome':return <Welcome onDone={()=>navigate('home')}/>;
+      case 'home':return <Home onNavigate={navigate}/>;
+      case 'schedule':return <Schedule onBack={()=>navigate('home')}/>;
+      case 'sleep':return <Sleep onBack={()=>navigate('home')}/>;
+      case 'records':return <Records/>;
+      case 'chat':return <Chat onBack={()=>navigate('home')}/>;
+      case 'milestones':return <Milestones/>;
+      case 'profile':return <Profile/>;
+      default:return <Home onNavigate={navigate}/>;
+    }
+  };
+
+  const tabItems=[
+    {id:'home',icon:'🏠',label:'首页'},
+    {id:'records',icon:'📋',label:'记录'},
+    {id:'chat',icon:'🤖',label:'AI助手',ai:true},
+    {id:'milestones',icon:'⭐',label:'里程碑'},
+    {id:'profile',icon:'👤',label:'我的'},
+  ];
+
+  return(
+    <>
+      <div style={{position:'absolute',top:50,left:0,right:0,bottom:isModal?0:64,overflow:'hidden'}}>
+        <div key={animKey} style={{height:'100%'}}>
+          {renderScreen()}
+        </div>
+      </div>
+      {!isModal&&(
+        <div className="tab-bar">
+          {tabItems.map(t=>(
+            <div key={t.id} className={`tab-item ${screen===t.id?'active':''} ${t.ai?'ai-tab':''}`}
+              onClick={()=>navigate(t.id)}>
+              <div className="tab-icon">{t.icon}</div>
+              <div className="tab-label">{t.label}</div>
+              {screen===t.id&&<div className="tab-dot"/>}
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('react-root')).render(<App/>);
+
+/* ═══════════════ FLOATING PARTICLES ═══════════════ */
+(function(){
+  const c=document.getElementById('particles');
+  const colors=['rgba(255,155,94,0.12)','rgba(126,207,179,0.10)','rgba(255,201,160,0.08)'];
+  for(let i=0;i<8;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    const size=20+Math.random()*60;
+    p.style.cssText=`
+      width:${size}px;height:${size}px;
+      left:${Math.random()*100}%;
+      background:${colors[i%3]};
+      animation-duration:${15+Math.random()*20}s;
+      animation-delay:${-Math.random()*20}s;
+    `;
+    c.appendChild(p);
+  }
+})();
+</script>
+</body>
+</html>

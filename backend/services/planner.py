@@ -208,10 +208,11 @@ class DailyPlanner:
         kb_sop = kb_sleep_sop.get("sop", {})
 
         # 解包知识库上下文
-        kb = context or {}
+        kb = context if isinstance(context, dict) else {}
         season = kb.get("season", self._get_season(current_date))
         is_weekend = kb.get("isWeekend", current_date.weekday() >= 5)
-        framework = kb.get("framework", {})
+        framework = kb.get("framework") or {}
+        schedule = kb.get("schedule") or {}
         seasonal_ingredients = kb.get("seasonalIngredients", [])
         nearby_parks = kb.get("nearbyParks", [])
         nearby_indoor = kb.get("nearbyIndoor", [])

@@ -119,10 +119,18 @@ class AIService:
             response.raise_for_status()
             data = response.json()
 
+            choice = data["choices"][0]["message"]
+            # StepFun 推理模型: 内容可能在 reasoning 字段
+            content = choice.get("content", "") or ""
+            reasoning = choice.get("reasoning", "") or ""
+            # 如果 content 为空但 reasoning 有值，使用 reasoning
+            if not content and reasoning:
+                content = reasoning
+
             return {
-                "content": data["choices"][0]["message"]["content"],
+                "content": content,
                 "usage": data.get("usage", {}),
-                "reasoning": ""
+                "reasoning": reasoning
             }
 
     async def _chat_ollama(

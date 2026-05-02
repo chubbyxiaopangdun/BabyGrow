@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="theme-color" content="#FF9B5E">
+    <meta name="theme-color" content="#7EC8B8">
     <title>BabyGrow - AI育儿助手</title>
     <link rel="manifest" href="manifest.json">
     <style>
@@ -20,45 +20,54 @@
 
         /* ---- CSS Variables ---- */
         :root {
-            --p: #FF9B5E;
-            --p-l: #FFC9A0;
-            --p-d: #E87840;
-            --p-g: #FFF1E8;
-            --s: #7ECFB3;
-            --s-l: #A8E6CF;
-            --s-d: #5BB896;
-            --s-g: #EEF9F4;
-            --bg: #FFFCF8;
+            /* Soft Pastel Palette — inspired by Huckleberry */
+            --p: #7EC8B8;
+            --p-l: #D4EDE5;
+            --p-d: #5BA898;
+            --p-g: #EDF7F3;
+            --s: #B5A3CC;
+            --s-l: #DDD4EB;
+            --s-d: #9580B0;
+            --s-g: #F0EBF6;
+            --bg: #FDF9F3;
             --bg-c: #FFFFFF;
-            --bg-s: #FBF7F2;
-            --bg-h: #F5EDE4;
-            --t: #1C1411;
-            --t-2: #6B5A4E;
-            --t-3: #A8998E;
+            --bg-s: #F5EFE6;
+            --bg-h: #EDE6DA;
+            --t: #3C3C3C;
+            --t-2: #6E6E73;
+            --t-3: #A0A0A5;
             --t-i: #FFFFFF;
-            --ok: #5BB896;
-            --ok-g: #EEF9F4;
-            --warn: #F5A623;
-            --warn-g: #FFF8EC;
-            --err: #E85C5C;
-            --err-g: #FEF0F0;
-            --info: #4A9EF5;
-            --info-g: #EEF6FF;
+            --ok: #8CC5A0;
+            --ok-g: #EDF7F3;
+            --warn: #E8C76A;
+            --warn-g: #FDF6E3;
+            --err: #D48A8A;
+            --err-g: #FAEAEA;
+            --info: #8BB8D6;
+            --info-g: #EAF3FA;
             --r-xs: 6px;
             --r-sm: 10px;
             --r-md: 16px;
             --r-lg: 22px;
             --r-xl: 30px;
             --r-full: 9999px;
-            --sh-sm: 0 1px 4px rgba(44,20,17,.06);
-            --sh-md: 0 4px 16px rgba(44,20,17,.08);
-            --sh-lg: 0 8px 32px rgba(44,20,17,.12);
-            --sh-glow: 0 4px 20px rgba(255,155,94,.30);
+            --sh-sm: 0 1px 4px rgba(0,0,0,.04);
+            --sh-md: 0 2px 8px rgba(0,0,0,.06);
+            --sh-lg: 0 4px 16px rgba(0,0,0,.08);
+            --sh-glow: 0 4px 20px rgba(126,200,184,.20);
             --st: env(safe-area-inset-top, 20px);
             --sb: env(safe-area-inset-bottom, 20px);
-            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-spring: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --ease-out: cubic-bezier(0.25, 0.46, 0.94, 1);
             --ease-in: cubic-bezier(0.4, 0, 1, 1);
+            /* Accent colors */
+            --peach: #E8A87C;
+            --peach-xl: #FDF0E6;
+            --sky: #8BB8D6;
+            --sky-xl: #EAF3FA;
+            --lav-xl: #F0EBF6;
+            --mint-xl: #EDF7F3;
+            --rose-xl: #FAEAEA;
         }
 
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -73,9 +82,7 @@
             padding-bottom: calc(80px + var(--sb));
         }
 
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--p-l); border-radius: 4px; }
+        ::-webkit-scrollbar { width: 0; }
 
         .display { font-family:'Noto Serif SC', Georgia, serif; font-weight:700; }
         h1,h2,h3 { font-family:'Noto Serif SC', Georgia, serif; font-weight:700; letter-spacing:-.02em; }
@@ -102,34 +109,36 @@
         /* ---- Top Header ---- */
         .top-header {
             position:fixed; top:0; left:0; right:0; z-index:100;
-            background: linear-gradient(135deg, var(--p) 0%, var(--p-d) 100%);
-            color:var(--t-i); padding:calc(var(--st) + 10px) 20px 14px;
+            background: rgba(253,249,243,.82);
+            backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+            color:var(--t); padding:calc(var(--st) + 10px) 20px 14px;
             display:flex; align-items:center; justify-content:space-between;
-            box-shadow: 0 2px 12px rgba(232,120,64,.25);
+            border-bottom: .5px solid rgba(0,0,0,.06);
         }
         .top-header-left { display:flex; align-items:center; gap:12px; }
         .child-avatar-sm {
             width:40px; height:40px; border-radius:50%;
-            background:rgba(255,255,255,.25);
+            background:var(--peach-xl);
             display:flex; align-items:center; justify-content:center;
             font-family:'Noto Serif SC', serif; font-size:16px; font-weight:700;
-            border:2px solid rgba(255,255,255,.4);
+            border:2px solid var(--bg-h);
         }
         .child-avatar-lg {
             width:56px; height:56px; border-radius:50%;
-            background:linear-gradient(135deg, var(--p), var(--p-d));
+            background:linear-gradient(135deg, var(--peach-xl), var(--p-l));
             display:flex; align-items:center; justify-content:center;
             font-family:'Noto Serif SC', serif; font-size:22px; font-weight:700;
-            box-shadow: 0 2px 12px rgba(255,155,94,.40);
+            box-shadow: 0 2px 12px rgba(232,168,124,.15);
         }
         .child-name-lg { font-size:18px; font-weight:600; font-family:'Noto Serif SC', serif; }
         .child-age-lg { font-size:13px; opacity:.85; margin-top:2px; }
         .hdr-btn {
-            background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25);
-            color:var(--t-i); padding:8px 16px; border-radius:var(--r-full);
+            background:var(--bg-c); border:1px solid rgba(0,0,0,.06);
+            color:var(--t); padding:8px 16px; border-radius:var(--r-full);
             font-size:13px; font-weight:500; cursor:pointer;
             transition:background .15s, transform .15s var(--ease-spring);
             display:flex; align-items:center; gap:6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.04);
         }
         .hdr-btn:active { transform:scale(.95); }
 
@@ -144,25 +153,25 @@
         @keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
         .welcome-logo {
             width:80px; height:80px; margin:0 auto 20px;
-            background:linear-gradient(135deg, var(--p), var(--p-d));
+            background:var(--p-l);
             border-radius:24px; display:flex; align-items:center; justify-content:center;
-            box-shadow: 0 8px 24px rgba(255,155,94,.35);
+            box-shadow: 0 4px 16px rgba(126,200,184,.15);
         }
         .welcome-title { font-size:24px; margin-bottom:10px; color:var(--t); }
         .welcome-sub { font-size:15px; color:var(--t-2); margin-bottom:28px; line-height:1.5; }
 
         /* ---- Form ---- */
         .form-card {
-            background:var(--bg-c); border-radius:var(--r-lg);
+            background:var(--bg-c); border-radius:var(--r-md);
             padding:24px 20px; margin-bottom:16px;
-            box-shadow:var(--sh-md); border:1px solid rgba(44,20,17,.04);
+            box-shadow:var(--sh-sm); border:1px solid rgba(0,0,0,.04);
         }
         .form-title { font-size:16px; font-weight:600; margin-bottom:18px; color:var(--t); text-align:center; }
         .form-group { margin-bottom:16px; }
         .form-label { display:block; font-size:12px; font-weight:600; color:var(--t-2); margin-bottom:8px; letter-spacing:.03em; text-transform:uppercase; }
         .form-input, .form-select {
             width:100%; padding:13px 15px;
-            border:1.5px solid rgba(44,20,17,.10);
+            border:1.5px solid rgba(0,0,0,.08);
             border-radius:var(--r-sm); font-size:16px;
             background:var(--bg-s); color:var(--t);
             transition:border-color .15s, box-shadow .15s;
@@ -170,13 +179,13 @@
         }
         .form-input:focus, .form-select:focus {
             outline:none; border-color:var(--p);
-            box-shadow:0 0 0 3px rgba(255,155,94,.12);
+            box-shadow:0 0 0 3px rgba(126,200,184,.15);
         }
         .form-input::placeholder { color:var(--t-3); }
         .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
         .form-hint { font-size:12px; color:var(--t-3); margin-top:6px; }
         .age-display {
-            background:var(--p-g); color:var(--p-d);
+            background:var(--mint-xl); color:var(--p-d);
             padding:10px 16px; border-radius:var(--r-sm);
             font-size:15px; font-weight:600; text-align:center;
             margin-top:8px;
@@ -185,13 +194,13 @@
         .checkbox-item {
             display:flex; align-items:center; gap:6px;
             padding:8px 14px; background:var(--bg-s);
-            border:1.5px solid rgba(44,20,17,.08); border-radius:var(--r-full);
+            border:1.5px solid rgba(0,0,0,.06); border-radius:var(--r-full);
             cursor:pointer; transition:all .15s;
             font-size:14px;
         }
         .checkbox-item input { display:none; }
         .checkbox-item.checked {
-            background:var(--p-g); border-color:var(--p);
+            background:var(--mint-xl); border-color:var(--p);
             color:var(--p-d);
         }
         .btn {
@@ -203,16 +212,16 @@
         }
         .btn-primary {
             background:linear-gradient(135deg, var(--p), var(--p-d));
-            color:var(--t-i); box-shadow:0 4px 14px rgba(255,155,94,.35);
+            color:var(--t-i); box-shadow:0 4px 14px rgba(126,200,184,.25);
         }
-        .btn-primary:hover { box-shadow:0 6px 20px rgba(255,155,94,.45); }
+        .btn-primary:hover { box-shadow:0 6px 20px rgba(126,200,184,.35); }
         .btn-primary:active { transform:scale(.97); }
 
         /* ---- Home Header Card ---- */
         .home-child-card {
             background:var(--bg-c); border-radius:var(--r-lg);
             padding:18px 20px; margin-bottom:16px;
-            box-shadow:var(--sh-sm); border:1px solid rgba(44,20,17,.04);
+            box-shadow:var(--sh-sm); border:1px solid rgba(0,0,0,.04);
             position:relative; overflow:hidden;
         }
         .home-child-card::before {
@@ -238,7 +247,7 @@
         .advisor-card {
             background:var(--bg-c); border-radius:var(--r-lg);
             padding:18px 16px; box-shadow:var(--sh-sm);
-            border:1px solid rgba(44,20,17,.04);
+            border:1px solid rgba(0,0,0,.04);
             cursor:pointer; transition:all .2s var(--ease-spring);
             position:relative; overflow:hidden;
         }
@@ -276,10 +285,10 @@
         /* ---- Quick Actions ---- */
         .quick-actions { margin-bottom:16px; }
         .qa-title { font-size:12px; font-weight:600; color:var(--t-2); text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px; }
-        .qa-list { background:var(--bg-c); border-radius:var(--r-lg); box-shadow:var(--sh-sm); overflow:hidden; border:1px solid rgba(44,20,17,.04); }
+        .qa-list { background:var(--bg-c); border-radius:var(--r-lg); box-shadow:var(--sh-sm); overflow:hidden; border:1px solid rgba(0,0,0,.04); }
         .qa-item {
             display:flex; align-items:center; gap:14px;
-            padding:14px 16px; border-bottom:1px solid rgba(44,20,17,.04);
+            padding:14px 16px; border-bottom:1px solid rgba(0,0,0,.04);
             cursor:pointer; transition:background .15s;
         }
         .qa-item:last-child { border-bottom:none; }
@@ -309,7 +318,7 @@
         .schedule-item {
             background:var(--bg-c); border-radius:var(--r-lg);
             margin-bottom:12px; box-shadow:var(--sh-sm);
-            border:1px solid rgba(44,20,17,.04);
+            border:1px solid rgba(0,0,0,.04);
             overflow:hidden; transition:box-shadow .2s;
         }
         .schedule-item:hover { box-shadow:var(--sh-md); }
@@ -383,9 +392,9 @@
             position:fixed; bottom:0; left:0; right:0;
             background:rgba(255,252,248,.92);
             backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-            border-top:1px solid rgba(44,20,17,.06);
+            border-top:1px solid rgba(0,0,0,.06);
             padding:10px 16px calc(10px + var(--sb));
-            z-index:100; box-shadow:0 -4px 20px rgba(44,20,17,.05);
+            z-index:100; box-shadow:0 -4px 20px rgba(0,0,0,.04);
             cursor:pointer; transition:background .15s;
         }
         .ai-bar:hover { background:rgba(255,252,248,.98); }
@@ -398,7 +407,7 @@
             width:42px; height:42px; border-radius:50%;
             background:linear-gradient(135deg, var(--p), var(--p-d));
             display:flex; align-items:center; justify-content:center; flex-shrink:0;
-            box-shadow:0 2px 10px rgba(255,155,94,.35);
+            box-shadow:0 2px 10px rgba(126,200,184,.25);
         }
         .ai-bar-icon svg { width:20px; height:20px; color:var(--t-i); }
         .ai-bar-text { flex:1; }
@@ -413,8 +422,9 @@
             left: 0;
             right: 0;
             height: 60px;
-            background: #fff;
-            border-top: 1px solid rgba(44,20,17,.06);
+            background: rgba(253,249,243,.85);
+            backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-top: .5px solid rgba(0,0,0,.06);
             display: flex;
             align-items: center;
             justify-content: space-around;
@@ -436,14 +446,14 @@
         }
         .bottom-nav-item svg { width:22px; height:22px; }
         .bottom-nav-item span { font-size:10px; font-weight:500; }
-        .bottom-nav-item.active { color: var(--p); }
-        .bottom-nav-item.active svg { stroke: var(--p); fill: none; }
+        .bottom-nav-item.active { color: var(--p); font-weight: 600; }
+        .bottom-nav-item.active svg { stroke: var(--p); fill: var(--p); }
 
         /* ---- Modal ---- */
         .modal-overlay {
             display:none; position:fixed; inset:0;
-            background:rgba(28,20,17,.5);
-            backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+            background:rgba(0,0,0,.3);
+            backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
             z-index:200; align-items:flex-end; justify-content:center;
         }
         .modal-overlay.active { display:flex; }
@@ -465,7 +475,7 @@
         .modal-header {
             display:flex; align-items:center; justify-content:space-between;
             padding:16px 20px 12px;
-            border-bottom:1px solid rgba(44,20,17,.06);
+            border-bottom:1px solid rgba(0,0,0,.06);
             position:sticky; top:0; background:var(--bg-c); z-index:1;
         }
         .modal-title { font-size:18px; font-weight:600; font-family:'Noto Serif SC', serif; }
@@ -483,7 +493,7 @@
         .chat-modal .modal { max-height:85vh; }
         .chat-header {
             display:flex; align-items:center; gap:12px;
-            padding:16px 20px; border-bottom:1px solid rgba(44,20,17,.06);
+            padding:16px 20px; border-bottom:1px solid rgba(0,0,0,.06);
         }
         .chat-avatar {
             width:40px; height:40px; border-radius:50%;
@@ -515,17 +525,17 @@
         .chat-msg.assistant .chat-bubble {
             background:var(--bg-s); color:var(--t);
             border-bottom-left-radius:4px;
-            border:1px solid rgba(44,20,17,.05);
+            border:1px solid rgba(0,0,0,.04);
         }
         .chat-quick-questions {
             display:flex; flex-wrap:wrap; gap:8px;
             padding:12px 20px;
-            border-top:1px solid rgba(44,20,17,.06);
+            border-top:1px solid rgba(0,0,0,.06);
             background:var(--bg-s);
         }
         .quick-q-btn {
             padding:8px 14px; background:var(--bg-c);
-            border:1.5px solid rgba(44,20,17,.08); border-radius:var(--r-full);
+            border:1.5px solid rgba(0,0,0,.06); border-radius:var(--r-full);
             font-size:13px; cursor:pointer; transition:all .15s;
             color:var(--t-2);
         }
@@ -533,26 +543,26 @@
         .chat-input-row {
             display:flex; gap:10px; align-items:center;
             padding:12px 16px calc(12px + var(--sb));
-            border-top:1px solid rgba(44,20,17,.06);
+            border-top:1px solid rgba(0,0,0,.06);
             background:var(--bg-c);
         }
         .chat-input {
             flex:1; padding:12px 16px;
-            border:1.5px solid rgba(44,20,17,.10); border-radius:var(--r-full);
+            border:1.5px solid rgba(0,0,0,.08); border-radius:var(--r-full);
             font-size:15px; background:var(--bg-s); color:var(--t);
             font-family:inherit;
             transition:border-color .15s, box-shadow .15s;
         }
-        .chat-input:focus { outline:none; border-color:var(--p); box-shadow:0 0 0 3px rgba(255,155,94,.10); }
+        .chat-input:focus { outline:none; border-color:var(--p); box-shadow:0 0 0 3px rgba(126,200,184,.10); }
         .chat-send {
             width:46px; height:46px; border-radius:50%;
             background:linear-gradient(135deg, var(--p), var(--p-d));
             border:none; color:var(--t-i); cursor:pointer; flex-shrink:0;
             display:flex; align-items:center; justify-content:center;
-            box-shadow:0 2px 8px rgba(255,155,94,.30);
+            box-shadow:0 2px 8px rgba(126,200,184,.20);
             transition:transform .2s var(--ease-spring), box-shadow .2s;
         }
-        .chat-send:hover { transform:scale(1.08); box-shadow:0 4px 14px rgba(255,155,94,.40); }
+        .chat-send:hover { transform:scale(1.08); box-shadow:0 4px 14px rgba(126,200,184,.30); }
         .chat-send:active { transform:scale(.92); }
         .chat-send svg { width:18px; height:18px; }
 
@@ -564,7 +574,7 @@
             padding:14px 16px; background:var(--bg-c);
             border-radius:var(--r-sm); margin-bottom:8px;
             cursor:pointer; transition:background .15s;
-            border:1px solid rgba(44,20,17,.04);
+            border:1px solid rgba(0,0,0,.04);
         }
         .settings-item:hover { background:var(--bg-s); }
         .settings-icon {
@@ -584,7 +594,7 @@
   position: fixed; bottom: 60px; left: 0; right: 0;
   height: 56px;
   background: var(--bg);
-  border-top: 1px solid rgba(44,20,17,.08);
+  border-top: 1px solid rgba(0,0,0,.06);
   display: flex; justify-content: space-around; align-items: center;
   z-index: 100; padding: 0 4px;
 }
@@ -606,7 +616,7 @@
             cursor:pointer; color:var(--t-2);
             transition:color .15s;
         }
-        .back-btn:hover { color:var(--p); }
+        .back-btn:hover { color:var(--p-d); }
         .back-btn svg { width:18px; height:18px; }
         .back-btn span { font-size:14px; font-weight:500; }
 
@@ -2270,16 +2280,37 @@ function showChat() {
     }
     document.getElementById('chatModal').classList.add('active');
     document.getElementById('chatInput').focus();
+    // 刷新快捷问题
+    updateQuickQuestions();
+}
+
+function updateQuickQuestions() {
+    var el = document.getElementById('quickQuestions');
+    if (!el || !state.currentChild) return;
+    var months = getAge(state.currentChild.birth);
+    var questions;
+    if (months <= 6) {
+        questions = ['宝宝辅食吃什么好', '宝宝总是夜醒怎么办', '今天怎么安排', '宝宝发烧了怎么办'];
+    } else if (months <= 10) {
+        questions = ['一周辅食食谱推荐', '宝宝夜醒频繁怎么办', '今天怎么安排', '宝宝不吃辅食怎么办'];
+    } else {
+        questions = ['一周食谱推荐', '宝宝睡眠不好怎么办', '明天日程怎么安排', '宝宝可以吃什么零食'];
+    }
+    el.innerHTML = questions.map(function(q) {
+        return '<button class="quick-q-btn" onclick="sendQuickQuestion(this)">' + q + '</button>';
+    }).join('');
 }
 
 function sendChat() {
+    if (window._chatSending) return; // 防重复发送
     var input = document.getElementById('chatInput');
     var msg = input.value.trim();
     if (!msg) return;
+    window._chatSending = true;
 
     var messagesEl = document.getElementById('chatMessages');
 
-    // Add user message (use textContent via helper)
+    // Add user message
     var userBubble = document.createElement('div');
     userBubble.className = 'chat-msg user';
     var bubble = document.createElement('div');
@@ -2290,23 +2321,74 @@ function sendChat() {
     input.value = '';
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
-    // Show typing indicator
-    messagesEl.innerHTML += '<div class="chat-msg assistant" id="typing-indicator"><div class="chat-bubble"><div class="loading"><div class="loading-spinner"></div></div></div></div>';
+    // Show typing indicator with agent indicator
+    var typingDiv = document.createElement('div');
+    typingDiv.className = 'chat-msg assistant';
+    typingDiv.id = 'typing-indicator';
+    typingDiv.innerHTML = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;padding-left:4px">'
+        + '<div style="width:6px;height:6px;border-radius:50%;background:var(--p);animation:pulse 1.5s infinite"></div>'
+        + '<span style="font-size:11px;color:var(--t-3)">正在思考...</span></div>'
+        + '<div class="chat-bubble"><div class="loading"><div class="loading-spinner"></div></div></div>';
+    messagesEl.appendChild(typingDiv);
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
     // Call API
-    callChatAPI(msg).then(function(reply) {
+    callChatAPI(msg).then(function(result) {
+        window._chatSending = false;
         var typing = document.getElementById('typing-indicator');
         if (typing) typing.remove();
+
         var assistantDiv = document.createElement('div');
         assistantDiv.className = 'chat-msg assistant';
+
+        // Agent badge
+        if (result.agent && result.agent !== 'general') {
+            var badge = document.createElement('div');
+            badge.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:4px;padding-left:4px';
+            badge.innerHTML = '<span style="font-size:12px">' + (result.agent_emoji || '👶') + '</span>'
+                + '<span style="font-size:11px;color:var(--t-3);font-weight:500">' + (result.agent_name || '') + '回答</span>';
+            assistantDiv.appendChild(badge);
+        }
+
         var assistantBubble = document.createElement('div');
         assistantBubble.className = 'chat-bubble';
-        assistantBubble.innerHTML = reply;
+
+        // Card rendering or plain text
+        if (result.card) {
+            var card = result.card;
+            var cardHtml = '<div style="padding:2px 0">';
+            // Card title
+            if (card.title) {
+                cardHtml += '<div style="font-family:Noto Serif SC,serif;font-weight:700;font-size:15px;margin-bottom:2px;color:var(--t)">' + card.title + '</div>';
+            }
+            // Card subtitle
+            if (card.subtitle) {
+                cardHtml += '<div style="font-size:11px;color:var(--t-3);margin-bottom:8px">' + card.subtitle + '</div>';
+            }
+            // Card content (markdown rendered)
+            cardHtml += '<div class="card-content">' + formatAIResponse(result.reply || card.content || '') + '</div>';
+            // Card actions
+            if (card.actions && card.actions.length > 0) {
+                cardHtml += '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
+                card.actions.forEach(function(action) {
+                    var safeType = String(action.type || '').replace(/[^a-z_]/g, '');
+                    var safeLabel = String(action.label || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                    cardHtml += '<button onclick="handleCardAction(\'' + safeType + '\')" style="padding:6px 12px;background:var(--p-g);color:var(--p-d);border:1px solid var(--p-l);border-radius:var(--r-full);font-size:11px;font-weight:500;cursor:pointer;transition:all .15s">'
+                        + safeLabel + '</button>';
+                });
+                cardHtml += '</div>';
+            }
+            cardHtml += '</div>';
+            assistantBubble.innerHTML = cardHtml;
+        } else {
+            assistantBubble.innerHTML = formatAIResponse(result.reply || '好的，我明白了！');
+        }
+
         assistantDiv.appendChild(assistantBubble);
         messagesEl.appendChild(assistantDiv);
         messagesEl.scrollTop = messagesEl.scrollHeight;
     }).catch(function(err) {
+        window._chatSending = false;
         var typing = document.getElementById('typing-indicator');
         if (typing) typing.remove();
         var errDiv = document.createElement('div');
@@ -2320,6 +2402,23 @@ function sendChat() {
     });
 }
 
+function handleCardAction(type) {
+    if (type === 'meal_plan') {
+        // 打开聊天窗口并请求食谱
+        document.getElementById('chatInput').value = '请帮我生成一周辅食食谱';
+        sendChat();
+    } else if (type === 'shopping_list') {
+        document.getElementById('chatInput').value = '帮我生成本周采购清单';
+        sendChat();
+    } else if (type === 'refresh_schedule') {
+        document.getElementById('chatInput').value = '今天怎么安排';
+        sendChat();
+    } else if (type === 'add_sleep') {
+        closeModal('chatModal');
+        showTab('records');
+    }
+}
+
 function sendQuickQuestion(btn) {
     var question = btn.textContent;
     document.getElementById('chatInput').value = question;
@@ -2330,7 +2429,43 @@ async function callChatAPI(message) {
     var child = state.currentChild;
     var months = getAge(child.birth);
 
-    // Try to call backend API first
+    // 使用新的 /api/v1/chat 端点，支持 child_id
+    try {
+        var payload = {
+            messages: [{ role: 'user', content: message }],
+            child_id: child.id || null,
+            child_info: {
+                name: child.name,
+                age_months: months,
+                months: months,
+                feeding: child.feeding,
+                concerns: child.concerns,
+                trait: child.trait
+            }
+        };
+        if (state.apiKey) payload.api_key = state.apiKey;
+
+        var res = await fetch('/api/v1/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            var data = await res.json();
+            // 返回完整结构（支持卡片渲染）
+            return {
+                reply: data.reply || '',
+                card: data.card || null,
+                agent: data.agent || 'general',
+                agent_name: data.agent_name || '育儿顾问',
+                agent_emoji: data.agent_emoji || '👶'
+            };
+        }
+    } catch(e) {
+        console.log('V1 API not available, falling back:', e);
+    }
+
+    // 兼容旧 API
     try {
         var res = await fetch('/api/chat', {
             method: 'POST',
@@ -2340,22 +2475,17 @@ async function callChatAPI(message) {
                 child_info: {
                     name: child.name,
                     months: months,
-                    feeding: child.feeding,
-                    concerns: child.concerns,
-                    trait: child.trait
+                    feeding: child.feeding
                 }
             })
         });
         if (res.ok) {
             var data = await res.json();
-            return formatAIResponse(data.reply || data.data?.reply || '好的，我明白了！');
+            return { reply: data.reply || '好的，我明白了！', card: null, agent: 'general', agent_name: '育儿顾问', agent_emoji: '👶' };
         }
-    } catch(e) {
-        console.log('Backend API not available, using direct API');
-    }
+    } catch(e2) {}
 
-    // Fallback: direct API with knowledge base
-    return callAIWithKnowledge(message, child, months);
+    return { reply: '抱歉，发生了网络错误，请稍后再试。', card: null, agent: 'general', agent_name: '育儿顾问', agent_emoji: '👶' };
 }
 
 async function callAIWithKnowledge(message, child, months) {
@@ -2397,10 +2527,50 @@ async function callAIWithKnowledge(message, child, months) {
 }
 
 function formatAIResponse(text) {
-    // Basic formatting
+    if (!text) return '';
+    // HTML转义（防止XSS + 避免 < 被当HTML标签）
+    text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // Code blocks (```...```)
+    text = text.replace(/```([\s\S]*?)```/g, '<pre style="background:var(--bg-s);padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;line-height:1.5;margin:8px 0"><code>$1</code></pre>');
+    // Inline code
+    text = text.replace(/`([^`]+)`/g, '<code style="background:var(--bg-s);padding:2px 6px;border-radius:4px;font-size:12px">$1</code>');
+    // Tables
+    text = text.replace(/\|(.+)\|\n\|[-| :]+\|\n((?:\|.+\|\n?)+)/g, function(match, header, body) {
+        var headers = header.split('|').map(function(h) { return h.trim(); }).filter(Boolean);
+        var rows = body.trim().split('\n').map(function(r) {
+            return r.split('|').map(function(c) { return c.trim(); }).filter(Boolean);
+        });
+        var t = '<div style="overflow-x:auto;margin:8px 0"><table style="width:100%;border-collapse:collapse;font-size:12px">';
+        t += '<thead><tr>' + headers.map(function(h) { return '<th style="text-align:left;padding:6px 8px;border-bottom:2px solid var(--p-l);color:var(--t-2);font-weight:600">' + h + '</th>'; }).join('') + '</tr></thead>';
+        t += '<tbody>' + rows.map(function(row) {
+            return '<tr>' + row.map(function(c) { return '<td style="padding:6px 8px;border-bottom:1px solid rgba(0,0,0,.04)">' + c + '</td>'; }).join('') + '</tr>';
+        }).join('') + '</tbody></table></div>';
+        return t;
+    });
+    // Headers
+    text = text.replace(/^### (.+)$/gm, '<h4 style="font-family:Noto Serif SC,serif;font-weight:700;font-size:14px;margin:12px 0 6px;color:var(--t)">$1</h4>');
+    text = text.replace(/^## (.+)$/gm, '<h3 style="font-family:Noto Serif SC,serif;font-weight:700;font-size:15px;margin:14px 0 8px;color:var(--t)">$1</h3>');
+    text = text.replace(/^# (.+)$/gm, '<h2 style="font-family:Noto Serif SC,serif;font-weight:700;font-size:16px;margin:16px 0 8px;color:var(--t)">$1</h2>');
+    // Horizontal rules
+    text = text.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(0,0,0,.08);margin:12px 0">');
+    // Bold + Italic
+    text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    // Bold
+    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    // Italic
+    text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // Unordered lists
+    text = text.replace(/^[\-\*] (.+)$/gm, '<li style="margin:3px 0;margin-left:16px;list-style:disc">$1</li>');
+    // Ordered lists
+    text = text.replace(/^\d+\. (.+)$/gm, '<li style="margin:3px 0;margin-left:16px;list-style:decimal">$1</li>');
+    // Wrap consecutive <li> in <ul>
+    text = text.replace(/((?:<li[^>]*>.*?<\/li>\n?)+)/g, '<ul style="padding:4px 0;margin:6px 0">$1</ul>');
+    // Emoji at start of lines (for titles)
+    text = text.replace(/^([🍖🌙📋🏥🥣🥕🍼🌿🌞⏰👶💡💊🏥✅❌⚠️🟢🟡🔴]+) /gm, '$1 ');
+    // Line breaks
     text = text.replace(/\n\n/g, '</p><p>');
     text = text.replace(/\n/g, '<br>');
-    text = '<p>' + text + '</p>';
+    text = '<p style="margin:4px 0">' + text + '</p>';
     return text;
 }
 
@@ -3280,7 +3450,7 @@ function initMilestonesPage() {
         {label:'2-3岁', val:'24-36'}
     ];
     var filterHtml = ageGroups.map(function(g) {
-        return '<button class="chip-btn ' + (g.val==='all'?'chip-active':'') + '" onclick="filterMilestones(\''+g.val+'\',this)" style="padding:4px 10px;font-size:12px;border-radius:20px;border:1px solid rgba(44,20,17,.08);background:'+(g.val==='all'?'var(--p)':'#fff')+';color:'+(g.val==='all'?'#fff':'var(--t-2)')+'">'+g.label+'</button>';
+        return '<button class="chip-btn ' + (g.val==='all'?'chip-active':'') + '" onclick="filterMilestones(\''+g.val+'\',this)" style="padding:4px 10px;font-size:12px;border-radius:20px;border:1px solid rgba(0,0,0,.06);background:'+(g.val==='all'?'var(--p)':'#fff')+';color:'+(g.val==='all'?'#fff':'var(--t-2)')+'">'+g.label+'</button>';
     }).join('');
     document.getElementById('milestones-filter').innerHTML = filterHtml;
 
@@ -3341,7 +3511,7 @@ function renderMilestones(filter) {
 
     var html = '';
     Object.keys(groups).sort().forEach(function(grp) {
-        html += '<div style="margin-bottom:16px"><div style="font-size:12px;font-weight:600;color:var(--t-2);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(44,20,17,.06)">'+grp+'</div>';
+        html += '<div style="margin-bottom:16px"><div style="font-size:12px;font-weight:600;color:var(--t-2);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(0,0,0,.06)">'+grp+'</div>';
         groups[grp].forEach(function(m) {
             var color = catColors[m.category] || '#6B7280';
             html += '<div style="background:var(--bg-c);border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:var(--sh-sm)">'
@@ -3407,7 +3577,7 @@ function renderRecordsLists(dateStr) {
                 var fHtml = dayRecords.map(function(r) {
                     var icon = r.type==='breast_milk'?'#ic-baby':r.type==='formula'?'#ic-bottle':'#ic-apple';
                     var typeName = r.type==='breast_milk'?'母乳':r.type==='formula'?'配方奶':r.type==='solid'?'辅食':'水果/零食';
-                    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(44,20,17,.04)">'
+                    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.04)">'
                         +'<svg style="width:18px;height:18px;color:var(--p);flex-shrink:0"><use href="'+icon+'"/></svg>'
                         +'<div style="flex:1"><div style="font-size:13px;font-weight:500">'+typeName+'</div>'
                         +'<div style="font-size:11px;color:var(--t-3)">'+(r.amount||'')+' '+(r.unit||'')+(r.notes?' · '+r.notes:'')+'</div></div>'
@@ -3433,7 +3603,7 @@ function renderRecordsLists(dateStr) {
                 var sHtml = dayRecords.map(function(r) {
                     var typeName = r.type==='nap'?'午睡':r.type==='afternoon'?'白天小睡':'夜睡';
                     var hours = Math.round((r.duration_minutes || 0) / 60 * 10) / 10;
-                    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(44,20,17,.04)">'
+                    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.04)">'
                         +'<svg style="width:18px;height:18px;color:var(--s);flex-shrink:0"><use href="#ic-moon"/></svg>'
                         +'<div style="flex:1"><div style="font-size:13px;font-weight:500">'+typeName+' <span style="font-size:11px;color:var(--t-3)">'+hours+'h</span></div>'
                         +'<div style="font-size:11px;color:var(--t-3)">'+r.start_time.slice(11,16)+' → '+r.end_time.slice(11,16)+' · 夜醒'+(r.night_wakings||0)+'次</div></div>'
@@ -3461,17 +3631,17 @@ function openRecordModal(type) {
             +'<button onclick="closeModal(\''+modalId+'\');document.getElementById(\''+modalId+'\').remove();" style="background:none;border:none"><svg style="width:18px;height:18px"><use href="#ic-x"/></svg></button>'
             +'</div>'
             +'<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t-2);display:block;margin-bottom:4px">日期</label>'
-            +'<input id="rec-feed-date" type="date" value="'+today+'" style="width:100%;padding:8px 10px;border:1px solid rgba(44,20,17,.1);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
+            +'<input id="rec-feed-date" type="date" value="'+today+'" style="width:100%;padding:8px 10px;border:1px solid rgba(0,0,0,.08);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
             +'<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t-2);display:block;margin-bottom:4px">时间</label>'
-            +'<input id="rec-feed-time" type="time" value="'+hh+':'+mm+'" style="width:100%;padding:8px 10px;border:1px solid rgba(44,20,17,.1);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
+            +'<input id="rec-feed-time" type="time" value="'+hh+':'+mm+'" style="width:100%;padding:8px 10px;border:1px solid rgba(0,0,0,.08);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
             +'<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t-2);display:block;margin-bottom:4px">类型</label>'
-            +'<select id="rec-feed-type" style="width:100%;padding:8px 10px;border:1px solid rgba(44,20,17,.1);border-radius:8px;font-size:13px">'
+            +'<select id="rec-feed-type" style="width:100%;padding:8px 10px;border:1px solid rgba(0,0,0,.08);border-radius:8px;font-size:13px">'
             +'<option value="breast_milk">母乳</option><option value="formula">配方奶</option><option value="solid">辅食</option><option value="fruit">水果/零食</option></select></div>'
             +'<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t-2);display:block;margin-bottom:4px">量</label>'
-            +'<div style="display:flex;gap:8px"><input id="rec-feed-amount" type="number" placeholder="如 150" style="flex:1;padding:8px 10px;border:1px solid rgba(44,20,17,.1);border-radius:8px;font-size:13px">'
-            +'<select id="rec-feed-unit" style="padding:8px;border:1px solid rgba(44,20,17,.1);border-radius:8px;font-size:13px"><option>ml</option><option>克</option><option>次</option></select></div></div>'
+            +'<div style="display:flex;gap:8px"><input id="rec-feed-amount" type="number" placeholder="如 150" style="flex:1;padding:8px 10px;border:1px solid rgba(0,0,0,.08);border-radius:8px;font-size:13px">'
+            +'<select id="rec-feed-unit" style="padding:8px;border:1px solid rgba(0,0,0,.08);border-radius:8px;font-size:13px"><option>ml</option><option>克</option><option>次</option></select></div></div>'
             +'<div style="margin-bottom:16px"><label style="font-size:12px;color:var(--t-2);display:block;margin-bottom:4px">备注</label>'
-            +'<input id="rec-feed-notes" type="text" placeholder="可选" style="width:100%;padding:8px 10px;border:1px solid rgba(44,20,17,.1);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
+            +'<input id="rec-feed-notes" type="text" placeholder="可选" style="width:100%;padding:8px 10px;border:1px solid rgba(0,0,0,.08);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
             +'<button onclick="saveRecordFeeding(\''+modalId+'\')" style="width:100%;padding:10px;background:var(--p);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600">保存</button>'
             +'</div></div>';
         document.body.insertAdjacentHTML('beforeend', html);
@@ -3482,19 +3652,19 @@ function openRecordModal(type) {
             +'<button onclick="closeModal(\''+modalId+'\');document.getElementById(\''+modalId+'\').remove();" style="background:none;border:none"><svg style="width:18px;height:18px"><use href="#ic-x"/></svg></button>'
             +'</div>'
             +'<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t-2);display:block;margin-bottom:4px">日期</label>'
-            +'<input id="rec-sleep-date" type="date" value="'+today+'" style="width:100%;padding:8px 10px;border:1px solid rgba(44,20,17,.1);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
+            +'<input id="rec-sleep-date" type="date" value="'+today+'" style="width:100%;padding:8px 10px;border:1px solid rgba(0,0,0,.08);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
             +'<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t-2);display:block;margin-bottom:4px">睡眠类型</label>'
-            +'<select id="rec-sleep-type" style="width:100%;padding:8px 10px;border:1px solid rgba(44,20,17,.1);border-radius:8px;font-size:13px">'
+            +'<select id="rec-sleep-type" style="width:100%;padding:8px 10px;border:1px solid rgba(0,0,0,.08);border-radius:8px;font-size:13px">'
             +'<option value="nap">午睡</option><option value="afternoon">白天小睡</option><option value="night">夜睡</option></select></div>'
             +'<div style="display:flex;gap:8px;margin-bottom:12px">'
             +'<div style="flex:1"><label style="font-size:12px;color:var(--t-2);display:block;margin-bottom:4px">开始</label>'
-            +'<input id="rec-sleep-start" type="time" value="12:00" style="width:100%;padding:8px 10px;border:1px solid rgba(44,20,17,.1);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
+            +'<input id="rec-sleep-start" type="time" value="12:00" style="width:100%;padding:8px 10px;border:1px solid rgba(0,0,0,.08);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
             +'<div style="flex:1"><label style="font-size:12px;color:var(--t-2);display:block;margin-bottom:4px">结束</label>'
-            +'<input id="rec-sleep-end" type="time" value="14:00" style="width:100%;padding:8px 10px;border:1px solid rgba(44,20,17,.1);border-radius:8px;font-size:13px;box-sizing:border-box"></div></div>'
+            +'<input id="rec-sleep-end" type="time" value="14:00" style="width:100%;padding:8px 10px;border:1px solid rgba(0,0,0,.08);border-radius:8px;font-size:13px;box-sizing:border-box"></div></div>'
             +'<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--t-2);display:block;margin-bottom:4px">睡眠质量</label>'
-            +'<select id="rec-sleep-quality" style="width:100%;padding:8px 10px;border:1px solid rgba(44,20,17,.1);border-radius:8px;font-size:13px"><option>好</option><option>中</option><option>差</option></select></div>'
+            +'<select id="rec-sleep-quality" style="width:100%;padding:8px 10px;border:1px solid rgba(0,0,0,.08);border-radius:8px;font-size:13px"><option>好</option><option>中</option><option>差</option></select></div>'
             +'<div style="margin-bottom:16px"><label style="font-size:12px;color:var(--t-2);display:block;margin-bottom:4px">夜醒次数</label>'
-            +'<input id="rec-sleep-night" type="number" value="0" min="0" style="width:100%;padding:8px 10px;border:1px solid rgba(44,20,17,.1);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
+            +'<input id="rec-sleep-night" type="number" value="0" min="0" style="width:100%;padding:8px 10px;border:1px solid rgba(0,0,0,.08);border-radius:8px;font-size:13px;box-sizing:border-box"></div>'
             +'<button onclick="saveRecordSleep(\''+modalId+'\')" style="width:100%;padding:10px;background:var(--s);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600">保存</button>'
             +'</div></div>';
         document.body.insertAdjacentHTML('beforeend', html);

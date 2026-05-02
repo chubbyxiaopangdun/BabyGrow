@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BabyGrow UI 原型概览</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    font-family: 'Noto Sans SC', -apple-system, sans-serif;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+  .page-title {
+    text-align: center;
+    color: #fff;
+    margin-bottom: 12px;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 32px;
+    font-weight: 700;
+  }
+  .page-subtitle {
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 48px;
+    font-size: 14px;
+  }
+  .screens-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+  .screen-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .screen-label {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    margin-bottom: 12px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  .screen-number {
+    display: inline-block;
+    background: #FF9B5E;
+    color: #fff;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-right: 6px;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+// ========== Design Tokens from UI-DESIGN.md ==========
+const T = {
+  p: '#FF9B5E', pL: '#FFC9A0', pD: '#E87840', pG: '#FFF1E8',
+  s: '#7ECFB3', sL: '#A8E6CF', sD: '#5BB896', sG: '#EEF9F4',
+  bg: '#FFFCF8', bgC: '#FFFFFF', bgS: '#FBF7F2', bgH: '#F5EDE4',
+  t: '#1C1411', t2: '#6B5A4E', t3: '#A8998E', tI: '#FFFFFF',
+  ok: '#5BB896', warn: '#F5A623', err: '#E85C5C', info: '#4A9EF5',
+};
+
+// ========== iPhone Frame ==========
+function IFrame({ children, time = '9:41' }) {
+  const W = 320, H = 640;
+  const BEZEL = 8, RADIUS = 40;
+  const ISLAND_W = 100, ISLAND_H = 28;
+  return (
+    <div style={{
+      width: W + BEZEL*2, height: H + BEZEL*2 + 20,
+      background: '#000', borderRadius: RADIUS + BEZEL,
+      padding: BEZEL, position: 'relative',
+      boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)',
+      flexShrink: 0,
+    }}>
+      {/* Status Bar */}
+      <div style={{
+        position: 'absolute', top: BEZEL + 4, left: BEZEL + 20, right: BEZEL + 20,
+        height: 36, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        zIndex: 10, pointerEvents: 'none',
+      }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: T.t }}>{time}</span>
+        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          <svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="6" width="2.5" height="4" rx="0.5" fill={T.t}/><rect x="3.5" y="4" width="2.5" height="6" rx="0.5" fill={T.t}/><rect x="7" y="2" width="2.5" height="8" rx="0.5" fill={T.t}/><rect x="10.5" y="0" width="2.5" height="10" rx="0.5" fill={T.t}/></svg>
+          <svg width="20" height="10" viewBox="0 0 20 10"><rect x="0" y="0" width="17" height="10" rx="2" stroke={T.t} strokeWidth="1" fill="none"/><rect x="17.5" y="3" width="2" height="4" rx="1" fill={T.t}/><rect x="1.5" y="1.5" width="13" height="7" rx="1" fill={T.t}/></svg>
+        </div>
+      </div>
+      {/* Dynamic Island */}
+      <div style={{
+        position: 'absolute', top: BEZEL + 6, left: '50%', transform: 'translateX(-50%)',
+        width: ISLAND_W, height: ISLAND_H, background: '#000',
+        borderRadius: 14, zIndex: 20,
+      }} />
+      {/* Screen */}
+      <div style={{
+        width: W, height: H, background: T.bg, borderRadius: RADIUS - 4,
+        overflow: 'hidden', position: 'relative',
+      }}>
+        {children}
+      </div>
+      {/* Home Indicator */}
+      <div style={{
+        position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)',
+        width: 100, height: 4, background: 'rgba(255,255,255,0.3)',
+        borderRadius: 2,
+      }} />
+    </div>
+  );
+}
+
+// ========== Screen 1: Welcome ==========
+function WelcomeScreen() {
+  return (
+    <div style={{ width: 320, height: 640, overflow: 'hidden', position: 'relative' }}>
+      {/* Gradient Header */}
+      <div style={{
+        background: 'linear-gradient(135deg, #FF9B5E 0%, #FFB88C 50%, #FFC9A0 100%)',
+        padding: '60px 24px 30px', textAlign: 'center',
+      }}>
+        <div style={{ fontSize: 48, marginBottom: 8 }}>🍼</div>
+        <div style={{ fontFamily: "'Noto Serif SC', serif", fontSize: 22, fontWeight: 700, color: T.tI }}>欢迎使用 BabyGrow</div>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', marginTop: 4 }}>您的专属AI育儿顾问</div>
+      </div>
+      {/* Form Card */}
+      <div style={{
+        background: T.bgC, margin: '-16px 16px 16px', borderRadius: 16,
+        padding: '20px 18px', boxShadow: '0 4px 16px rgba(44,20,17,0.08)',
+        position: 'relative', zIndex: 2,
+      }}>
+        <div style={{ fontFamily: "'Noto Serif SC', serif", fontSize: 16, fontWeight: 700, color: T.t, marginBottom: 16 }}>宝宝基本情况</div>
+
+        {/* Form fields */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: T.t2, marginBottom: 6 }}>宝宝小名</div>
+          <div style={{ background: T.bgS, borderRadius: 10, padding: '10px 12px', fontSize: 14, color: T.t }}>豆豆</div>
+        </div>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: T.t2, marginBottom: 6 }}>出生日期</div>
+          <div style={{ background: T.bgS, borderRadius: 10, padding: '10px 12px', fontSize: 14, color: T.t, display: 'flex', justifyContent: 'space-between' }}>
+            <span>2025-07-15</span>
+            <span style={{ color: T.p, fontSize: 12 }}>已满 10 个月</span>
+          </div>
+        </div>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: T.t2, marginBottom: 6 }}>性别</div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ flex: 1, background: T.pG, border: `1.5px solid ${T.p}`, borderRadius: 10, padding: '8px', textAlign: 'center', fontSize: 13, color: T.p, fontWeight: 600 }}>👨 男</div>
+            <div style={{ flex: 1, background: T.bgS, border: '1.5px solid transparent', borderRadius: 10, padding: '8px', textAlign: 'center', fontSize: 13, color: T.t3 }}>👧 女</div>
+          </div>
+        </div>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: T.t2, marginBottom: 6 }}>喂养方式</div>
+          <div style={{ background: T.bgS, borderRadius: 10, padding: '10px 12px', fontSize: 14, color: T.t, display: 'flex', justifyContent: 'space-between' }}>
+            <span>混合喂养</span>
+            <span style={{ color: T.t3 }}>▼</span>
+          </div>
+        </div>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: T.t2, marginBottom: 8 }}>最关心的问题</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {[{t:'喂养',on:true},{t:'睡眠',on:true},{t:'辅食',on:false},{t:'早教',on:false},{t:'安全',on:false},{t:'其他',on:false}].map(q => (
+              <div key={q.t} style={{
+                padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500,
+                background: q.on ? T.pG : T.bgS,
+                color: q.on ? T.p : T.t3,
+                border: `1px solid ${q.on ? T.p : 'transparent'}`,
+              }}>{q.t}</div>
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* CTA Button */}
+      <div style={{ padding: '0 24px' }}>
+        <div style={{
+          background: T.p, color: T.tI, borderRadius: 16, padding: '14px',
+          textAlign: 'center', fontSize: 16, fontWeight: 700,
+          boxShadow: '0 4px 20px rgba(255,155,94,0.3)',
+        }}>开始使用 BabyGrow</div>
+      </div>
+    </div>
+  );
+}
+
+// ========== Screen 2: Home ==========
+function HomeScreen() {
+  const advisors = [
+    { icon: '🍽️', title: '今日辅食', desc: '3餐食谱', color: T.pG },
+    { icon: '🎮', title: '游戏时间', desc: '适龄游戏', color: T.sG },
+    { icon: '📖', title: '故事时间', desc: '推荐故事', color: '#F0E6FF' },
+    { icon: '⏰', title: '作息安排', desc: '全天作息', color: '#E6F0FF' },
+  ];
+  const records = [
+    { icon: '🌟', text: '发育里程碑' },
+    { icon: '🍼', text: '喂养记录' },
+    { icon: '😴', text: '睡眠记录' },
+    { icon: '💚', text: '健康记录' },
+    { icon: '📈', text: '生长曲线' },
+  ];
+  return (
+    <div style={{ width: 320, height: 640, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      {/* Header */}
+      <div style={{ padding: '48px 16px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 28, height: 28, borderRadius: '50%', background: T.p, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>👶</div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: T.t }}>豆豆</div>
+            <div style={{ fontSize: 11, color: T.t3 }}>10个月</div>
+          </div>
+        </div>
+        <div style={{ fontSize: 18 }}>⚙️</div>
+      </div>
+      {/* Scrollable Content */}
+      <div style={{ flex: 1, overflow: 'hidden', padding: '0 16px' }}>
+        {/* Child Card */}
+        <div style={{
+          background: T.bgC, borderRadius: 16, padding: '16px', marginBottom: 12,
+          boxShadow: '0 2px 8px rgba(44,20,17,0.06)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <div style={{ width: 44, height: 44, borderRadius: '50%', background: T.pL, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>👶</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "'Noto Serif SC', serif", fontSize: 16, fontWeight: 700, color: T.t }}>豆豆 · 10个月</div>
+              <div style={{ fontSize: 11, color: T.t3 }}>点击切换 ></div>
+            </div>
+          </div>
+          {/* AI Daily Tip */}
+          <div style={{ background: T.pG, borderRadius: 10, padding: '10px 12px' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: T.p, marginBottom: 4 }}>📌 今日重点</div>
+            <div style={{ fontSize: 12, color: T.t2, lineHeight: 1.5 }}>豆豆这个月可以开始练习用勺子了，准备一些软烂的食物让宝宝自己抓着吃。</div>
+          </div>
+        </div>
+
+        {/* Advisor Cards 2x2 */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+          {advisors.map(a => (
+            <div key={a.title} style={{
+              background: T.bgC, borderRadius: 12, padding: '14px 12px',
+              boxShadow: '0 1px 4px rgba(44,20,17,0.06)',
+            }}>
+              <div style={{ fontSize: 24, marginBottom: 6 }}>{a.icon}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: T.t }}>{a.title}</div>
+              <div style={{ fontSize: 11, color: T.t3, marginTop: 2 }}>{a.desc}</div>
+              <div style={{ fontSize: 11, color: T.p, marginTop: 6 }}>›</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Records List */}
+        <div style={{ fontSize: 13, fontWeight: 600, color: T.t2, marginBottom: 8, paddingLeft: 4 }}>记录</div>
+        <div style={{ background: T.bgC, borderRadius: 12, overflow: 'hidden', marginBottom: 12, boxShadow: '0 1px 4px rgba(44,20,17,0.06)' }}>
+          {records.map((r, i) => (
+            <div key={r.text} style={{
+              display: 'flex', alignItems: 'center', padding: '12px 14px',
+              borderBottom: i < records.length - 1 ? `1px solid ${T.bgH}` : 'none',
+            }}>
+              <span style={{ fontSize: 16, marginRight: 10 }}>{r.icon}</span>
+              <span style={{ flex: 1, fontSize: 13, color: T.t }}>{r.text}</span>
+              <span style={{ color: T.t3, fontSize: 12 }}>›</span>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div style={{
+          background: T.p, color: T.tI, borderRadius: 14, padding: '12px',
+          textAlign: 'center', fontSize: 14, fontWeight: 700, marginBottom: 8,
+          boxShadow: '0 4px 20px rgba(255,155,94,0.3)',
+        }}>🔄 生成今日安排</div>
+
+        {/* AI Float Bar */}
+        <div style={{
+          background: T.bgC, borderRadius: 12, padding: '10px 14px', marginBottom: 12,
+          border: `1px solid ${T.sL}`,
+          boxShadow: '0 1px 4px rgba(44,20,17,0.06)',
+        }}>
+          <div style={{ fontSize: 12, color: T.s, fontWeight: 600 }}>💬 试试问AI</div>
+          <div style={{ fontSize: 11, color: T.t3, marginTop: 2 }}>「2岁宝宝不肯吃饭怎么办？」</div>
+        </div>
+      </div>
+
+      {/* Tab Bar */}
+      <div style={{
+        height: 60, background: T.bgC, borderTop: `1px solid ${T.bgH}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+        paddingBottom: 4,
+      }}>
+        {[{icon:'🏠',label:'首页',active:true},{icon:'📋',label:'记录'},{icon:'🤖',label:'AI助手',ai:true},{icon:'⭐',label:'里程碑'},{icon:'👤',label:'我的'}].map(tab => (
+          <div key={tab.label} style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 18, color: tab.active ? T.p : tab.ai ? T.s : T.t3 }}>{tab.icon}</div>
+            <div style={{ fontSize: 9, color: tab.active ? T.p : tab.ai ? T.s : T.t3, marginTop: 2, fontWeight: tab.active ? 600 : 400 }}>{tab.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ========== Screen 3: Schedule ==========
+function ScheduleScreen() {
+  const items = [
+    { time: '07:00', icon: '☀️', title: '起床 · 喝奶', desc: '母乳/配方奶 180ml', color: T.pG },
+    { time: '08:30', icon: '🍽️', title: '早餐辅食', desc: '南瓜小米粥 + 蒸蛋', tip: '💡 南瓜蒸熟压泥…', color: '#FFF8E6' },
+    { time: '10:00', icon: '🎮', title: '上午活动', desc: '积木游戏 · 认颜色', tip: '📍 推荐：滨江公园', color: T.sG },
+    { time: '12:00', icon: '🍚', title: '午餐辅食', desc: '软饭 + 肉末蒸蛋', color: '#FFF8E6' },
+    { time: '14:00', icon: '😴', title: '午睡', desc: '约1.5小时', color: '#E6F0FF' },
+    { time: '16:00', icon: '🍼', title: '下午奶', desc: '配方奶 150ml', color: T.pG },
+  ];
+  return (
+    <div style={{ width: 320, height: 640, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      {/* Header */}
+      <div style={{ padding: '48px 16px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: 14, color: T.t, fontWeight: 600 }}>‹ 今日安排</div>
+        <div style={{ fontSize: 14, color: T.t3 }}>🔄</div>
+      </div>
+      {/* Date */}
+      <div style={{ padding: '0 16px', marginBottom: 12 }}>
+        <div style={{ fontSize: 12, color: T.t2 }}>📅 2026年4月30日 · 周四</div>
+      </div>
+      {/* Timeline */}
+      <div style={{ flex: 1, overflow: 'hidden', padding: '0 16px', position: 'relative' }}>
+        {/* Vertical line */}
+        <div style={{ position: 'absolute', left: 76, top: 0, bottom: 0, width: 2, background: T.bgH }} />
+        {items.map((item, i) => (
+          <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 10, position: 'relative' }}>
+            {/* Time */}
+            <div style={{ width: 48, textAlign: 'right', paddingTop: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: i === 0 ? T.p : T.t2 }}>{item.time}</div>
+            </div>
+            {/* Dot */}
+            <div style={{
+              width: 10, height: 10, borderRadius: '50%', marginTop: 14,
+              background: i === 0 ? T.p : T.bgC,
+              border: `2px solid ${i === 0 ? T.p : T.t3}`,
+              zIndex: 1, flexShrink: 0,
+            }} />
+            {/* Card */}
+            <div style={{
+              flex: 1, background: item.color, borderRadius: 10, padding: '10px 12px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <span style={{ fontSize: 14 }}>{item.icon}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: T.t }}>{item.title}</span>
+              </div>
+              <div style={{ fontSize: 11, color: T.t2, lineHeight: 1.4 }}>{item.desc}</div>
+              {item.tip && <div style={{ fontSize: 10, color: T.sD, marginTop: 4 }}>{item.tip}</div>}
+            </div>
+          </div>
+        ))}
+        {/* Tips */}
+        <div style={{ marginTop: 8, background: T.bgC, borderRadius: 10, padding: '10px 12px', boxShadow: '0 1px 4px rgba(44,20,17,0.06)' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: T.t, marginBottom: 6 }}>💡 温馨提示</div>
+          <div style={{ fontSize: 11, color: T.t2, lineHeight: 1.6 }}>
+            · 杭州今天22°C 适合户外<br/>
+            · 这周可以尝试菠菜泥
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ========== Screen 4: AI Chat ==========
+function ChatScreen() {
+  return (
+    <div style={{ width: 320, height: 640, overflow: 'hidden', display: 'flex', flexDirection: 'column', background: T.bg }}>
+      {/* Header */}
+      <div style={{
+        padding: '48px 16px 12px', background: T.bgC,
+        borderBottom: `1px solid ${T.bgH}`,
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: 14, color: T.t, fontWeight: 600 }}>🤖 育儿助手</div>
+          <div style={{ fontSize: 14, color: T.t3 }}>✕</div>
+        </div>
+      </div>
+      {/* Messages */}
+      <div style={{ flex: 1, padding: '16px', overflow: 'hidden' }}>
+        {/* AI Welcome */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <div style={{ width: 28, height: 28, borderRadius: '50%', background: T.sG, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>🤖</div>
+          <div style={{ background: T.bgC, borderRadius: '12px 12px 12px 4px', padding: '10px 12px', maxWidth: 220, boxShadow: '0 1px 4px rgba(44,20,17,0.06)' }}>
+            <div style={{ fontSize: 13, color: T.t, lineHeight: 1.6 }}>你好！我是豆豆的专属育儿顾问。有什么我能帮到你的吗？</div>
+          </div>
+        </div>
+
+        {/* Quick Questions */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 11, color: T.t3, marginBottom: 8 }}>快速提问：</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {['宝宝不爱吃饭','什么时候加辅食','夜醒频繁','出牙期注意事项'].map(q => (
+              <div key={q} style={{ padding: '6px 10px', background: T.sG, borderRadius: 16, fontSize: 11, color: T.sD }}>{q}</div>
+            ))}
+          </div>
+        </div>
+
+        {/* User Message */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+          <div style={{ background: T.p, borderRadius: '12px 12px 4px 12px', padding: '10px 12px', maxWidth: 220 }}>
+            <div style={{ fontSize: 13, color: T.tI, lineHeight: 1.6 }}>10个月宝宝总是把食物扔地上怎么办？</div>
+          </div>
+        </div>
+
+        {/* AI Reply */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <div style={{ width: 28, height: 28, borderRadius: '50%', background: T.sG, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>🤖</div>
+          <div style={{ background: T.bgC, borderRadius: '12px 12px 12px 4px', padding: '12px', maxWidth: 230, boxShadow: '0 1px 4px rgba(44,20,17,0.06)' }}>
+            <div style={{ fontSize: 13, color: T.t, lineHeight: 1.7 }}>
+              豆豆10个月扔食物是<strong style={{color:T.p}}>非常正常的探索行为</strong>！这个阶段宝宝在学习因果关系。
+              <br/><br/>
+              💡 建议尝试：
+              <br/>1. 变换食物造型和颜色
+              <br/>2. 让宝宝自己抓着吃
+              <br/>3. 固定就餐时间
+              <br/>4. 准备防摔餐碗
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Input Bar */}
+      <div style={{
+        padding: '10px 12px', background: T.bgC,
+        borderTop: `1px solid ${T.bgH}`,
+        display: 'flex', alignItems: 'center', gap: 8,
+      }}>
+        <div style={{ fontSize: 16, color: T.t3 }}>📎</div>
+        <div style={{
+          flex: 1, background: T.bgS, borderRadius: 20, padding: '8px 14px',
+          fontSize: 12, color: T.t3,
+        }}>输入你的问题...</div>
+        <div style={{ fontSize: 16, color: T.t3 }}>🎤</div>
+        <div style={{
+          width: 30, height: 30, borderRadius: '50%', background: T.p,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 14, color: T.tI,
+        }}>›</div>
+      </div>
+    </div>
+  );
+}
+
+// ========== Screen 5: Milestones ==========
+function MilestonesScreen() {
+  const categories = [
+    { icon: '🏃', name: '大运动', done: 5, total: 8, color: T.pG },
+    { icon: '🗣️', name: '语言', done: 3, total: 6, color: T.sG },
+    { icon: '🧠', name: '认知', done: 4, total: 7, color: '#F0E6FF' },
+    { icon: '🤝', name: '社交', done: 2, total: 5, color: '#E6F0FF' },
+  ];
+  const motorItems = [
+    { text: '扶站', done: true },
+    { text: '独坐稳定', done: true },
+    { text: '独站片刻', done: false },
+    { text: '扶走', done: false },
+  ];
+  const langItems = [
+    { text: '叫"爸爸""妈妈"有指向', done: true },
+    { text: '有意识说3个以上词汇', done: false },
+  ];
+  return (
+    <div style={{ width: 320, height: 640, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      {/* Header */}
+      <div style={{ padding: '48px 16px 12px' }}>
+        <div style={{ fontSize: 14, color: T.t, fontWeight: 600 }}>‹ 发育里程碑</div>
+      </div>
+      {/* Age Badge */}
+      <div style={{ textAlign: 'center', padding: '8px 0 16px' }}>
+        <div style={{
+          display: 'inline-block', background: T.pG, borderRadius: 16, padding: '12px 32px',
+        }}>
+          <div style={{ fontFamily: "'Noto Serif SC', serif", fontSize: 32, fontWeight: 700, color: T.p }}>10</div>
+          <div style={{ fontSize: 13, color: T.pD, fontWeight: 600 }}>个月</div>
+        </div>
+      </div>
+      {/* Scrollable */}
+      <div style={{ flex: 1, overflow: 'hidden', padding: '0 16px' }}>
+        {/* Filter Tabs */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+          {['全部','大运动','语言','认知','社交'].map((t,i) => (
+            <div key={t} style={{
+              padding: '5px 12px', borderRadius: 16, fontSize: 11, fontWeight: 500,
+              background: i === 0 ? T.p : T.bgS,
+              color: i === 0 ? T.tI : T.t3,
+            }}>{t}</div>
+          ))}
+        </div>
+        {/* Category Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+          {categories.map(c => (
+            <div key={c.name} style={{ background: c.color, borderRadius: 12, padding: '12px' }}>
+              <div style={{ fontSize: 14 }}>{c.icon}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: T.t, marginTop: 4 }}>{c.name}</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: T.t, marginTop: 2 }}>{c.done}/{c.total}</div>
+            </div>
+          ))}
+        </div>
+        {/* Motor Items */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: T.t2, marginBottom: 8 }}>大运动 · 10个月</div>
+          <div style={{ background: T.bgC, borderRadius: 10, overflow: 'hidden' }}>
+            {motorItems.map((item, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', padding: '10px 12px', gap: 8,
+                borderBottom: i < motorItems.length - 1 ? `1px solid ${T.bgH}` : 'none',
+              }}>
+                <span style={{ fontSize: 14 }}>{item.done ? '✅' : '⬜'}</span>
+                <span style={{ fontSize: 12, color: item.done ? T.t : T.t3 }}>{item.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Language Items */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: T.t2, marginBottom: 8 }}>语言 · 10个月</div>
+          <div style={{ background: T.bgC, borderRadius: 10, overflow: 'hidden' }}>
+            {langItems.map((item, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', padding: '10px 12px', gap: 8,
+                borderBottom: i < langItems.length - 1 ? `1px solid ${T.bgH}` : 'none',
+              }}>
+                <span style={{ fontSize: 14 }}>{item.done ? '✅' : '⬜'}</span>
+                <span style={{ fontSize: 12, color: item.done ? T.t : T.t3 }}>{item.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ========== Screen 6: Profile ==========
+function ProfileScreen() {
+  return (
+    <div style={{ width: 320, height: 640, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      {/* Header */}
+      <div style={{ padding: '48px 16px 12px' }}>
+        <div style={{ fontSize: 14, color: T.t, fontWeight: 600 }}>‹ 孩子档案</div>
+      </div>
+      {/* Avatar Section */}
+      <div style={{ textAlign: 'center', padding: '20px 0 24px' }}>
+        <div style={{
+          width: 80, height: 80, borderRadius: '50%', background: T.pL,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 36, margin: '0 auto 12px',
+          boxShadow: '0 4px 20px rgba(255,155,94,0.3)',
+        }}>👶</div>
+        <div style={{ fontFamily: "'Noto Serif SC', serif", fontSize: 20, fontWeight: 700, color: T.t }}>豆豆</div>
+        <div style={{ fontSize: 13, color: T.t2, marginTop: 4 }}>10个月 · 男 · 混合喂养</div>
+        <div style={{ fontSize: 12, color: T.t3, marginTop: 2 }}>2025.07.15 出生</div>
+        <div style={{
+          display: 'inline-block', marginTop: 12, padding: '6px 16px',
+          background: T.bgS, borderRadius: 20, fontSize: 12, color: T.t2,
+        }}>✏️ 编辑信息</div>
+      </div>
+      {/* Menu Items */}
+      <div style={{ padding: '0 16px', flex: 1 }}>
+        <div style={{ background: T.bgC, borderRadius: 12, overflow: 'hidden', marginBottom: 12, boxShadow: '0 1px 4px rgba(44,20,17,0.06)' }}>
+          {[
+            { icon: '👶', text: '切换/管理孩子', arrow: true },
+            { icon: '📊', text: '数据导出', arrow: true },
+            { icon: '🏙️', text: '城市设置', desc: '杭州 滨江区', arrow: true },
+            { icon: '❓', text: '帮助与反馈', arrow: true },
+            { icon: 'ℹ️', text: '关于 BabyGrow', desc: 'v1.0', arrow: true },
+          ].map((item, i, arr) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', padding: '14px 14px', gap: 10,
+              borderBottom: i < arr.length - 1 ? `1px solid ${T.bgH}` : 'none',
+            }}>
+              <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{item.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, color: T.t }}>{item.text}</div>
+                {item.desc && <div style={{ fontSize: 11, color: T.t3, marginTop: 2 }}>{item.desc}</div>}
+              </div>
+              {item.arrow && <span style={{ color: T.t3, fontSize: 12 }}>›</span>}
+            </div>
+          ))}
+        </div>
+        {/* Danger Zone */}
+        <div style={{ background: T.bgC, borderRadius: 12, padding: '14px', boxShadow: '0 1px 4px rgba(44,20,17,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 16 }}>🗑️</span>
+            <span style={{ fontSize: 13, color: T.err }}>清除所有数据</span>
+          </div>
+        </div>
+      </div>
+      {/* Tab Bar */}
+      <div style={{
+        height: 60, background: T.bgC, borderTop: `1px solid ${T.bgH}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+        paddingBottom: 4,
+      }}>
+        {[{icon:'🏠',label:'首页'},{icon:'📋',label:'记录'},{icon:'🤖',label:'AI助手',ai:true},{icon:'⭐',label:'里程碑'},{icon:'👤',label:'我的',active:true}].map(tab => (
+          <div key={tab.label} style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 18, color: tab.active ? T.p : tab.ai ? T.s : T.t3 }}>{tab.icon}</div>
+            <div style={{ fontSize: 9, color: tab.active ? T.p : tab.ai ? T.s : T.t3, marginTop: 2, fontWeight: tab.active ? 600 : 400 }}>{tab.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ========== Screen 7: Sleep Record ==========
+function SleepScreen() {
+  return (
+    <div style={{ width: 320, height: 640, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      {/* Header */}
+      <div style={{ padding: '48px 16px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: 14, color: T.t, fontWeight: 600 }}>‹ 睡眠记录</div>
+        <div style={{ fontSize: 12, color: T.s, fontWeight: 600 }}>🤖AI分析</div>
+      </div>
+      {/* Tabs */}
+      <div style={{ padding: '0 16px', display: 'flex', gap: 8, marginBottom: 14 }}>
+        {['本周','本月','全部'].map((t,i) => (
+          <div key={t} style={{
+            padding: '5px 14px', borderRadius: 16, fontSize: 12, fontWeight: 500,
+            background: i === 0 ? T.p : T.bgS,
+            color: i === 0 ? T.tI : T.t3,
+          }}>{t}</div>
+        ))}
+      </div>
+      <div style={{ flex: 1, overflow: 'hidden', padding: '0 16px' }}>
+        {/* Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14 }}>
+          {[
+            { val: '8.5h', label: '平均时长' },
+            { val: '3次', label: '日均次数' },
+            { val: '2次', label: '夜醒次数' },
+          ].map(s => (
+            <div key={s.label} style={{ background: T.bgC, borderRadius: 10, padding: '12px 8px', textAlign: 'center', boxShadow: '0 1px 4px rgba(44,20,17,0.06)' }}>
+              <div style={{ fontFamily: "'Noto Serif SC', serif", fontSize: 20, fontWeight: 700, color: T.p }}>{s.val}</div>
+              <div style={{ fontSize: 10, color: T.t3, marginTop: 2 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+        {/* AI Report */}
+        <div style={{
+          background: T.sG, borderRadius: 12, padding: '12px 14px', marginBottom: 14,
+          border: `1px solid ${T.sL}`,
+        }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: T.sD, marginBottom: 6 }}>📊 AI分析报告</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+            <span style={{ fontSize: 12, color: T.t2 }}>睡眠质量评分:</span>
+            <span style={{ fontFamily: "'Noto Serif SC', serif", fontSize: 18, fontWeight: 700, color: T.sD }}>85</span>
+          </div>
+          <div style={{ fontSize: 11, color: T.t2, lineHeight: 1.5 }}>豆豆本周睡眠时长稳定，建议睡前减少刺激活动。</div>
+        </div>
+        {/* Add Button */}
+        <div style={{ textAlign: 'right', marginBottom: 10 }}>
+          <span style={{ fontSize: 12, color: T.p, fontWeight: 600 }}>+ 添加记录</span>
+        </div>
+        {/* Records */}
+        <div style={{ background: T.bgC, borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 4px rgba(44,20,17,0.06)' }}>
+          <div style={{ padding: '4px 14px', fontSize: 11, color: T.t3, borderBottom: `1px solid ${T.bgH}` }}>4/30 21:00 ~ 06:30</div>
+          <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: T.t }}>😴 夜睡 · 9.5小时</div>
+              <div style={{ fontSize: 11, color: T.ok, marginTop: 2 }}>良好 ✓</div>
+            </div>
+            <span style={{ fontSize: 14, color: T.t3 }}>🗑️</span>
+          </div>
+          <div style={{ padding: '4px 14px', fontSize: 11, color: T.t3, borderTop: `1px solid ${T.bgH}`, borderBottom: `1px solid ${T.bgH}` }}>4/29 13:00 ~ 14:30</div>
+          <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: T.t }}>😴 午睡 · 1.5小时</div>
+              <div style={{ fontSize: 11, color: T.ok, marginTop: 2 }}>正常 ✓</div>
+            </div>
+            <span style={{ fontSize: 14, color: T.t3 }}>🗑️</span>
+          </div>
+          <div style={{ padding: '4px 14px', fontSize: 11, color: T.t3, borderTop: `1px solid ${T.bgH}`, borderBottom: `1px solid ${T.bgH}` }}>4/28 22:00 ~ 05:30</div>
+          <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: T.t }}>😴 夜睡 · 7.5小时</div>
+              <div style={{ fontSize: 11, color: T.warn, marginTop: 2 }}>偏少 ⚠️</div>
+            </div>
+            <span style={{ fontSize: 14, color: T.t3 }}>🗑️</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ========== Screen 8: Records (成长记录) ==========
+function RecordsScreen() {
+  return (
+    <div style={{ width: 320, height: 640, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      {/* Header */}
+      <div style={{ padding: '48px 16px 12px' }}>
+        <div style={{ fontSize: 14, color: T.t, fontWeight: 600 }}>‹ 成长记录</div>
+      </div>
+      {/* Date Switcher */}
+      <div style={{ textAlign: 'center', padding: '8px 0 14px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12 }}>
+        <span style={{ fontSize: 14, color: T.t3 }}>‹</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: T.t }}>2026年4月30日 周四</span>
+        <span style={{ fontSize: 14, color: T.t3 }}>›</span>
+      </div>
+      <div style={{ flex: 1, overflow: 'hidden', padding: '0 16px' }}>
+        {/* Feeding Section */}
+        <div style={{ background: T.bgC, borderRadius: 12, marginBottom: 12, boxShadow: '0 1px 4px rgba(44,20,17,0.06)' }}>
+          <div style={{ padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${T.bgH}` }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: T.t }}>🍼 喂养记录</span>
+            <span style={{ fontSize: 11, color: T.p }}>+ 添加</span>
+          </div>
+          {[
+            { time: '08:30', text: '母乳 150ml' },
+            { time: '12:00', text: '南瓜粥 80g' },
+            { time: '15:00', text: '配方奶 180ml' },
+            { time: '18:00', text: '软饭+肉末 100g' },
+          ].map((f, i, arr) => (
+            <div key={i} style={{
+              padding: '8px 14px', display: 'flex', gap: 8, alignItems: 'center',
+              borderBottom: i < arr.length - 1 ? `1px solid ${T.bgH}` : 'none',
+            }}>
+              <span style={{ fontSize: 11, color: T.t3, width: 36 }}>{f.time}</span>
+              <span style={{ fontSize: 12, color: T.t }}>{f.text}</span>
+            </div>
+          ))}
+        </div>
+        {/* Sleep Section */}
+        <div style={{ background: T.bgC, borderRadius: 12, marginBottom: 12, boxShadow: '0 1px 4px rgba(44,20,17,0.06)' }}>
+          <div style={{ padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${T.bgH}` }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: T.t }}>😴 睡眠记录</span>
+            <span style={{ fontSize: 11, color: T.p }}>+ 添加</span>
+          </div>
+          <div style={{ padding: '8px 14px', borderBottom: `1px solid ${T.bgH}` }}>
+            <div style={{ fontSize: 12, color: T.t }}>13:00-14:30 😴 午睡 1.5h</div>
+          </div>
+          <div style={{ padding: '8px 14px' }}>
+            <div style={{ fontSize: 12, color: T.t }}>21:00-06:30 😴 夜睡 9.5h</div>
+          </div>
+        </div>
+        {/* Empty Health */}
+        <div style={{
+          background: T.bgC, borderRadius: 12, padding: '20px 14px', textAlign: 'center',
+          boxShadow: '0 1px 4px rgba(44,20,17,0.06)',
+        }}>
+          <div style={{ fontSize: 13, color: T.t3 }}>今天还没有健康记录 💚</div>
+          <div style={{ fontSize: 12, color: T.p, marginTop: 8 }}>+ 添加健康记录</div>
+        </div>
+      </div>
+      {/* Tab Bar */}
+      <div style={{
+        height: 60, background: T.bgC, borderTop: `1px solid ${T.bgH}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+        paddingBottom: 4,
+      }}>
+        {[{icon:'🏠',label:'首页'},{icon:'📋',label:'记录',active:true},{icon:'🤖',label:'AI助手',ai:true},{icon:'⭐',label:'里程碑'},{icon:'👤',label:'我的'}].map(tab => (
+          <div key={tab.label} style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 18, color: tab.active ? T.p : tab.ai ? T.s : T.t3 }}>{tab.icon}</div>
+            <div style={{ fontSize: 9, color: tab.active ? T.p : tab.ai ? T.s : T.t3, marginTop: 2, fontWeight: tab.active ? 600 : 400 }}>{tab.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ========== Main App ==========
+function App() {
+  const screens = [
+    { id: 'welcome', label: 'Welcome 引导页', comp: <WelcomeScreen /> },
+    { id: 'home', label: 'Home 首页', comp: <HomeScreen /> },
+    { id: 'schedule', label: 'Schedule 日程', comp: <ScheduleScreen /> },
+    { id: 'sleep', label: 'Sleep 睡眠', comp: <SleepScreen /> },
+    { id: 'records', label: 'Records 记录', comp: <RecordsScreen /> },
+    { id: 'chat', label: 'AI Chat 对话', comp: <ChatScreen /> },
+    { id: 'milestones', label: 'Milestones 里程碑', comp: <MilestonesScreen /> },
+    { id: 'profile', label: 'Profile 我的', comp: <ProfileScreen /> },
+  ];
+
+  return (
+    <div>
+      <div className="page-title">BabyGrow UI 原型</div>
+      <div className="page-subtitle">基于 UI-DESIGN.md v2.0 · 8 个核心页面 · iPhone 15 Pro 概览</div>
+      <div className="screens-grid">
+        {screens.map((s, i) => (
+          <div className="screen-group" key={s.id}>
+            <div className="screen-label">
+              <span className="screen-number">{i + 1}</span>
+              {s.label}
+            </div>
+            <IFrame time={i < 4 ? '9:41' : i < 6 ? '14:30' : '20:15'}>
+              {s.comp}
+            </IFrame>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
