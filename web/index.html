@@ -921,7 +921,7 @@
         </div>
 
         <!-- Generate Button -->
-        <button class="gen-btn" onclick="generateTodayPlan()">
+        <button class="gen-btn" onclick="generateTodayPlanFromHome()">
             <svg class=""><use href="#ic-refresh"/></svg>
             生成今日安排
         </button>
@@ -1795,6 +1795,11 @@ function openSchedule(type) {
     renderSchedule(type);
 }
 
+function generateTodayPlanFromHome() {
+    // 从首页点击时，先跳转到日程页再生成
+    showPage('schedule');
+    generateTodayPlan();
+}
 function generateTodayPlan() {
     if (!state.currentChild) return;
     var child = state.currentChild;
@@ -1807,29 +1812,40 @@ function generateTodayPlan() {
         scheduleContainer.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t-2)">生成中...</div>';
     }
 
-    // Try backend API first, with knowledge context
-    var kbContext = null;
-    if (window.KNOWLEDGE && window.KNOWLEDGE.buildSOPContext) {
-        kbContext = window.KNOWLEDGE.buildSOPContext(child, child.location || 'hangzhou:binjiang', new Date());
-    }
-    var apiUrl = '/api/v1/children/' + encodeURIComponent(child.id) + '/plan/today';
-    if (kbContext) {
-        apiUrl += '?kb=' + encodeURIComponent(JSON.stringify(kbContext));
-    }
-    fetch(apiUrl)
-        .then(function(res) { return res.json(); })
-        .then(function(plan) {
-            state.todayPlan = plan;
-            if (plan && plan.items) {
-                renderScheduleFromApi(plan);
-            } else {
+    // 检查 child.id 是否是后端ID（ch_开头）
+    var hasBackendId = child.id && String(child.id).indexOf('ch_') === 0;
+
+    if (hasBackendId) {
+        // Try backend API first, with knowledge context
+        var kbContext = null;
+        if (window.KNOWLEDGE && window.KNOWLEDGE.buildSOPContext) {
+            kbContext = window.KNOWLEDGE.buildSOPContext(child, child.location || 'hangzhou:binjiang', new Date());
+        }
+        var apiUrl = '/api/v1/children/' + encodeURIComponent(child.id) + '/plan/today';
+        if (kbContext) {
+            apiUrl += '?kb=' + encodeURIComponent(JSON.stringify(kbContext));
+        }
+        fetch(apiUrl)
+            .then(function(res) {
+                if (!res.ok) throw new Error('API error');
+                return res.json();
+            })
+            .then(function(plan) {
+                state.todayPlan = plan;
+                if (plan && plan.items) {
+                    renderScheduleFromApi(plan);
+                } else {
+                    renderKnowledgePlan(child, months);
+                }
+            })
+            .catch(function(e) {
+                console.log('Plan API failed, using local:', e);
                 renderKnowledgePlan(child, months);
-            }
-        })
-        .catch(function() {
-            // Fallback to local knowledge
-            renderKnowledgePlan(child, months);
-        });
+            });
+    } else {
+        // 没有后端ID，直接用本地知识库
+        renderKnowledgePlan(child, months);
+    }
 }
 function renderScheduleFromApi(plan) {
     var scheduleItems = (plan.items || []).map(function(item) {
