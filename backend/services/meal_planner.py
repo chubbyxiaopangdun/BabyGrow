@@ -1,100 +1,395 @@
 """
 BabyGrow 7天个性化食谱生成器
-根据宝宝月龄、过敏信息生成一周营养食谱
+SOP级别：精确到克/毫升/分钟/切法/火候
 """
 import json
 from typing import Dict, List, Optional
 
 
 # ============================================================
-# 月龄食物数据库
+# SOP级别月龄食物数据库
 # ============================================================
 
 AGE_FOODS = {
-    # 6月龄：糊状辅食
+    # ============================================================
+    # 6月龄：糊状辅食（第一次添加）
+    # ============================================================
     6: {
         "breakfast": [
-            {"name": "高铁米粉", "ingredients": ["婴儿米粉"], "steps": "温水冲调至糊状", "nutrition": "补铁+能量"},
-            {"name": "南瓜米糊", "ingredients": ["米粉", "南瓜"], "steps": "南瓜蒸熟打泥，拌入米糊", "nutrition": "维A+碳水"},
+            {
+                "name": "高铁米粉糊",
+                "ingredients": ["婴儿米粉 15g", "温水 90ml"],
+                "steps": [
+                    "① 量取 90ml 温开水（40-50°C），倒入碗中",
+                    "② 加入 15g 高铁米粉，顺时针搅拌 30 秒",
+                    "③ 静置 1 分钟让米粉充分吸水",
+                    "④ 再搅拌均匀至无颗粒糊状",
+                ],
+                "nutrition": "补铁（6月龄铁需求高峰）+ 碳水能量",
+                "texture": "用勺子舀起缓慢滴落的糊状，无颗粒",
+                "prep_time": "3分钟",
+                "notes": "首次添加从 1-2 勺开始，观察 3 天无过敏再加量",
+            },
+            {
+                "name": "南瓜米糊",
+                "ingredients": ["婴儿米粉 10g", "南瓜 30g", "温水 60ml"],
+                "steps": [
+                    "① 南瓜去皮去籽，切 1cm 薄片",
+                    "② 放入蒸锅，大火蒸 15 分钟至软烂（筷子轻松穿透）",
+                    "③ 蒸熟南瓜放入料理杯，加 30ml 温水，打成细腻泥状",
+                    "④ 米粉按说明冲好，加入南瓜泥搅拌均匀",
+                ],
+                "nutrition": "南瓜富含β-胡萝卜素（转化为维A），护眼+增强免疫",
+                "texture": "金黄色均匀糊状，略浓稠，有淡淡甜味",
+                "prep_time": "20分钟",
+                "notes": "南瓜选老南瓜更甜，贝贝南瓜也可",
+            },
         ],
         "lunch": [
-            {"name": "蔬菜泥", "ingredients": ["西兰花", "胡萝卜"], "steps": "蒸熟打泥，可加少量核桃油", "nutrition": "维C+维A"},
-            {"name": "土豆泥", "ingredients": ["土豆"], "steps": "蒸熟压泥，加母乳/配方奶调稀", "nutrition": "碳水+钾"},
+            {
+                "name": "西兰花土豆泥",
+                "ingredients": ["西兰花 20g", "土豆 40g", "核桃油 2ml"],
+                "steps": [
+                    "① 西兰花取花朵部分 20g，流水冲洗 30 秒",
+                    "② 清水浸泡 10 分钟（去除农药残留），再冲洗",
+                    "③ 土豆去皮，切 1cm 小丁（约 40g）",
+                    "④ 西兰花和土豆一起上锅，大火蒸 15 分钟",
+                    "⑤ 蒸熟后放入料理杯，加 20ml 温水，打成细腻泥",
+                    "⑥ 装碗后滴入 2ml 核桃油（约 4 滴），搅拌均匀",
+                ],
+                "nutrition": "西兰花：维C+叶酸 | 土豆：碳水+钾 | 核桃油：DHA+必需脂肪酸",
+                "texture": "翠绿色细腻泥状，无颗粒，油润有光泽",
+                "prep_time": "25分钟",
+                "notes": "首次添加西兰花需观察 3 天，土豆易致敏需单独观察",
+            },
+            {
+                "name": "胡萝卜苹果泥",
+                "ingredients": ["胡萝卜 30g", "苹果 30g"],
+                "steps": [
+                    "① 胡萝卜去皮，切 0.5cm 薄片（约 30g）",
+                    "② 苹果去皮去核，切 1cm 小丁（约 30g）",
+                    "③ 胡萝卜先上锅蒸 10 分钟（胡萝卜比苹果难熟）",
+                    "④ 加入苹果丁，继续蒸 5 分钟",
+                    "⑤ 全部放入料理杯，不加水打成泥（利用自身水分）",
+                ],
+                "nutrition": "胡萝卜：维A+β-胡萝卜素 | 苹果：果胶+维C，助消化",
+                "texture": "橙黄色泥状，有天然甜味，宝宝通常爱吃",
+                "prep_time": "20分钟",
+                "notes": "苹果氧化快，做好立即喂食，不要放置",
+            },
         ],
         "dinner": [
-            {"name": "果泥", "ingredients": ["苹果", "香蕉"], "steps": "刮泥或蒸熟打泥", "nutrition": "维C+钾"},
+            {
+                "name": "蛋黄南瓜米糊",
+                "ingredients": ["米粉 10g", "南瓜 20g", "鸡蛋 1个（只取蛋黄）"],
+                "steps": [
+                    "① 鸡蛋冷水下锅，大火煮开后转小火煮 10 分钟",
+                    "② 捞出过冷水 1 分钟，剥壳取蛋黄（蛋白 1 岁后再加）",
+                    "③ 蛋黄用勺子压碎成粉状",
+                    "④ 南瓜蒸熟打泥（同上方法）",
+                    "⑤ 米粉冲好，加入蛋黄碎和南瓜泥搅拌均匀",
+                ],
+                "nutrition": "蛋黄：卵磷脂+铁+维D | 南瓜：维A",
+                "texture": "淡黄色糊状，略粗糙（蛋黄颗粒），有浓郁蛋香",
+                "prep_time": "20分钟",
+                "notes": "蛋黄是补铁佳品，但部分宝宝可能过敏，首次只给 1/4 个观察",
+            },
         ],
         "snack": [
-            {"name": "母乳/配方奶", "ingredients": [], "steps": "", "nutrition": "主食"},
+            {
+                "name": "母乳/配方奶",
+                "ingredients": [],
+                "steps": [],
+                "nutrition": "主食，6月龄仍以奶为主（600-800ml/天）",
+                "texture": "液体",
+                "prep_time": "0分钟",
+                "notes": "辅食是尝味道+学吞咽，奶仍是主食",
+            },
         ],
     },
-    # 7-8月龄：碎末状
+
+    # ============================================================
+    # 7-8月龄：碎末状食物
+    # ============================================================
     7: {
         "breakfast": [
-            {"name": "蛋黄米粥", "ingredients": ["大米", "蛋黄"], "steps": "粥煮烂，蛋黄压碎拌入", "nutrition": "蛋白质+铁+碳水"},
-            {"name": "胡萝卜肉泥粥", "ingredients": ["大米", "胡萝卜", "猪肉"], "steps": "粥煮烂，肉和胡萝卜蒸熟打碎拌入", "nutrition": "蛋白质+维A"},
+            {
+                "name": "蛋黄菠菜粥",
+                "ingredients": ["大米 20g", "菠菜叶 15g", "鸡蛋 1个（蛋黄）"],
+                "steps": [
+                    "① 大米 20g 淘洗，加 200ml 水浸泡 10 分钟",
+                    "② 大火煮开转小火，煮 25 分钟至粥软烂开花",
+                    "③ 菠菜叶 15g 只取嫩叶，流水冲洗，沸水焯 30 秒去草酸",
+                    "④ 焯好的菠菜切碎成 0.3cm 末",
+                    "⑤ 鸡蛋煮熟取蛋黄，用勺子压碎",
+                    "⑥ 粥中加入菠菜碎和蛋黄碎，搅拌均匀再煮 3 分钟",
+                ],
+                "nutrition": "菠菜：铁+叶酸（焯水去草酸）| 蛋黄：卵磷脂+铁 | 大米：碳水",
+                "texture": "粥呈浓稠状，有可见的绿色菠菜碎末和黄色蛋黄碎",
+                "prep_time": "35分钟",
+                "notes": "菠菜必须焯水去草酸，否则影响钙吸收",
+            },
+            {
+                "name": "山药小米粥",
+                "ingredients": ["小米 20g", "铁棍山药 30g"],
+                "steps": [
+                    "① 小米 20g 淘洗干净",
+                    "② 铁棍山药 30g 去皮（戴手套防过敏），切 0.5cm 小丁",
+                    "③ 小米加 200ml 水，大火煮开",
+                    "④ 加入山药丁，转小火煮 20 分钟",
+                    "⑤ 煮至小米开花、山药软烂，搅拌均匀",
+                ],
+                "nutrition": "山药：健脾养胃+碳水 | 小米：B族维生素+铁",
+                "texture": "金黄色浓粥，山药丁软烂可用勺背压碎",
+                "prep_time": "30分钟",
+                "notes": "山药选铁棍山药（细长），口感更粉糯",
+            },
         ],
         "lunch": [
-            {"name": "番茄蛋羹", "ingredients": ["鸡蛋", "番茄"], "steps": "蛋液加温水1:1.5，加番茄碎，蒸12分钟", "nutrition": "蛋白质+维C"},
-            {"name": "鱼肉菜粥", "ingredients": ["大米", "鳕鱼", "青菜"], "steps": "粥煮烂，鱼蒸熟去刺压碎，青菜切碎", "nutrition": "DHA+蛋白质+纤维"},
+            {
+                "name": "番茄鸡肉碎面",
+                "ingredients": ["碎面 20g", "番茄 1/4个（约50g）", "鸡胸肉 20g", "核桃油 2ml"],
+                "steps": [
+                    "① 鸡胸肉 20g 切薄片，冷水下锅焯水 2 分钟去血沫",
+                    "② 捞出用料理棒打成肉泥（或刀剁成 0.2cm 碎末）",
+                    "③ 番茄 1/4 个顶部划十字，沸水烫 30 秒去皮",
+                    "④ 去皮番茄切碎丁（约 0.5cm），锅中加 2ml 核桃油炒 2 分钟出汁",
+                    "⑤ 加入 200ml 清水，大火煮开后下碎面",
+                    "⑥ 碎面煮 5 分钟，加入鸡肉泥搅拌",
+                    "⑦ 再煮 3 分钟，关火（面软烂无硬芯）",
+                ],
+                "nutrition": "番茄：维C+番茄红素（加热后更易吸收）| 鸡肉：优质蛋白+铁",
+                "texture": "面条约 1-2cm 碎段，汤汁浓稠，鸡肉碎末均匀分布",
+                "prep_time": "20分钟",
+                "notes": "番茄必须去皮去籽，籽可能引起过敏",
+            },
+            {
+                "name": "三文鱼土豆泥",
+                "ingredients": ["三文鱼 20g", "土豆 50g", "柠檬汁 2滴", "核桃油 2ml"],
+                "steps": [
+                    "① 土豆 50g 去皮切 1cm 小丁",
+                    "② 三文鱼 20g 去皮去刺，切 1cm 小块",
+                    "③ 柠檬汁 2 滴滴在三文鱼上腌 5 分钟去腥",
+                    "④ 土豆丁上锅大火蒸 15 分钟至软烂",
+                    "⑤ 三文鱼另取蒸锅蒸 8 分钟（蒸熟变粉色）",
+                    "⑥ 土豆压泥，三文鱼用叉子压碎成小块",
+                    "⑦ 混合搅拌，滴入 2ml 核桃油",
+                ],
+                "nutrition": "三文鱼：DHA+优质蛋白（脑发育关键）| 土豆：碳水+维C",
+                "texture": "白色土豆泥中有粉色三文鱼碎块，质地绵密",
+                "prep_time": "25分钟",
+                "notes": "三文鱼选新鲜/冰鲜，不要用烟熏三文鱼（含盐）",
+            },
         ],
         "dinner": [
-            {"name": "红薯小米粥", "ingredients": ["小米", "红薯"], "steps": "红薯切小丁，和小米同煮", "nutrition": "碳水+维A+膳食纤维"},
-            {"name": "苹果燕麦糊", "ingredients": ["燕麦", "苹果"], "steps": "燕麦煮烂，苹果蒸熟打泥拌入", "nutrition": "碳水+维C"},
+            {
+                "name": "红薯小米粥",
+                "ingredients": ["小米 20g", "红薯 30g"],
+                "steps": [
+                    "① 小米 20g 淘洗干净",
+                    "② 红薯 30g 去皮，切 0.8cm 小丁",
+                    "③ 小米加 200ml 水大火煮开",
+                    "④ 加入红薯丁，转小火煮 20 分钟",
+                    "⑤ 煮至红薯软烂、小米开花即可",
+                ],
+                "nutrition": "红薯：碳水+维A+膳食纤维（通便）| 小米：B族+铁",
+                "texture": "金黄色浓稠粥，红薯丁软烂可用勺子压碎",
+                "prep_time": "25分钟",
+                "notes": "红薯选红心薯更甜，白心薯淀粉含量高",
+            },
         ],
         "snack": [
-            {"name": "水果条", "ingredients": ["香蕉", "牛油果"], "steps": "切条，方便抓握", "nutrition": "健康脂肪+钾"},
+            {
+                "name": "香蕉牛油果条",
+                "ingredients": ["香蕉 1/2根", "牛油果 1/4个"],
+                "steps": [
+                    "① 香蕉选熟透的（有黑点），去皮切 5cm 长条（约手指粗细）",
+                    "② 牛油果选按压微软的，切 1/4 取果肉，切同样长条",
+                    "③ 摆放在盘中，让宝宝自己抓握食用",
+                ],
+                "nutrition": "香蕉：钾+碳水+天然甜味 | 牛油果：健康脂肪+叶酸",
+                "texture": "软条状，宝宝牙龈能轻松碾碎",
+                "prep_time": "3分钟",
+                "notes": "牛油果选墨西哥品种（皮黑肉绿），买回来放 2-3 天再用",
+            },
         ],
     },
+
+    # ============================================================
     # 9-10月龄：小块软食+手指食物
+    # ============================================================
     9: {
         "breakfast": [
-            {"name": "蔬菜蛋饼", "ingredients": ["鸡蛋", "胡萝卜", "菠菜"], "steps": "蛋液加蔬菜碎，小火煎熟切条", "nutrition": "蛋白质+维A+铁"},
-            {"name": "南瓜小米粥", "ingredients": ["小米", "南瓜"], "steps": "南瓜切丁和小米同煮", "nutrition": "碳水+维A"},
-            {"name": "酸奶燕麦", "ingredients": ["无糖酸奶", "燕麦"], "steps": "燕麦煮熟放凉，拌入酸奶", "nutrition": "钙+蛋白质+碳水"},
+            {
+                "name": "蔬菜鸡蛋饼",
+                "ingredients": ["鸡蛋 1个", "胡萝卜 15g", "菠菜 10g", "低筋面粉 10g", "核桃油 3ml"],
+                "steps": [
+                    "① 菠菜 10g 叶子焯水 30 秒，捞出切碎成 0.2cm 末",
+                    "② 胡萝卜 15g 去皮擦丝（约 2mm 细丝）",
+                    "③ 鸡蛋 1 个打入碗中，加入面粉 10g 搅拌至无干粉",
+                    "④ 加入菠菜碎和胡萝卜丝，搅拌均匀成可流动的面糊",
+                    "⑤ 平底锅小火，刷 1.5ml 核桃油",
+                    "⑥ 倒入面糊摊成 8cm 薄饼，煎 2 分钟底面金黄",
+                    "⑦ 翻面再煎 1.5 分钟（两面金黄、内部熟透）",
+                    "⑧ 出锅切成 2cm 宽条状，方便宝宝抓握",
+                ],
+                "nutrition": "鸡蛋：蛋白质+卵磷脂 | 菠菜：铁+叶酸 | 胡萝卜：维A",
+                "texture": "外酥内软，切成条宝宝可自主抓握，用牙龈可碾碎",
+                "prep_time": "12分钟",
+                "notes": "全程小火！大火会外焦里生。面粉可换成小米粉",
+            },
         ],
         "lunch": [
-            {"name": "鸡肉蔬菜软饭", "ingredients": ["大米", "鸡胸肉", "西兰花", "胡萝卜"], "steps": "饭煮软，鸡肉和蔬菜切小丁炒熟拌入", "nutrition": "蛋白质+维C+维A"},
-            {"name": "三文鱼土豆饼", "ingredients": ["三文鱼", "土豆"], "steps": "土豆蒸熟压泥，三文鱼碎拌入，小火煎", "nutrition": "DHA+碳水"},
+            {
+                "name": "番茄牛肉软饭",
+                "ingredients": ["大米 30g", "牛里脊 25g", "番茄 1/3个（约60g）", "土豆 30g", "核桃油 3ml"],
+                "steps": [
+                    "① 大米 30g 淘洗，加正常水量（比平时多 20ml）煮软饭",
+                    "② 牛里脊 25g 逆纹切薄片（约 2mm），再剁成 0.3cm 碎末",
+                    "③ 牛肉碎加 1ml 核桃油拌匀（锁住水分，口感嫩滑）",
+                    "④ 番茄 1/3 个去皮切 0.5cm 小丁",
+                    "⑤ 土豆 30g 去皮切 0.5cm 小丁",
+                    "⑥ 锅中 1.5ml 核桃油，中火炒牛肉碎 2 分钟至变色",
+                    "⑦ 加入番茄丁炒 2 分钟出汁，加入土豆丁和 50ml 水",
+                    "⑧ 盖盖小火焖 10 分钟至土豆软烂",
+                    "⑨ 拌入软饭中搅拌均匀",
+                ],
+                "nutrition": "牛肉：血红素铁+锌+蛋白质（补铁首选）| 番茄：维C促进铁吸收",
+                "texture": "米饭软烂，牛肉碎末约 0.3cm，番茄汁包裹每粒米饭",
+                "prep_time": "35分钟",
+                "notes": "牛肉逆纹切+提前腌油=嫩滑不柴。番茄+牛肉是补铁黄金搭配",
+            },
         ],
         "dinner": [
-            {"name": "番茄牛肉面", "ingredients": ["碎面", "番茄", "牛肉"], "steps": "面煮烂，牛肉末炒熟加番茄丁", "nutrition": "蛋白质+铁+维C"},
-            {"name": "虾仁豆腐羹", "ingredients": ["虾仁", "嫩豆腐"], "steps": "虾仁切碎，豆腐切小块，煮羹", "nutrition": "蛋白质+钙"},
+            {
+                "name": "虾仁豆腐蒸蛋",
+                "ingredients": ["鸡蛋 1个", "嫩豆腐 30g", "虾仁 20g", "香油 2滴"],
+                "steps": [
+                    "① 虾仁 20g 去虾线，切 0.5cm 小丁",
+                    "② 嫩豆腐 30g 切 1cm 小丁",
+                    "③ 鸡蛋 1 个打散，加 60ml 温水（蛋液:水 = 1:1.5）",
+                    "④ 过滤蛋液倒入蒸碗（去除气泡，蒸出来更嫩滑）",
+                    "⑤ 摆上虾仁丁和豆腐丁",
+                    "⑥ 盖保鲜膜（扎 3 个小孔透气），大火蒸 12 分钟",
+                    "⑦ 关火焖 2 分钟，出锅滴 2 滴香油",
+                ],
+                "nutrition": "虾仁：蛋白质+钙+锌 | 豆钙：植物蛋白+钙 | 鸡蛋：全营养",
+                "texture": "蛋羹嫩滑如布丁，勺子轻碰会晃动，虾仁 Q 弹",
+                "prep_time": "18分钟",
+                "notes": "蛋液过滤是关键！不过滤会有蜂窝。水温 40°C 最佳",
+            },
         ],
         "snack": [
-            {"name": "水果酸奶杯", "ingredients": ["无糖酸奶", "蓝莓", "香蕉"], "steps": "水果切小块拌入酸奶", "nutrition": "钙+维C+益生菌"},
-            {"name": "手指食物拼盘", "ingredients": ["蒸软的胡萝卜条", "南瓜条", "苹果条"], "steps": "蒸至微软，切条", "nutrition": "维A+维C+锻炼咀嚼"},
+            {
+                "name": "水果酸奶杯",
+                "ingredients": ["无糖酸奶 80g", "蓝莓 10颗", "香蕉 1/3根"],
+                "steps": [
+                    "① 蓝莓 10 颗冲洗，对半切开（防止整颗噎住）",
+                    "② 香蕉 1/3 根切 0.5cm 薄片",
+                    "③ 酸奶倒入杯中，铺上水果",
+                ],
+                "nutrition": "酸奶：钙+益生菌 | 蓝莓：花青素+维C | 香蕉：钾",
+                "texture": "酸奶浓稠，水果切成适合宝宝吞咽的大小",
+                "prep_time": "3分钟",
+                "notes": "必须选无糖/原味酸奶！含糖酸奶对宝宝牙齿不好",
+            },
         ],
     },
+
+    # ============================================================
     # 11-12月龄：接近大人食物质地
+    # ============================================================
     11: {
         "breakfast": [
-            {"name": "鸡蛋三明治", "ingredients": ["全麦面包", "鸡蛋", "生菜"], "steps": "鸡蛋煎熟，夹入面包和生菜", "nutrition": "蛋白质+碳水+纤维"},
-            {"name": "鲜虾云吞", "ingredients": ["云吞皮", "虾仁", "猪肉"], "steps": "馅料包入云吞皮，煮熟", "nutrition": "蛋白质+碳水"},
+            {
+                "name": "鲜虾云吞",
+                "ingredients": ["云吞皮 6片", "虾仁 30g", "猪肉馅 15g", "姜水 5ml", "葱花少许"],
+                "steps": [
+                    "① 虾仁 30g 去虾线，一半剁成泥，一半切 0.5cm 小粒（增加口感）",
+                    "② 猪肉馅 15g 加入虾泥，加 5ml 姜水（去腥），顺一个方向搅拌上劲",
+                    "③ 加入虾粒和少许葱花拌匀",
+                    "④ 云吞皮放掌心，取 5g 馅料放中间",
+                    "⑤ 对折捏紧（两边不用封口，像元宝形状）",
+                    "⑥ 锅中水烧开，下云吞，轻轻搅拌防粘",
+                    "⑦ 大火煮 4 分钟，云吞浮起即熟",
+                    "⑧ 捞出放凉至温热（约 40°C）再喂",
+                ],
+                "nutrition": "虾仁：蛋白质+钙+DHA | 猪肉：铁+锌 | 面皮：碳水能量",
+                "texture": "云吞皮薄透，馅料鲜嫩多汁，宝宝一口一个",
+                "prep_time": "25分钟",
+                "notes": "云吞可一次多包冷冻，随吃随煮（冷冻保存 2 周）",
+            },
         ],
         "lunch": [
-            {"name": "番茄牛肉烩饭", "ingredients": ["大米", "牛肉", "番茄", "土豆"], "steps": "牛肉切丁炒熟，加番茄土豆煮软，拌饭", "nutrition": "蛋白质+铁+维C"},
-            {"name": "彩虹蔬菜炒饭", "ingredients": ["米饭", "鸡蛋", "玉米", "豌豆", "胡萝卜"], "steps": "蔬菜丁焯水，和蛋一起炒饭", "nutrition": "蛋白质+纤维+维A"},
+            {
+                "name": "彩虹蔬菜炒饭",
+                "ingredients": ["米饭 60g", "鸡蛋 1个", "玉米粒 15g", "豌豆 15g", "胡萝卜 15g", "核桃油 3ml"],
+                "steps": [
+                    "① 胡萝卜 15g 去皮切 0.3cm 小丁",
+                    "② 玉米粒 15g 和豌豆 15g 沸水焯 2 分钟捞出",
+                    "③ 胡萝卜丁也焯 1 分钟（比玉米豌豆难熟）",
+                    "④ 鸡蛋打散备用",
+                    "⑤ 锅中 2ml 核桃油，中火倒入蛋液，炒至凝固盛出",
+                    "⑥ 锅中 1ml 核桃油，倒入蔬菜丁翻炒 1 分钟",
+                    "⑦ 加入米饭（隔夜饭最佳），中火翻炒 2 分钟打散",
+                    "⑧ 加入炒蛋碎，翻炒均匀 30 秒即可",
+                ],
+                "nutrition": "鸡蛋：蛋白质 | 胡萝卜：维A | 玉米+豌豆：纤维+碳水",
+                "texture": "米饭粒粒分明，蔬菜丁 0.3cm，色彩丰富宝宝爱看爱吃",
+                "prep_time": "15分钟",
+                "notes": "米饭提前放凉更好炒散。隔夜饭放冰箱取出回温 10 分钟",
+            },
         ],
         "dinner": [
-            {"name": "香菇鸡肉粥", "ingredients": ["大米", "鸡腿肉", "香菇", "青菜"], "steps": "粥煮至浓稠，加入切碎的鸡肉香菇", "nutrition": "蛋白质+多糖+纤维"},
-            {"name": "鳕鱼蔬菜面", "ingredients": ["碎面", "鳕鱼", "西兰花"], "steps": "面煮熟，鱼蒸熟去刺，蔬菜焯水切碎", "nutrition": "DHA+蛋白质+维C"},
+            {
+                "name": "香菇鸡肉粥",
+                "ingredients": ["大米 30g", "鸡腿肉 30g", "香菇 2朵", "青菜 15g", "姜片 1片"],
+                "steps": [
+                    "① 大米 30g 淘洗，加 300ml 水浸泡 10 分钟",
+                    "② 鸡腿肉 30g 去皮去骨，切 0.3cm 小丁",
+                    "③ 香菇 2 朵去蒂，切 0.3cm 小丁",
+                    "④ 青菜 15g 叶子切碎（约 0.3cm 末）",
+                    "⑤ 大米大火煮开，加 1 片姜，转小火煮 20 分钟",
+                    "⑥ 加入鸡肉丁和香菇丁，搅拌防粘底",
+                    "⑦ 继续小火煮 10 分钟至鸡肉熟透",
+                    "⑧ 加入青菜碎，再煮 2 分钟",
+                    "⑨ 关火，取出姜片，搅拌均匀即可",
+                ],
+                "nutrition": "鸡肉：优质蛋白+铁 | 香菇：多糖增强免疫 | 青菜：维C+纤维",
+                "texture": "粥浓稠绵滑，肉丁和香菇丁约 0.3cm，入口即化",
+                "prep_time": "40分钟",
+                "notes": "姜片去腥用，煮完取出。香菇选干香菇泡发更香",
+            },
         ],
         "snack": [
-            {"name": "水果拼盘", "ingredients": ["草莓", "蓝莓", "猕猴桃"], "steps": "切小块", "nutrition": "维C+抗氧化"},
-            {"name": "小肉丸", "ingredients": ["猪肉", "山药"], "steps": "肉末加山药泥搓丸蒸熟", "nutrition": "蛋白质+健脾"},
+            {
+                "name": "山药猪肉小肉丸",
+                "ingredients": ["猪里脊 30g", "铁棍山药 20g", "淀粉 5g", "蛋清 1/2个"],
+                "steps": [
+                    "① 猪里脊 30g 切薄片，再剁成肉泥（约 3 分钟）",
+                    "② 山药 20g 去皮，蒸熟后压成泥",
+                    "③ 肉泥 + 山药泥 + 淀粉 5g + 半个蛋清，顺一个方向搅拌 2 分钟至粘稠",
+                    "④ 手沾水，取 10g 一个搓成直径 2cm 小丸子",
+                    "⑤ 水烧开，转小火，逐个放入丸子",
+                    "⑥ 煮至丸子浮起（约 3 分钟），再煮 1 分钟确保熟透",
+                    "⑦ 捞出放温即可喂食",
+                ],
+                "nutrition": "猪肉：铁+锌 | 山药：健脾+碳水 | 蛋清：蛋白质增加弹性",
+                "texture": "丸子直径约 2cm，外滑内嫩，用牙龈可轻松碾碎",
+                "prep_time": "20分钟",
+                "notes": "可一次多做，煮熟后冷冻保存 2 周，随吃随煮",
+            },
         ],
     },
 }
 
-# 复用：11月龄的也适用于12月龄+
+# 复用
 AGE_FOODS[12] = AGE_FOODS[11]
 AGE_FOODS[10] = AGE_FOODS[9]
 AGE_FOODS[8] = AGE_FOODS[7]
 
 
 def get_age_group(age_months: int) -> int:
-    """将月龄映射到最近的食物组"""
     if age_months <= 6:
         return 6
     elif age_months <= 8:
@@ -106,14 +401,13 @@ def get_age_group(age_months: int) -> int:
 
 
 def filter_allergies(meals: List[dict], allergies: List[str]) -> List[dict]:
-    """过滤过敏食物"""
     if not allergies:
         return meals
     allergy_set = set(a.lower() for a in allergies)
     filtered = []
     for meal in meals:
-        ingredients_lower = [i.lower() for i in meal["ingredients"]]
-        if any(a in " ".join(ingredients_lower) for a in allergy_set):
+        all_text = " ".join(meal.get("ingredients", []) + [meal.get("name", "")]).lower()
+        if any(a in all_text for a in allergy_set):
             continue
         filtered.append(meal)
     return filtered
@@ -124,64 +418,44 @@ def generate_7day_meal_plan(
     allergies: List[str] = None,
     child_name: str = "宝宝",
 ) -> dict:
-    """
-    生成7天个性化食谱
-    
-    Returns:
-        {
-            "child_name": str,
-            "age_months": int,
-            "days": [
-                {
-                    "day": "周一",
-                    "date": "2026-05-04",
-                    "meals": {
-                        "breakfast": {...},
-                        "lunch": {...},
-                        "dinner": {...},
-                        "snack": {...}
-                    }
-                }
-            ],
-            "shopping_list": {...}
-        }
-    """
     from datetime import date, timedelta
-    
+
     age_group = get_age_group(age_months)
     foods = AGE_FOODS.get(age_group, AGE_FOODS[6])
     days_names = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
     today = date.today()
-    
+
     all_ingredients = []
     days = []
-    
+
     for i in range(7):
         day_date = today + timedelta(days=i)
         day_meals = {}
-        
+
         for meal_type in ["breakfast", "lunch", "dinner", "snack"]:
             available = foods.get(meal_type, [])
-            # 过滤过敏食物
             if allergies:
                 available = filter_allergies(available, allergies)
-            # 选择当天的菜品（轮换，确保7天不重复）
             if available:
                 meal = available[i % len(available)]
                 day_meals[meal_type] = meal
-                all_ingredients.extend(meal.get("ingredients", []))
+                for ing in meal.get("ingredients", []):
+                    # 提取食材名（去掉克数）
+                    import re
+                    name = re.sub(r'\s*\d+[\dgml]*', '', ing).strip()
+                    if name:
+                        all_ingredients.append(name)
             else:
                 day_meals[meal_type] = None
-        
+
         days.append({
             "day": days_names[i],
             "date": day_date.isoformat(),
             "meals": day_meals,
         })
-    
-    # 生成采购清单
+
     shopping_list = generate_shopping_list(all_ingredients)
-    
+
     return {
         "child_name": child_name,
         "age_months": age_months,
@@ -192,101 +466,42 @@ def generate_7day_meal_plan(
 
 
 def generate_shopping_list(ingredients: List[str]) -> dict:
-    """从食材列表生成分类采购清单"""
     categories = {
         "🥬 蔬菜": [],
         "🍎 水果": [],
-        "🥩 肉蛋": [],
+        "🥩 肉蛋海鲜": [],
         "🥛 奶制品": [],
         "🌾 主食/干货": [],
         "🫒 调料/其他": [],
     }
-    
-    veggie_keywords = ["胡萝卜", "西兰花", "菠菜", "南瓜", "土豆", "番茄", "红薯", "青菜", "豌豆", "玉米", "生菜", "山药"]
-    fruit_keywords = ["苹果", "香蕉", "蓝莓", "草莓", "猕猴桃", "牛油果"]
-    meat_keywords = ["鸡蛋", "猪肉", "牛肉", "鸡肉", "鸡胸肉", "鸡腿肉", "虾仁", "鳕鱼", "三文鱼", "鱼"]
-    dairy_keywords = ["酸奶", "牛奶", "奶酪", "配方奶"]
-    grain_keywords = ["大米", "小米", "燕麦", "碎面", "面条", "全麦面包", "云吞皮", "米粉", "面粉"]
-    
+
+    veggie_kw = ["胡萝卜", "西兰花", "菠菜", "南瓜", "土豆", "番茄", "红薯", "青菜", "豌豆", "玉米", "生菜", "山药", "香菇"]
+    fruit_kw = ["苹果", "香蕉", "蓝莓", "草莓", "猕猴桃", "牛油果", "柠檬"]
+    meat_kw = ["鸡蛋", "猪肉", "牛肉", "鸡肉", "鸡胸肉", "鸡腿肉", "虾仁", "鳕鱼", "三文鱼", "鱼", "虾"]
+    dairy_kw = ["酸奶", "牛奶", "奶酪", "配方奶", "豆腐"]
+    grain_kw = ["大米", "小米", "燕麦", "碎面", "面条", "全麦面包", "云吞皮", "米粉", "面粉", "米饭"]
+
     for ing in ingredients:
         ing = ing.strip()
         if not ing:
             continue
         matched = False
-        for kw in veggie_keywords:
-            if kw in ing:
-                categories["🥬 蔬菜"].append(ing)
-                matched = True
-                break
-        if matched: continue
-        for kw in fruit_keywords:
-            if kw in ing:
-                categories["🍎 水果"].append(ing)
-                matched = True
-                break
-        if matched: continue
-        for kw in meat_keywords:
-            if kw in ing:
-                categories["🥩 肉蛋"].append(ing)
-                matched = True
-                break
-        if matched: continue
-        for kw in dairy_keywords:
-            if kw in ing:
-                categories["🥛 奶制品"].append(ing)
-                matched = True
-                break
-        if matched: continue
-        for kw in grain_keywords:
-            if kw in ing:
-                categories["🌾 主食/干货"].append(ing)
-                matched = True
+        for kw_list, cat in [
+            (veggie_kw, "🥬 蔬菜"), (fruit_kw, "🍎 水果"),
+            (meat_kw, "🥩 肉蛋海鲜"), (dairy_kw, "🥛 奶制品"),
+            (grain_kw, "🌾 主食/干货"),
+        ]:
+            for kw in kw_list:
+                if kw in ing:
+                    categories[cat].append(ing)
+                    matched = True
+                    break
+            if matched:
                 break
         if not matched:
             categories["🫒 调料/其他"].append(ing)
-    
-    # 去重
+
     for cat in categories:
-        categories[cat] = list(dict.fromkeys(categories[cat]))  # 保持顺序去重
-    
+        categories[cat] = list(dict.fromkeys(categories[cat]))
+
     return categories
-
-
-# ============================================================
-# AI增强食谱（可选，用LLM微调默认食谱）
-# ============================================================
-
-MEAL_PLAN_PROMPT = """你是一位专业的婴幼儿营养师，为{child_name}（{age_months}月龄）生成7天辅食食谱。
-
-## 要求
-1. 每天包含：早餐、午餐、晚餐、加餐
-2. 每道菜包含：名称、食材（具体克数）、做法步骤、营养点评
-3. 7天菜品不重复
-4. 营养均衡：碳水+蛋白质+脂肪+维生素
-5. 适合{age_months}月龄的食物质地
-
-## 过敏规避
-{allergies}
-
-## 输出格式（JSON）
-{{
-  "days": [
-    {{
-      "day": "周一",
-      "meals": {{
-        "breakfast": {{"name": "...", "ingredients": ["..."], "steps": "...", "nutrition": "..."}},
-        "lunch": ...,
-        "dinner": ...,
-        "snack": ...
-      }}
-    }}
-  ]
-}}"""
-
-
-def build_meal_plan_prompt(child_name: str, age_months: int, allergies: str = "无") -> str:
-    return MEAL_PLAN_PROMPT.format(
-        child_name=child_name,
-        age_months=age_months,
-        allergies=allergies,
-    )
